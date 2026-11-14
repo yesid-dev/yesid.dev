@@ -238,17 +238,17 @@ describe('export source checks', () => {
 
 	it('emits a valid fake live snapshot and persists only the validated cache', async () => {
 		const emitDir = await mkdtemp(join(tmpdir(), 'deepen-export-valid-'));
-		const snapshot = {
+		const snapshot = await loadExport(createFixtureSource({
 			...structuredClone(fixture.data),
 			mediaAssets: buildMirroredMediaAssets(),
 			mediaVariants: {},
-		};
+		}));
 		// English-only live copy must still build under the production fail policy.
 		fixtureMedia(snapshot);
-		snapshot.blogPosts = snapshot.blogPosts.filter(
+		snapshot.blogPosts = snapshot.blogPosts!.filter(
 			(post) => post.lang === 'en',
 		);
-		Reflect.deleteProperty(snapshot.routeSeo[0]!.description!, 'fr');
+		Reflect.deleteProperty(snapshot.routeSeo![0]!.description!, 'fr');
 		try {
 			expect(
 				await run({
