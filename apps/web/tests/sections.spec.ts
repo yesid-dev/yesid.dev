@@ -30,7 +30,8 @@ test('bulk choice is remembered while TOC reveal affects only the current target
 	await expect(second).toHaveAttribute('aria-expanded', 'false');
 	if (page.viewportSize()!.width < 1024) await page.getByTestId('toc-pill').click();
 	const toc = page.viewportSize()!.width < 1024 ? page.getByTestId('toc-pill').getByRole('navigation') : page.locator('.toc-column nav');
-	await toc.getByRole('button', { name: 'The gate decides what ships', exact: true }).click();
+	const secondTitle = (await second.getByRole('heading').innerText()).trim();
+	await toc.getByRole('button', { name: secondTitle, exact: true }).click();
 	await expect(second).toHaveAttribute('aria-expanded', 'true');
 	await expect(first).toHaveAttribute('aria-expanded', 'false');
 	await expect(action(page)).toHaveText('Collapse all');
