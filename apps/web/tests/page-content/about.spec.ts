@@ -221,6 +221,8 @@ test.describe('weather scene system (GO Wave 4)', () => {
 		test.skip(page.viewportSize()!.width < 1024, 'Desktop only.');
 		const c = CASES.find((x) => x.name === 'storm-night')!;
 		await forceWeather(page, c);
+		// The card follows the real sun over Montréal: pin a Montréal night (22:00 EST).
+		await page.clock.install({ time: new Date('2026-11-15T03:00:00Z') });
 		await page.goto('/about');
 		const scene = page.locator(SCENE);
 		await expect(scene).toHaveAttribute('data-scene', c.scene);
