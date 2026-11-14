@@ -37,8 +37,12 @@ describe('contactContent', () => {
 			expect(contactContent.validation.required.en).toContain('{field}');
 		});
 
-		it('has errorSummary with {count} placeholder', () => {
-			expect(contactContent.validation.errorSummary.en).toContain('{count}');
+		it('has the published field-recovery guidance in every locale', () => {
+			expect(contactContent.validation.errorSummary).toEqual({
+				en: 'Check the indicated fields.',
+				fr: 'Vérifiez les champs indiqués.',
+				es: 'Hay campos que corregir.',
+			});
 		});
 	});
 

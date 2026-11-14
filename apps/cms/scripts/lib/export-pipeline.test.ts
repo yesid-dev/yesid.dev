@@ -6,6 +6,7 @@ import {
 	loadExport,
 } from './export-pipeline';
 import { buildMirroredMediaAssets, run } from '../export-fallbacks';
+import { fixtureMedia } from './content-media';
 import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -243,6 +244,7 @@ describe('export source checks', () => {
 			mediaVariants: {},
 		};
 		// English-only live copy must still build under the production fail policy.
+		fixtureMedia(snapshot);
 		snapshot.blogPosts = snapshot.blogPosts.filter(
 			(post) => post.lang === 'en',
 		);
