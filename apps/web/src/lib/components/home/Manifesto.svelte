@@ -277,9 +277,19 @@
 		background: color-mix(in srgb, var(--accent) 22%, transparent);
 	}
 
+	@media (min-width: 641px) and (max-width: 1023px) and (max-height: 840px) {
+		.manifesto__content, .manifesto__pills { position: static; }
+	}
+
 	@media (max-width: 640px) {
+		/* Let the full phone readout use the section as its CSS containing block. */
+		.manifesto__content, .manifesto__pills { position: static; }
 		.manifesto__pill { font-size: 12px; padding: 12px 16px; min-height: 44px; }
 		.manifesto__pills { gap: 6px; }
+	}
+
+	@media (min-width: 360px) and (max-width: 640px) and (min-height: 880px), (max-width: 360px) and (max-height: 840px) {
+		.manifesto__pills { position: relative; }
 	}
 
 	@media (prefers-reduced-motion: reduce) {
