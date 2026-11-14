@@ -221,6 +221,8 @@ test.describe('weather scene system (GO Wave 4)', () => {
 		test.skip(page.viewportSize()!.width < 1024, 'Desktop only.');
 		const c = CASES.find((x) => x.name === 'storm-night')!;
 		await forceWeather(page, c);
+		// The card follows the real sun over Montréal: pin a Montréal night (22:00 EST).
+		await page.clock.install({ time: new Date('2026-11-15T03:00:00Z') });
 		await page.goto('/about');
 		const scene = page.locator(SCENE);
 		await expect(scene).toHaveAttribute('data-scene', c.scene);
@@ -229,13 +231,13 @@ test.describe('weather scene system (GO Wave 4)', () => {
 		await expect(scene.locator('.weather-windows')).toHaveCount(1);
 	});
 
-	test('unknown icon code falls back to the clear scene', async ({ page }) => {
+	test('unknown icon code shows the offline scene, never invented clear weather', async ({ page }) => {
 		test.skip(page.viewportSize()!.width < 1024, 'Desktop only.');
 		await page.route('**/api/weather', (route) =>
 			route.fulfill({ json: { temp: 21, condition: 'meteor shower', icon: '77d' } })
 		);
 		await page.goto('/about');
-		await expect(page.locator(SCENE)).toHaveAttribute('data-scene', 'clear');
+		await expect(page.locator(SCENE)).toHaveAttribute('data-scene', 'offline');
 	});
 
 	test('scene is never blank: sky + skyline render', async ({
