@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import type { BlockEditorDoc } from '@repo/shared';
+import { ProjectSectionSchema, type BlockEditorDoc } from '@repo/shared';
 
 // Set the returning-visitor choice on the tested page, avoiding a home-page
 // navigation while Playwright creates each context's storage state.
@@ -35,7 +35,11 @@ for (const width of [320, 390, 768, 1024, 1440]) {
 				if (node?.type !== 'data' || !node.data) continue;
 				const data = unflatten(node.data);
 				if (!data.project) continue;
-				data.project.sections = [{ title: { [locale]: 'Table targets' }, content: { [locale]: doc } }];
+				// Routed content must keep the required English fallback in every locale.
+				data.project.sections = [ProjectSectionSchema.parse({
+					title: { en: 'Table targets', [locale]: 'Table targets' },
+					content: { en: doc, [locale]: doc },
+				})];
 				node.data = JSON.parse(stringify(data));
 			}
 			await route.fulfill({ response, json: payload });
