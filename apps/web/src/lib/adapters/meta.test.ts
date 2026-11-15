@@ -72,7 +72,7 @@ describe('resolvePageSeo', () => {
 	it('returns 404 entry with noIndex: true', async () => {
 		const seo = await resolvePageSeo('/__error', 'en');
 		expect(seo.noIndex).toBe(true);
-		expect(seo.title.en).toMatch(/Not Found/);
+		expect(seo.title.en).toBe("This page isn't available | yesid.");
 	});
 });
 

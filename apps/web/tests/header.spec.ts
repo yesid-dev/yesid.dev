@@ -1,4 +1,4 @@
-import { headerLanguageLink } from './_support/header-controls';
+import { headerLanguageLink, pillControls } from './_support/header-controls';
 import { localeCopy } from '../src/lib/locales';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -42,6 +42,12 @@ for (const locale of PUBLISHED_LOCALES) {
 		for (const item of menuItems) {
 			await expect(list.getByText(resolveLocale(item.label, locale), { exact: true })).toBeVisible();
 		}
+		// The open menu holds destinations only; both controls stay in the pill, once each.
+		const { theme, language } = pillControls(page);
+		await expect(theme).toBeVisible();
+		await expect(language).toBeVisible();
+		await expect(page.getByTestId('theme-toggle')).toHaveCount(1);
+		await expect(page.getByTestId('language-toggle')).toHaveCount(1);
 		await expect(toggle(page, locale)).toBeFocused();
 		await page.keyboard.press('Tab');
 		await expect(page.getByRole('dialog').locator(':focus')).toHaveCount(1);
@@ -82,6 +88,122 @@ for (const locale of PUBLISHED_LOCALES) {
 			const pill = (await page.getByTestId('nav-pill').boundingBox())!;
 			return pill.x >= 0 && pill.x + pill.width <= page.viewportSize()!.width;
 		}).toBe(true);
+	});
+}
+
+// The theme switch and language signpost stay in the navbar pill at every width (owner, 14 November 2026).
+// SiteHeader 0.42 shows priority 2 links from a 500px header until links-fit measures them; with both controls
+// in the pill that first row is wider than headers of about 500 to 555px, so that band is left to yesid.design.
+const CONTROL_WIDTHS = [320, 360, 375, 390, 414, 480, 600, 768, 1024, 1280, 1440, 1920];
+const contactLabel = (locale: Locale) => resolveLocale(menuItems.find((item) => item.href === '/contact')!.label, locale);
+
+async function expectControlsInPill(page: Page, locale: Locale) {
+	const shared = chrome[locale].navChrome.shared;
+	const { theme, language } = pillControls(page);
+	await expect(theme).toBeVisible();
+	await expect(language).toBeVisible();
+	await expect(theme).toHaveAccessibleName(shared.themeToggleAria);
+	await expect(language).toHaveAccessibleName(
+		new RegExp(`^${literal(shared.localeSwitcherAria)}: ${literal(shared.languageNames[locale])} [(]`),
+	);
+	for (const control of [theme, language]) {
+		const box = (await control.boundingBox())!;
+		expect(box.width).toBeGreaterThanOrEqual(44);
+		expect(box.height).toBeGreaterThanOrEqual(44);
+	}
+	const width = page.viewportSize()!.width;
+	const pill = (await page.getByTestId('nav-pill').boundingBox())!;
+	expect(pill.x).toBeGreaterThanOrEqual(0);
+	expect(pill.x + pill.width).toBeLessThanOrEqual(width);
+	expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+	if (width >= 375 && width < 500) {
+		await expect(page.getByTestId('nav-pill').getByRole('link', { name: contactLabel(locale), exact: true })).toBeVisible();
+	}
+}
+
+const controlBoxes = (page: Page) => page.evaluate(() =>
+	['theme-toggle', 'language-toggle'].map((id) => {
+		const box = document.querySelector(`[data-testid="nav-pill"] [data-testid="${id}"]`)!.getBoundingClientRect();
+		return { x: box.x, y: box.y, width: box.width, height: box.height };
+	}));
+
+for (const locale of PUBLISHED_LOCALES) {
+	test.describe(`${locale}: pill controls`, () => {
+		test.skip(({ viewport }) => viewport!.width !== 390 && viewport!.width !== 1440, 'Phone and desktop projects resize through every width');
+
+		test('stay in the pill at every width after hydration', async ({ page }) => {
+			for (const width of CONTROL_WIDTHS) {
+				await page.setViewportSize({ width, height: 900 });
+				await page.goto(start(locale));
+				await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+				await page.evaluate(() => document.fonts.ready);
+				await expectControlsInPill(page, locale);
+			}
+		});
+
+		test('keep their place through hydration', async ({ page }) => {
+			// Hold the app bundles so the server-rendered header can be measured before hydration.
+			let release = () => {};
+			let bundles = Promise.resolve();
+			await page.route('**/_app/immutable/**/*.js', async (route) => {
+				await bundles;
+				await route.continue();
+			});
+			try {
+				for (const width of CONTROL_WIDTHS) {
+					bundles = new Promise<void>((resolve) => { release = resolve; });
+					await page.setViewportSize({ width, height: 900 });
+					await page.goto(start(locale), { waitUntil: 'commit' });
+					await expect(pillControls(page).language).toBeVisible();
+					await page.evaluate(() => document.fonts.ready);
+					await expect(page.locator('html')).not.toHaveAttribute('data-hydrated');
+					const before = await controlBoxes(page);
+					release();
+					await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+					await page.evaluate(() => document.fonts.ready);
+					await expect.poll(async () => {
+						const after = await controlBoxes(page);
+						return Math.max(...after.flatMap((box, i) => [
+							Math.abs(box.x - before[i].x), Math.abs(box.y - before[i].y),
+							Math.abs(box.width - before[i].width), Math.abs(box.height - before[i].height),
+						]));
+					}).toBeLessThanOrEqual(1.5);
+				}
+			} finally {
+				release();
+				await page.unrouteAll({ behavior: 'wait' });
+			}
+		});
+
+		test('are reached by keyboard in pill order', async ({ page }) => {
+			for (const width of [320, 390, 768, 1440]) {
+				await page.setViewportSize({ width, height: 900 });
+				await page.goto(start(locale));
+				await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+				const { theme, language } = pillControls(page);
+				const focused = () => page.evaluate(() => document.activeElement?.getAttribute('data-testid'));
+				for (let step = 0; step < 20 && (await focused()) !== 'theme-toggle'; step++) await page.keyboard.press('Tab');
+				await expect(theme).toBeFocused();
+				await page.keyboard.press('Tab');
+				await expect(language).toBeFocused();
+				await page.keyboard.press('Tab');
+				await expect(toggle(page, locale)).toBeFocused();
+			}
+		});
+	});
+
+	test.describe(`${locale}: pill controls without JavaScript`, () => {
+		test.use({ javaScriptEnabled: false });
+		test.skip(({ viewport }) => viewport!.width !== 390 && viewport!.width !== 1440, 'Phone and desktop projects resize through every width');
+
+		test('stay in the pill at every width', async ({ page }) => {
+			for (const width of CONTROL_WIDTHS) {
+				await page.setViewportSize({ width, height: 900 });
+				await page.goto(start(locale));
+				await page.evaluate(() => document.fonts.ready);
+				await expectControlsInPill(page, locale);
+			}
+		});
 	});
 }
 

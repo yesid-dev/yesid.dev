@@ -175,7 +175,6 @@
 		class="site-shell flex min-h-screen flex-col overflow-x-clip font-body text-[var(--foreground)]"
 	>
 		<SiteHeader
-			compactControls
 			{navigation}
 			home={localizeHref('/', locale)}
 			links={headerLinks.map((link) => ({

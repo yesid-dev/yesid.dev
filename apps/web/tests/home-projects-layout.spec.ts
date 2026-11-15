@@ -1,6 +1,7 @@
 import { expect, test, type Locator } from '@playwright/test';
 import { PUBLISHED_LOCALES } from '../src/lib/utils/published-locales';
 import { expectCardContentInside } from './lib/project-card-geometry.js';
+import { installNavigationContentFixture, navigateWithContentFixture } from './_support/navigation-content-fixture';
 
 async function cardPositions(reel: Locator) {
 	return reel.evaluate(section => {
@@ -209,7 +210,32 @@ test('the shared project listing stays readable', async ({ page }) => {
 		expect(await card.evaluate(element => element.scrollWidth <= element.clientWidth + 1), 'listing content stays inside its card').toBe(true);
 	}
 	expect(await page.locator('[data-testid="project-hero-preview"][data-split="true"]').count(), 'some project supplies a phone screenshot').toBeGreaterThan(0);
+});
+
+test('a test-owned single-visual project stays whole and readable in the listing', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	const assertFixture = await installNavigationContentFixture(page, data => {
+		let replacements = 0;
+		for (const item of data) {
+			if (!item || typeof item !== 'object' || Array.isArray(item)) continue;
+			const row = item as Record<string, number>;
+			if (data[row.slug] !== 'yesid-design' || row.image === undefined) continue;
+			delete row.imageSecondary;
+			delete row.imageSecondaryLight;
+			replacements++;
+		}
+		return replacements;
+	});
+	await navigateWithContentFixture(page, '/projects');
+	assertFixture();
 	expect(await page.locator('[data-testid="project-hero-preview"][data-layout="single"]').count(), 'some project supplies one holistic visual').toBeGreaterThan(0);
+	const card = page.getByTestId('project-card').filter({ has: page.locator('[data-testid="project-hero-preview"][data-layout="single"]') });
+	await expect(card).toHaveCount(1);
+	await expectImagesFitPanes(card);
+	await expectMediaAboveInfo(card);
+	await expectCardContentInside(card);
+	await card.getByTestId('project-card-image').hover({ force: true });
+	await expectImagesFitPanes(card);
 });
 
 test('a project card opens from its link and its service labels', async ({ page }) => {
