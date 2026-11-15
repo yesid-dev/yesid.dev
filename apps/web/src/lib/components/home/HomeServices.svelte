@@ -11,6 +11,8 @@
 	import { pressBounce, cardParallax } from '@yesid/motion/actions';
 	import { Card } from '@yesid/ui/card';
 	import { morphHover } from '#lib/motion/actions/morphHover.js';
+	import { pointerHover } from '#lib/motion/actions/pointerHover.js';
+	import { prefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { loadDrawSVG } from '@yesid/motion/utils/gsap';
 	import { SVG_SHAPE_SELECTOR } from '#lib/motion/utils/morphHelpers.ts';
 	import { playSvgEntrance } from '#lib/motion/utils/svgEntrance.ts';
@@ -22,6 +24,7 @@
 	}: { servicesGrid: ServicesGridContent; services: readonly Service[] } = $props();
 
 	const orderedServices = $derived(orderServices(services));
+	const viewIllustrationAriaTemplate = $derived(resolveLocale(servicesGridContent.viewIllustrationAria, locale));
 
 	const viewAllLink = $derived(resolveLocale(servicesGridContent.viewAllLink, locale));
 
@@ -29,6 +32,7 @@
 
 	// Morphing waits for each injected SVG's entrance; readiness flags seed once and remain locally owned.
 	const svgReady = $state<boolean[]>(untrack(() => orderedServices.map(() => false)));
+	const svgHovered = $state<boolean[]>(untrack(() => orderedServices.map(() => false)));
 
 	onMount(() => {
 		if (!browser || !sectionEl) return;
@@ -99,19 +103,26 @@
 			{@const title = resolveLocale(service.title, locale)}
 			{@const metricValue = service.impactMetric ? resolveLocale(service.impactMetric.value, locale) : ''}
 			{@const metricLabel = service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : ''}
-			<!-- The card is one link (its title's link covers it); the art morphs while the card is hovered and drifts with a fine pointer. -->
+			<!-- The title link covers the card; the illustration keeps its own action above that link. -->
 			<div
 				class="services-card-item"
 				use:cardParallax
-				use:morphHover={{ enabled: svgReady[i], disableClickToggle: true }}
+				use:pointerHover={(hovering) => (svgHovered[i] = hovering)}
 			>
 				<Card interactive class="services-card relative h-full gap-0 py-0">
 					<div class="services-icon-zone relative">
-						<div data-testid="services-svg-panel" class="services-svg-panel">
+						<button
+							type="button"
+							data-testid="services-svg-panel"
+							class="services-svg-panel"
+							aria-label={viewIllustrationAriaTemplate.replace('{title}', title)}
+							disabled={!svgReady[i] || $prefersReducedMotion}
+							use:morphHover={{ enabled: svgReady[i] && !$prefersReducedMotion, hovered: svgHovered[i] }}
+						>
 							<div class="svg-inline-wrapper pointer-events-none">
 								<img src="/svg/services/{service.svg}" alt="" width="96" height="96" />
 							</div>
-						</div>
+						</button>
 					</div>
 
 					<div class="services-content">
@@ -213,6 +224,12 @@
 	}
 
 	.services-svg-panel {
+		position: relative;
+		z-index: 2;
+		appearance: none;
+		padding: 0;
+		font: inherit;
+		cursor: pointer;
 		width: 128px;
 		height: 128px;
 		border-radius: 22px;
@@ -224,6 +241,15 @@
 		transition:
 			background-color 250ms var(--ease-default),
 			border-color 250ms var(--ease-default);
+	}
+
+	.services-svg-panel:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 4px;
+	}
+
+	.services-svg-panel:disabled {
+		cursor: default;
 	}
 
 	.services-card-item:hover .services-svg-panel {

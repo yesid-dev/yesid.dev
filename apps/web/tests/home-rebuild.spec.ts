@@ -5,6 +5,50 @@ import contract from '../../../contracts/kpis-v1.examples.json' with { type: 'js
 
 const KPIS = 'https://transit.yesid.dev/api/v1/kpis';
 
+test.beforeEach(async ({ page }) => {
+	await page.route(/web3forms|plausible|cal\.com|\/api\/event/, route => route.abort());
+});
+
+test('service illustrations keep their own keyboard and touch action', async ({ page, isMobile }) => {
+	await page.emulateMedia({ reducedMotion: 'no-preference' });
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+	const card = page.locator('.services-card').first();
+	const panel = card.getByTestId('services-svg-panel');
+	await panel.scrollIntoViewIfNeeded();
+	await expect(panel).toHaveRole('button');
+	await expect(panel).toHaveAccessibleName(/illustration/i);
+	await expect(panel).toBeEnabled();
+	const distinctShapes = () => panel.locator('svg').evaluate(svg =>
+		new Set([...svg.querySelectorAll('path')].map(path => path.getAttribute('d'))).size
+	);
+	if (isMobile) await panel.tap();
+	else {
+		await panel.focus();
+		await page.keyboard.press('Enter');
+	}
+	await expect.poll(distinctShapes).toBe(1);
+	expect(new URL(page.url()).pathname).toBe('/');
+	if (isMobile) await panel.tap();
+	else await page.keyboard.press('Enter');
+	await expect.poll(distinctShapes).toBeGreaterThan(1);
+	const link = card.getByTestId('services-card');
+	const destination = await link.getAttribute('href');
+	await link.click();
+	await expect.poll(() => new URL(page.url()).pathname).toBe(destination);
+});
+
+test('service illustration controls keep the still form under reduced motion', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+	const panels = page.getByTestId('services-svg-panel');
+	for (const panel of await panels.all()) {
+		await expect(panel).toHaveRole('button');
+		await expect(panel).toBeDisabled();
+	}
+});
+
 /** Opt into the real polling path with a local, controllable Transit response. */
 async function liveTransit(page: Page) {
 	const control = { fail: false, hold: false, release: () => {} };
