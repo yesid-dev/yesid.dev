@@ -16,4 +16,15 @@ describe('ProjectImpactCard', () => {
 		expect(screen.queryByRole('link', { name: 'Source: synthetic cited claim' })).toBeNull();
 		expect(screen.queryByText('As of November 4, 2026')).toBeNull();
 	});
+
+	it('preserves the figure and label with the kit reading tone (D-M2 answer 4A)', () => {
+		const project = projectFactory.build({ impactMetrics: [{ value: { en: '20 s' }, label: { en: 'live refresh' } }] });
+		render(ProjectImpactCard, { project });
+		const value = screen.getByText('20 s');
+		expect(value).toHaveClass('metric-value', 'text-foreground');
+		expect(value).not.toHaveClass('text-accent-text');
+		const label = screen.getByText('live refresh');
+		expect(label).toBeVisible();
+
+	});
 });

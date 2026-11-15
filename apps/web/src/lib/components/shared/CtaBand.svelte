@@ -19,7 +19,9 @@
 	const githubLabel = $derived(resolveLocale(ctaContent.ctaGithub, locale));
 </script>
 
-<Separator variant="hazard" />
+<!-- Its own top edge until the page adopts PageSections; inside a registered PageSection the
+     kit hides it (data-edge-rule) and the section boundary draws the divider (D22). -->
+<Separator variant="hazard" data-edge-rule />
 <section class="cta-band-shell" data-testid={testidPrefix}>
 	<CtaBlueprintBackground />
 	<div class="cta-band">

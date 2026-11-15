@@ -42,6 +42,7 @@
 		title={resolveLocale(codeChrome.title, locale)}
 		language={parsed.language ? parsed.normalizedLanguage : undefined}
 		{copy}
+		rule="dimension"
 		children={highlightedHtml ? highlighted : undefined}
 	/>
 {/if}

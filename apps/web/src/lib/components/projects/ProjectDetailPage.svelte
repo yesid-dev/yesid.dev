@@ -13,7 +13,6 @@
 	const tocHeading = resolveLocale(siteLabels.navChrome.shared.tocHeading, locale);
 	const tocOpenAria = resolveLocale(siteLabels.navChrome.shared.tocMobileButton, locale);
 	const tocCloseAria = resolveLocale(siteLabels.navChrome.shared.tocCloseAria, locale);
-	const tocCounterPrefix = resolveLocale(siteLabels.navChrome.shared.tocCounterPrefix, locale);
 	const detailChrome = siteLabels.projectsChrome.detail;
 	const readmeSectionTitle = resolveLocale(detailChrome.readmeSectionTitle, locale);
 	const glanceStackTitle = resolveLocale(detailChrome.glance.stack, locale);
@@ -27,12 +26,14 @@
 		useSectionJump,
 		type TocEntry,
 	} from '@yesid/ui/brand';
-	import { ArticleHeader, DetailFrame } from '@yesid/ui/layout';
+	import { ArticleHeader, DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
 
 	import { collectProjectGalleryImages } from '#lib/projects/project-images.ts';
 	import { collectProjectVideos, youtubeLabels } from '#lib/utils/youtube.ts';
 	import ProjectGlancePanel from './ProjectGlancePanel.svelte';
-	import ProjectHeaderTelemetry from './ProjectHeaderTelemetry.svelte';
+	import ProjectHeaderCrosshair from './ProjectHeaderCrosshair.svelte';
+	import { forDevelopersSummaries, isForDevelopersSection } from './editorial-copy.ts';
+	import { pillStepsAside } from '#lib/components/shared/pill-steps-aside.svelte.ts';
 	import MediaGallery from '#lib/components/media/MediaGallery.svelte';
 	import MediaLightbox from '#lib/components/media/MediaLightbox.svelte';
 	import { articleMediaLabels, setArticleMedia } from '#lib/media/article-media.svelte.ts';
@@ -73,7 +74,16 @@
 		title: string;
 		doc: BlockEditorDoc;
 		isImageGallery: boolean;
+		/** "For developers": optional, so it starts closed on a first visit (Y-12, answer 5A). */
+		forDevelopers: boolean;
 	};
+
+	/*
+	 * Full-bleed (owner, 15 November): the story keeps today's share (half of what the columns get,
+	 * 1 : 2 : 1) until it reaches its reading measure, then stays centred at 48rem while the side
+	 * panels take the extra width out to the viewport's edges.
+	 */
+	const STORY_MEASURE = 'min(48rem, (100% - 2 * var(--detail-grid-gap)) / 2)';
 
 	function isImageGalleryDoc(doc: BlockEditorDoc): boolean {
 		// An explicit layout or theme-pair choice asks for inline rendering, so the
@@ -141,6 +151,7 @@
 				title: resolveLocale(section.title, locale),
 				doc,
 				isImageGallery: isImageGalleryDoc(doc),
+				forDevelopers: isForDevelopersSection(section.title),
 			};
 		})
 	);
@@ -215,7 +226,18 @@
 		);
 	});
 
+	const forDevelopersSummary = $derived(
+		forDevelopersSummaries[project.slug] ? resolveLocale(forDevelopersSummaries[project.slug], locale) : '',
+	);
+
 	const navigation = useSectionJump(afterNavigate);
+
+	// The phone contents pill steps aside once the closing band reaches it, so it never covers
+	// "Get in touch" or a focused link (WCAG 2.4.11).
+	const pill = pillStepsAside('[data-pill-aside-start]');
+	const pillLabels = $derived(
+		pill.aside ? {} : { openAria: tocOpenAria, closeAria: tocCloseAria },
+	);
 
 	registerDetailReadingPosition('.sections-column [data-section-index]', navigation);
 </script>
@@ -235,6 +257,10 @@
 	{/if}
 {/snippet}
 
+{#snippet developersSummary()}
+	<p data-testid="project-section-summary">{forDevelopersSummary}</p>
+{/snippet}
+
 {#snippet after()}
 	<div class="lg:hidden px-[var(--space-page-x)] pb-8">
 		<ProjectGlancePanel
@@ -250,10 +276,6 @@
 			</div>
 		{/if}
 	</div>
-
-	<section class="cta-area" data-testid="project-cta">
-		<CtaBand testidPrefix="project-cta-band" />
-	</section>
 {/snippet}
 
 <div style="padding-top: var(--chrome-offset);">
@@ -268,9 +290,13 @@
 		</div>
 	{/snippet}
 
+	<PageSections>
+	<PageSection>
 	<DetailFrame
 		data-testid="project-detail-page"
 		class="reading-detail"
+		rule="dimension"
+		measure={STORY_MEASURE}
 		{right}
 		{after}
 		railScroll
@@ -278,8 +304,8 @@
 		toc={{
 			entries: tocEntries,
 			pillEntries: mobileTocEntries,
-			openAria: tocOpenAria,
-			closeAria: tocCloseAria,
+			...pillLabels,
+			counter: false,
 			navigation,
 			selector: '[id^="readme-h-"]',
 			landFragments: true,
@@ -294,13 +320,13 @@
 				testId="project-detail-header"
 			>
 				{#snippet decorations()}
-					<ProjectHeaderTelemetry {project} />
+					<ProjectHeaderCrosshair />
 				{/snippet}
 				{#snippet actions()}
 					<ProjectProofLinks {project} />
 				{/snippet}
 				{#snippet controls()}
-					<SectionsToggle />
+					<SectionsToggle activeEffect="none" />
 				{/snippet}
 			</ArticleHeader>
 		{/snippet}
@@ -312,7 +338,7 @@
 					activeId={activeHeadingId}
 					{navigation}
 					heading={tocHeading}
-					counterPrefix={tocCounterPrefix}
+					counter={false}
 				/>
 				{#if hasImpact}
 					<div class="toc-impact-stack" data-ripple-exempt>
@@ -341,6 +367,8 @@
 						title={section.title}
 						index={index}
 						open={index === 0}
+						firstVisitClosed={section.forDevelopers}
+						summary={section.forDevelopers && forDevelopersSummary ? developersSummary : undefined}
 					>
 						<div class="article-body section-body"><BlockRenderer doc={section.doc} codeHighlights={codeHighlights} /></div>
 					</CollapsibleSection>
@@ -377,15 +405,17 @@
 			{/if}
 		</div>
 	</DetailFrame>
+	</PageSection>
+
+	<PageSection data-testid="project-cta" data-pill-aside-start>
+		<CtaBand testidPrefix="project-cta-band" />
+	</PageSection>
+	</PageSections>
 </div>
 
 <MediaLightbox {media} />
 
 <style>
-
-	.cta-area {
-		margin-top: 1rem;
-	}
 
 	/* Section blocks match the side-column card spacing (mb-4 = 1rem) so the
 	   center column isn't airier than the rails. */
@@ -399,6 +429,18 @@
 
 	.toc-column {
 		padding-bottom: 1rem;
+	}
+
+	/* On very wide screens each panel keeps a comfortable width, held at its own outer edge. */
+	@media (--desktop-min) {
+		.toc-column,
+		.glance-column {
+			max-width: 36rem;
+		}
+
+		.glance-column {
+			margin-inline-start: auto;
+		}
 	}
 
 	.toc-gallery-stack {

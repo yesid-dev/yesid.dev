@@ -29,6 +29,15 @@ describe('SectionsToggle', () => {
 		expect(screen.getAllByTestId('sections-toggle')).toHaveLength(1);
 		expect(screen.getByTestId('sections-controls').querySelectorAll('button')).toHaveLength(1);
 	});
+	it('keeps the glow by default and drops it on request (editorial pages, D21)', () => {
+		render(Fixture);
+		flushSync();
+		expect(screen.getByTestId('sections-controls')).toHaveClass('sections-controls--glow');
+		cleanup();
+		render(Fixture, { props: { activeEffect: 'none' } });
+		flushSync();
+		expect(screen.getByTestId('sections-controls')).not.toHaveClass('sections-controls--glow');
+	});
 	it.each([0, 1])('hides with %i content sections', (count) => {
 		render(Fixture, { props: { count } });
 		flushSync();
