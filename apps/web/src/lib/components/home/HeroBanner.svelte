@@ -710,7 +710,6 @@
 		transition: box-shadow var(--duration-normal), transform var(--duration-normal);
 	}
 	.refresh-btn:hover {
-		box-shadow: var(--shadow-cta-hover);
 		transform: translateY(-1px);
 	}
 

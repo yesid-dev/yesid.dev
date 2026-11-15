@@ -56,7 +56,7 @@
 	{...rest}
 >
 	<div use:cursorGlow>
-		<Card class="blog-row p-5 md:p-6" style="--blog-row-accent: {accentColor};">
+		<Card interactive class="blog-row p-5 md:p-6" style="--blog-row-accent: {accentColor};">
 			<!-- SVG icon -->
 			{#if svgContent}
 				<div class="blog-row-icon relative z-10">
