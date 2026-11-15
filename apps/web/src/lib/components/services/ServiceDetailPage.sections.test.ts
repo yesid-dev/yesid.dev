@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import ServiceDetailPage from './ServiceDetailPage.svelte';
 import { serviceFactory } from '../../../tests/factories';
 
@@ -20,11 +20,13 @@ describe('ServiceDetailPage sections', () => {
 			],
 		});
 
-		render(ServiceDetailPage, {
+		const { container } = render(ServiceDetailPage, {
 			props: { service, services: [service], relatedProjects: [], serviceSvgContents: {} },
 		});
 
-		const items = screen.getAllByRole('listitem');
+		// The station strip is a list too; read the section's own list.
+		const section = container.querySelector<HTMLElement>('[data-toc="svc-section-0"]')!;
+		const items = within(section).getAllByRole('listitem');
 		expect(items.map((li) => li.textContent?.trim())).toEqual([
 			'Your site loads slowly',
 			'Customers cannot find you',

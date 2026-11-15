@@ -148,7 +148,7 @@ for (const locale of ['', '/fr', '/es'])
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		await page.goto(`${locale}/services?fixture=retained`);
 		await expect(page.locator('[data-testid="service-listing-page"]')).toBeVisible();
-		const ids = await page.locator('.service-viewport').evaluateAll((cards) =>
+		const ids = await page.locator('[data-testid^="service-card-"]').evaluateAll((cards) =>
 			cards.map((card) => {
 				(card as HTMLElement).style.minHeight = '1800px';
 				return card.id.slice('service-'.length);
@@ -161,7 +161,7 @@ for (const locale of ['', '/fr', '/es'])
 					.locator(`#service-${id}`)
 					.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + scrollY - 160));
 				await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute(
-					'aria-selected',
+					'aria-current',
 					'true',
 				);
 				expect(new URL(page.url()).search).toBe('?fixture=retained');
@@ -169,31 +169,25 @@ for (const locale of ['', '/fr', '/es'])
 	});
 
 for (const width of [1024, 1366])
-	test(`long service content remains inside its station at ${width}x600`, async ({ page }) => {
+	test(`long service content remains inside its card at ${width}x600`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 600 });
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		await page.goto('/fr/services');
-		const card = page.locator('.service-viewport').first();
-		await expect(card.locator('.service-description')).toBeVisible();
-		await card.locator('.service-description').evaluate((el) => {
+		const item = page.locator('[data-testid^="service-card-"]').first();
+		await expect(item.locator('.service-description')).toBeVisible();
+		await item.locator('.service-description').evaluate((el) => {
 			el.textContent =
 				'Un service avec une description détaillée et des exigences variables. '.repeat(24);
 		});
-		const bounds = await card.evaluate((el) => {
-			const card = el.getBoundingClientRect(),
-				inner = el.querySelector('.viewport-inner')!.getBoundingClientRect();
-			return {
-				cardBottom: card.bottom,
-				innerBottom: inner.bottom,
-				cardTop: card.top,
-				innerTop: inner.top,
-			};
+		const bounds = await item.evaluate((el) => {
+			const card = el.querySelector('[data-slot="card"]')!.getBoundingClientRect(),
+				text = el.querySelector('.service-text')!.getBoundingClientRect(),
+				next = el.nextElementSibling?.getBoundingClientRect();
+			return { cardBottom: card.bottom, textBottom: text.bottom, cardTop: card.top, textTop: text.top, nextTop: next?.top ?? Infinity };
 		});
-		expect(
-			bounds.innerBottom,
-			'content must not overlap the following station',
-		).toBeLessThanOrEqual(bounds.cardBottom + 1);
-		expect(bounds.innerTop).toBeGreaterThanOrEqual(bounds.cardTop);
+		expect(bounds.textBottom, 'content stays inside its card').toBeLessThanOrEqual(bounds.cardBottom + 1);
+		expect(bounds.textTop).toBeGreaterThanOrEqual(bounds.cardTop);
+		expect(bounds.cardBottom, 'the card never overlaps the next service').toBeLessThanOrEqual(bounds.nextTop);
 	});
 
 test('station activation follows a short viewport resize and cleared deep link', async ({
@@ -212,14 +206,14 @@ test('station activation follows a short viewport resize and cleared deep link',
 			timeout: 1000,
 		});
 	}).toPass();
-	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-current', 'true');
 	await page.reload();
-	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-current', 'true');
 	await page.setViewportSize({ width: 1024, height: 600 });
 	await page
 		.locator(`#service-${id}`)
 		.evaluate((el) => window.scrollTo(0, el.getBoundingClientRect().top + scrollY));
-	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute('aria-current', 'true');
 });
 
 for (const locale of PUBLISHED_LOCALES)
@@ -245,28 +239,13 @@ for (const locale of PUBLISHED_LOCALES)
 	});
 
 for (const locale of PUBLISHED_LOCALES)
-	test(`${locale}: the first station centres under the tabs when it fits and grows safely otherwise`, async ({ page }) => {
-		const width = page.viewportSize()!.width;
-		const tall = 1080;
-		for (const height of [600, tall]) {
-			await page.setViewportSize({ width, height });
-			await page.goto(listing(locale));
-			await page.evaluate(() => document.fonts.ready);
-			const hero = await tokenPx(page, '--text-hero');
-			for (const title of await page.locator('[data-testid^="service-card-"]').getByRole('heading', { level: 2 }).all())
-				expect(await title.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeLessThan(hero);
-
-			const tabs = (await page.getByRole('tablist').boundingBox())!;
-			const entry = await page.locator('[data-testid^="service-card-"]').first().evaluate((card) => {
-				const boxes = [...card.querySelectorAll('*')]
-					.filter((el) => !(el instanceof SVGElement) && el.checkVisibility())
-					.map((el) => el.getBoundingClientRect());
-				return { top: Math.min(...boxes.map((box) => box.top)), bottom: Math.max(...boxes.map((box) => box.bottom)) };
-			});
-			const above = entry.top - (tabs.y + tabs.height);
-			const below = height - entry.bottom;
-			expect(above, 'the first station never sits under the tabs').toBeGreaterThanOrEqual(0);
-			if (height === tall) expect(Math.abs(above - below), 'centred under the tabs').toBeLessThanOrEqual(1);
-			else expect(below - above, 'centred, or top-aligned only when too tall to centre').toBeLessThanOrEqual(1);
-		}
+	test(`${locale}: service titles read at reading size and the first card starts below the strip`, async ({ page }) => {
+		await page.goto(listing(locale));
+		await page.evaluate(() => document.fonts.ready);
+		const title = await tokenPx(page, '--text-title');
+		for (const heading of await page.locator('[data-testid^="service-card-"]').getByRole('heading', { level: 2 }).all())
+			expect(await heading.evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeLessThanOrEqual(title + 0.5);
+		const strip = (await page.getByTestId('station-strip').boundingBox())!;
+		const first = (await page.locator('[data-testid^="service-card-"]').first().boundingBox())!;
+		expect(first.y, 'the first card never sits under the strip').toBeGreaterThanOrEqual(strip.y + strip.height);
 	});

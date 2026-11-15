@@ -4,7 +4,8 @@ import { heroContent } from '../src/lib/content/site-content';
 async function styles(target: Locator) {
  return target.evaluate(el => {
   const s = getComputedStyle(el);
-  return { shadow: s.boxShadow, textShadow: s.textShadow, filter: s.filter, transform: s.transform, border: s.borderColor, color: s.color };
+  // Kit buttons lift through the `translate` property (Tailwind v4), cards through `transform`.
+  return { shadow: s.boxShadow, textShadow: s.textShadow, filter: s.filter, transform: s.transform, translate: s.translate, border: s.borderColor, color: s.color };
  });
 }
 async function checkHover(page: Page, trigger: Locator, target = trigger, staticShadow = false) {
@@ -19,7 +20,7 @@ async function checkHover(page: Page, trigger: Locator, target = trigger, static
  expect(after.textShadow).toBe(before.textShadow);
  expect(after.filter).toBe(before.filter);
  if (!staticShadow) expect(after.shadow === 'none' || after.shadow.includes('inset')).toBe(true);
- expect(after.transform !== before.transform || after.border !== before.border || after.color !== before.color).toBe(true);
+ expect(after.transform !== before.transform || after.translate !== before.translate || after.border !== before.border || after.color !== before.color).toBe(true);
  return { before, after };
 }
 for (const theme of ['light', 'dark']) {

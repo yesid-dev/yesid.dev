@@ -1,19 +1,25 @@
+<!--
+  The services' orange top strip and service selector (D-M5, owner 15 November 2026).
+  A list of links drawn with yesid.design's station-tabs.css: in `scroll` mode (Services) each
+  station jumps to its service and the one in view carries aria-current; in `navigate` mode
+  (a service page) each station opens its service's page and the current one is
+  aria-current="page". The strip's band runs up behind the header pill to the window's top
+  edge, one unbroken orange in both themes with the dark signage ink. The page decides
+  whether the strip sticks.
+-->
 <script lang="ts">
 	import type { Service } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { siteLabels } from '#lib/content/index.ts';
-	import { orderServices, stationNumber } from '#lib/utils/station.ts';
-	import { Separator } from '@yesid/ui/separator';
-	import * as Tabs from '@yesid/ui/tabs';
+	import { orderServices } from '#lib/utils/station.ts';
+	import { servicesLabels } from '#lib/components/services/services-labels.ts';
 	import { isPrefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { scrollChain } from '@yesid/motion/actions';
-	import { onMount, onDestroy } from 'svelte';
 
 	// Keyed pages remount, so the initialization-time locale stays current.
 	const locale = getLocale();
-	const serviceNavAria = resolveLocale(siteLabels.servicesChrome.detail.serviceNavAria, locale);
 
 	let {
 		services,
@@ -27,10 +33,14 @@
 		onSelect?: (id: string) => void;
 	} = $props();
 
-	let sorted = $derived(orderServices(services));
-	let ready = $state(false);
+	const navAria = $derived(
+		resolveLocale(
+			mode === 'navigate' ? siteLabels.servicesChrome.detail.serviceNavAria : servicesLabels.stationsOnPageAria,
+			locale,
+		),
+	);
 
-	let activeIndex = $derived(sorted.findIndex((s) => s.id === activeId));
+	let sorted = $derived(orderServices(services));
 
 	const stationShortLabels = siteLabels.servicesChrome.listing.stationShortLabels;
 
@@ -40,14 +50,7 @@
 		return resolveLocale(service.title, locale);
 	}
 
-	// Rendered light-theme contrast stays above 4.5:1 at the 0.9 floor.
-	function getOpacity(index: number): number {
-		if (activeIndex === -1) return 1;
-		const distance = Math.abs(index - activeIndex);
-		return Math.max(0.9, 1 - distance * 0.05);
-	}
-
-	// Disable tab clicks during swipes regardless of event ordering.
+	// Disable station clicks during swipes regardless of event ordering.
 	let swipeActive = $state(false);
 	let touchStartX = 0;
 
@@ -69,15 +72,18 @@
 		}
 	}
 
-	// scrollChain for Tabs.List (bits-ui component — can't use use: directly on components)
-	let tabsListRef = $state<HTMLElement | null>(null);
+	function onStationClick(event: MouseEvent, id: string) {
+		if (mode !== 'scroll' || !onSelect) return;
+		if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+		event.preventDefault();
+		onSelect(id);
+	}
 
 	let navRef = $state<HTMLElement | null>(null);
-	let tabsListScrollChain: { destroy(): void } | undefined;
 
-	// Center only the tab container; listing scroll updates must never move the window.
+	// Center only the strip; listing scroll updates must never move the window.
 	$effect(() => {
-		const container = tabsListRef ?? navRef;
+		const container = navRef;
 		if (!container || !activeId) return;
 		const activeEl = container.querySelector<HTMLElement>(
 			`[data-testid="station-tab-${activeId}"]`,
@@ -90,139 +96,123 @@
 		const reduce = isPrefersReducedMotion();
 		container.scrollTo({ left: container.scrollLeft + delta, behavior: reduce ? 'auto' : 'smooth' });
 	});
-
-	onMount(() => {
-		ready = true;
-		if (tabsListRef) {
-			tabsListScrollChain = scrollChain(tabsListRef);
-		}
-	});
-
-	onDestroy(() => {
-		tabsListScrollChain?.destroy();
-	});
 </script>
 
-{#snippet tabContent(service: Service, isActive: boolean, index: number)}
-	<span class="station-num font-mono text-xs">{stationNumber(index)}</span>
-	<span class="station-label text-sm" class:font-bold={isActive}>{getLabel(service)}</span>
-{/snippet}
-
-<Separator variant="hazard" hazardSize="sm" />
-
-{#if mode === 'navigate'}
-
-	<div class="station-tabs-wrapper">
-		<nav
-			bind:this={navRef}
-			aria-label={serviceNavAria}
-			class="station-tabs flex w-full overflow-x-auto p-[3px] justify-start xl:justify-center"
-			class:swipe-lock={swipeActive}
-			use:scrollChain
-			ontouchstart={onTouchStart}
-			ontouchmove={onTouchMove}
-			ontouchend={onTouchEnd}
-		>
-			{#each sorted as service, i (service.id)}
-				{@const isActive = service.id === activeId}
-				{@const opacity = isActive ? 1 : getOpacity(i)}
-
-				<a
-					href={localizeHref(`/services/${service.id}`, locale)}
-					class="station-tab flex shrink-0 items-center gap-2 px-4 py-3 text-sm no-underline tap-press"
-
-					aria-current={isActive ? 'page' : undefined}
-					style="--station-distance-opacity: {opacity};"
-					data-testid="station-tab-{service.id}"
-					data-active={isActive ? 'true' : undefined}
-				>
-					{@render tabContent(service, isActive, i)}
-				</a>
-			{/each}
-		</nav>
-
-		<div class="scroll-cue" aria-hidden="true"></div>
-	</div>
-{:else}
-
-	<Tabs.Root
-		value={activeId}
-		onValueChange={(v) => onSelect?.(v)}
-		class="station-tabs-root"
+<div class="station-strip" data-testid="station-strip" data-mode={mode}>
+	<nav
+		bind:this={navRef}
+		aria-label={navAria}
+		class="station-strip-nav"
+		class:swipe-lock={swipeActive}
+		use:scrollChain
+		ontouchstart={onTouchStart}
+		ontouchmove={onTouchMove}
+		ontouchend={onTouchEnd}
 	>
-		<Tabs.List
-			bind:ref={tabsListRef}
-			variant="line"
-			class="station-tabs flex w-full overflow-x-auto p-[3px] justify-start xl:justify-center {swipeActive ? 'swipe-lock' : ''}"
-			ontouchstart={onTouchStart}
-			ontouchmove={onTouchMove}
-			ontouchend={onTouchEnd}
-		>
-			{#each sorted as service, i (service.id)}
+		<ul class="station-tabs station-strip-list">
+			{#each sorted as service (service.id)}
 				{@const isActive = service.id === activeId}
-				{@const opacity = isActive ? 1 : getOpacity(i)}
-
-				<Tabs.Trigger value={service.id} disabled={!ready}>
-					{#snippet child({ props })}
-						<button
-							{...props}
-							class="station-tab flex shrink-0 items-center gap-2 px-4 py-3 text-sm tap-press"
-							style="--station-distance-opacity: {opacity};"
+				<li class="station-strip-item">
+					{#if mode === 'navigate'}
+						<a
+							href={localizeHref(`/services/${service.id}`, locale)}
+							class="station-tab tap-press"
+							aria-current={isActive ? 'page' : undefined}
 							data-testid="station-tab-{service.id}"
 							data-active={isActive ? 'true' : undefined}
-						>
-							{@render tabContent(service, isActive, i)}
-						</button>
-					{/snippet}
-				</Tabs.Trigger>
+						>{getLabel(service)}</a>
+					{:else}
+						<a
+							href="#service-{service.id}"
+							class="station-tab tap-press"
+							aria-current={isActive ? 'true' : undefined}
+							data-state={isActive ? 'active' : undefined}
+							data-testid="station-tab-{service.id}"
+							data-active={isActive ? 'true' : undefined}
+							onclick={(event) => onStationClick(event, service.id)}
+						>{getLabel(service)}</a>
+					{/if}
+				</li>
 			{/each}
-		</Tabs.List>
-	</Tabs.Root>
-{/if}
+		</ul>
+	</nav>
+	<div class="scroll-cue" aria-hidden="true"></div>
+</div>
 
 <style>
-	/* Tabs.Root adds gap-2 + flex-col by default; flatten for our horizontal layout */
-	:global([data-slot="tabs"].station-tabs-root) {
-		gap: 0;
+	/* Signage colours, the same in both themes: the brand orange the tokens keep in light and
+	   dark (--glow) with the dark signage ink (5.8:1); the current station takes the kit's
+	   signage pair. station-tabs.css draws everything else; these are its two colour inputs. */
+	.station-strip {
+		--primary: var(--glow);
+		--station-tab-ink: var(--signage-bg);
+		position: relative;
+		background: var(--primary);
 	}
 
-	/* Each tab needs min-width so tabs don't collapse on narrow viewports */
-	.station-tab {
-		flex-grow: 0;
-		min-width: max-content;
-		padding: calc((var(--strip-h) - 12px - 1.25rem) / 2) 1.25rem;
-		line-height: 1.25rem;
-	}
-
-	.station-tab:not(:hover, :focus-visible, :active) {
-		opacity: var(--station-distance-opacity);
-	}
-
-	/* Swipe guard: disable all pointer events on tabs during horizontal swipe.
-	   Prevents click/pointerdown from firing on buttons or links mid-swipe. */
-	:global(.swipe-lock) .station-tab {
+	/* The orange top: the band continues up behind the floating header pill to the window's
+	   top edge, one unbroken orange. It goes with the strip (sticky on Services, scrolling away
+	   on a service page). The pill keeps its own look on top. */
+	.station-strip::before {
+		content: '';
+		position: absolute;
+		inset-inline: 0;
+		bottom: 100%;
+		height: calc(var(--nav-clearance, 5.5rem) + 0.5rem);
+		background: var(--primary);
 		pointer-events: none;
 	}
 
-	.station-tabs-wrapper {
-		position: relative;
+	.station-strip-nav {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scrollbar-width: none;
 	}
 
-	/* The overlay signals horizontal overflow without blocking tab clicks. */
+	.station-strip-nav::-webkit-scrollbar {
+		display: none;
+	}
+
+	.station-strip-list {
+		width: max-content;
+		min-width: 100%;
+		margin: 0;
+		padding: 3px 0 0;
+		list-style: none;
+	}
+
+	.station-strip-item {
+		display: flex;
+		flex: 0 0 auto;
+	}
+
+	/* The strip keeps its calibrated height (--strip-h): the stations fill it below the 3px inset. */
+	.station-tab {
+		flex-grow: 0;
+		min-height: calc(var(--strip-h) - 3px);
+		padding-inline: 1.25rem;
+	}
+
+	/* Swipe guard: disable all pointer events on stations during a horizontal swipe, so no
+	   click fires on a link mid-swipe. */
+	.swipe-lock .station-tab {
+		pointer-events: none;
+	}
+
+	/* The overlay signals horizontal overflow without blocking clicks. Its end-stop is the
+	   strip's own orange. */
 	.scroll-cue {
 		position: absolute;
 		top: 0;
 		right: 0;
 		bottom: 0;
 		width: 3rem;
-		/* End-stop MUST match the .station-tabs nav background (both var(--primary)),
-		   so the cue fades tab content into the strip. Update both together if either changes. */
 		background: linear-gradient(to right, transparent, var(--primary));
 		pointer-events: none;
 	}
 
 	@media (min-width: 1280px) {
-		:global(.station-tabs) {
+		.station-strip-list {
 			justify-content: center;
 		}
 

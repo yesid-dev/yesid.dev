@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 	import type { BlogAnimation } from '#lib/types.ts';
-	// Brief drawing and user-triggered path morphing remain active under reduced motion.
+	// Brief drawing and user-triggered path morphing stay active unless the caller asks for the
+	// still form (`still`), such as a service drawing under reduced motion.
 	import { initScrollTriggerConfig, loadDrawSVG, loadMorphSVG } from '@yesid/motion/utils/gsap';
 	import { morphHover } from '#lib/motion/actions/morphHover.ts';
 	import { convertSvgToMorphPaths } from '#lib/motion/utils/morphHelpers.ts';
@@ -14,6 +15,7 @@
 		size = 48,
 		trigger = 'load' as 'load' | 'scroll',
 		hovered = false,
+		still = false,
 		class: className,
 		...rest
 	}: {
@@ -22,6 +24,8 @@
 		size?: number;
 		trigger?: 'load' | 'scroll';
 		hovered?: boolean;
+		/** The still form: no entrance and no morph; the drawing stands as drawn. Default: false. */
+		still?: boolean;
 		class?: string;
 		[key: string]: unknown;
 	} = $props();
@@ -31,7 +35,7 @@
 	let entrance: gsap.core.Timeline | undefined;
 
 	onMount(async () => {
-		if (!container) return;
+		if (!container || still) return;
 		// Entrance variants use DrawSVG, and shapes convert through MorphSVG.
 		await Promise.all([loadDrawSVG(), loadMorphSVG()]);
 		// Component may have unmounted while awaiting (tests mount + unmount
@@ -67,7 +71,8 @@
 	style="--svg-icon-size: {size}px; width: var(--svg-icon-size); height: var(--svg-icon-size);"
 	aria-hidden="true"
 	role="presentation"
-	use:morphHover={{ enabled: entranceDone, hovered }}
+	use:morphHover={{ enabled: entranceDone && !still, hovered }}
+	data-still={still ? '' : undefined}
 	{...rest}
 >
 	{@html svgContent}

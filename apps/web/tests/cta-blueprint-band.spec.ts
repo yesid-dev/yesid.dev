@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 const bands = [
 	['/', 'home-cta-band'],
+	['/services', 'services-cta-band'],
 	['/services/database-engineering', 'service-cta-band'],
 	['/projects/yesid-dev', 'project-cta-band'],
 ] as const;

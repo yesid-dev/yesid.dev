@@ -49,12 +49,12 @@ test.describe('small-device fit', () => {
 		}
 	});
 
-	test('service tablist clears the floating nav pill', async ({ page }) => {
+	test('service station strip clears the floating nav pill', async ({ page }) => {
 		await page.goto('/services');
 		await page.waitForLoadState('load');
 		const pb = await pillBottom(page);
-		// The service h1 is sr-only; its one-pixel clipping box is not the visible control.
-		const firstHeading = page.locator('main [role="tablist"]');
+		// The strip's stations are the first visible control under the pill (its orange runs up behind it).
+		const firstHeading = page.locator('main [data-testid="station-strip"] .station-tabs');
 		await expect(firstHeading).toBeVisible();
 		const top = (await firstHeading.boundingBox())!.y;
 		expect(top, 'first services heading top vs pill bottom').toBeGreaterThanOrEqual(pb);
