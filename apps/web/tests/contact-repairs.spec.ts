@@ -58,16 +58,21 @@ for (const locale of ['', '/fr', '/es']) {
       await expect.poll(() => Boolean(finish)).toBe(true);
       finish!();
       await expect(terminal.getByTestId('contact-success')).toBeVisible();
+      // The result takes the focus and is read from there; "sending" was announced once (DEV-40).
+      await expect(terminal.getByTestId('contact-sent-message')).toBeFocused();
       await expect(page.getByRole('status')).not.toHaveText(sending);
-      await expect(page.getByRole('status')).toHaveAttribute('data-announcements', JSON.stringify([sending, (await page.getByRole('status').innerText()).trim()]));
+      await expect(page.getByRole('status')).toHaveAttribute('data-announcements', JSON.stringify([sending]));
       await terminal.getByTestId('contact-reset').click();
+      await expect(inputs.nth(0)).toBeFocused();
       await inputs.nth(0).fill('Fixture Reader');
       await inputs.nth(1).fill('reader@example.test');
       await inputs.nth(2).fill('Draft retained on network failure');
       await page.route('https://api.web3forms.com/submit', route => route.abort());
       await submit.press('Enter');
-      await expect(summary).toBeFocused();
-      await expect(summary).toContainText(/\S/);
+      // Not sent: the failure box above the button takes the focus and links the address (DEV-40).
+      const failure = terminal.getByTestId('contact-send-error');
+      await expect(failure).toBeFocused();
+      await expect(failure.getByRole('link', { name: 'contact@yesid.dev', exact: true })).toHaveAttribute('href', 'mailto:contact@yesid.dev');
       await expect(inputs.nth(2)).toHaveValue('Draft retained on network failure');
       await expect(page.getByRole('status')).toBeEmpty();
     });
