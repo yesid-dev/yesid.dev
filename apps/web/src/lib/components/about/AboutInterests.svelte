@@ -17,8 +17,17 @@
 	import { Popover } from 'bits-ui';
 	import { Info } from '@lucide/svelte';
 	import { siteLabels } from '#lib/content/index.ts';
+	import AboutCardHeading from './AboutCardHeading.svelte';
 
-	let { interests, stop, label }: { interests: readonly AboutInterest[]; stop: string; label: string } = $props();
+	// The home's About block passes `stop` and `label` and renders as it always has. About passes
+	// `heading` (D-M6): a plain heading above the strip, so nothing covers the photos, and a static
+	// card without glow. The strip itself is the same in both.
+	let {
+		interests,
+		stop = '',
+		label = '',
+		heading,
+	}: { interests: readonly AboutInterest[]; stop?: string; label?: string; heading?: string } = $props();
 
 	// Cover-cropped photo width tracks card height: about 800px on the tall tablet card
 	// (snapshots sets a 380px row min-height below 1024px), about 340px on phones.
@@ -55,16 +64,7 @@
 
 <svelte:document onclick={dismissCredit} />
 
-<div
-	class="group h-full"
-	use:cursorGlow
->
-<Card class="relative h-full !gap-0 !py-0" data-testid="about-interests">
-	<!-- Stop label: top-left, always -->
-	<div class="absolute top-3 left-4 z-20">
-		<StopLabel {stop} {label} as="h2" />
-	</div>
-
+{#snippet strips()}
 	<!-- Diagonal strips container -->
 	<div class="flex h-full min-h-36">
 		{#each interests as interest, i}
@@ -134,8 +134,31 @@
 		{/each}
 	</div>
 
+{/snippet}
+
+{#if heading !== undefined}
+<Card class="interests-plain relative h-full !gap-0 !py-0" data-testid="about-interests">
+	<AboutCardHeading text={heading} class="interests-heading" />
+	<div class="relative flex min-h-0 flex-1 flex-col">
+		{@render strips()}
+	</div>
+</Card>
+{:else}
+<div
+	class="group h-full"
+	use:cursorGlow
+>
+<Card class="relative h-full !gap-0 !py-0" data-testid="about-interests">
+	<!-- Stop label: top-left, always -->
+	<div class="absolute top-3 left-4 z-20">
+		<StopLabel {stop} {label} as="h2" />
+	</div>
+
+	{@render strips()}
+
 </Card>
 </div>
+{/if}
 
 <style>
 	/* The unlayered global media rule outranks @layer utilities. */
@@ -217,6 +240,10 @@
 		z-index: 100; max-inline-size: min(20rem, calc(100vw - 2rem)); padding: 0.75rem;
 		border: 1px solid var(--border); border-radius: var(--radius-sm);
 		background: var(--card); color: var(--foreground); font-size: 14px; line-height: 1.5;
+	}
+	/* About (D-M6): the heading above the strip, in the card's padding. */
+	:global(.interests-plain) :global(.interests-heading) {
+		padding: 0.75rem 0.75rem 0.625rem;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.interest-strip, .interest-select, .strip-bg, .strip-overlay { transition: none; }

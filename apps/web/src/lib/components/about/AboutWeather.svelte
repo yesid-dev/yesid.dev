@@ -14,17 +14,22 @@
 	import { nextRotation, placeAt, type WeatherPlaceId } from './weather-scene';
 	import { sceneState } from './weather/scene-state';
 	import { nextSunEvent } from './weather/sky';
+	import AboutCardHeading from './AboutCardHeading.svelte';
 
+	// The home's About block passes `stop` and `label` and renders as it always has. About passes
+	// `heading` (D-M6, owner answer 3A: "Weather"): a plain heading where the stop label stood.
 	let {
 		config,
 		weather,
-		stop,
-		label,
+		stop = '',
+		label = '',
+		heading,
 	}: {
 		config: AboutWeatherConfig;
 		weather?: WeatherData | null;
-		stop: string;
-		label: string;
+		stop?: string;
+		label?: string;
+		heading?: string;
 	} = $props();
 
 	const locale = getLocale();
@@ -121,11 +126,16 @@
 	data-daypart={known ? (scene.dark ? 'night' : 'day') : undefined}
 	data-theme={known ? (scene.dark ? 'dark' : 'light') : undefined}
 	data-phase={known ? scene.phase : undefined}
+	data-register={heading !== undefined ? 'expressive' : undefined}
 >
 	<WeatherScene {scene} {place} pending={!known} {reduced} {hidden} />
 
 	<div class="relative flex h-full flex-col">
-		<StopLabel {stop} {label} as="h2" />
+		{#if heading !== undefined}
+			<AboutCardHeading text={heading} />
+		{:else}
+			<StopLabel {stop} {label} as="h2" />
+		{/if}
 
 		<!-- Centred as before, nudged up so the landmark below keeps its skyline. -->
 		<div class="weather-text flex flex-1 flex-col items-center justify-center pb-10 text-center">

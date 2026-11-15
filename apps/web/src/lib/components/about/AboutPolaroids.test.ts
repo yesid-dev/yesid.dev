@@ -15,7 +15,7 @@ const total = polaroids.length;
 
 function renderPolaroids() {
 	return render(AboutPolaroids, {
-		props: { polaroids, stop: '08', label: 'SNAPSHOTS' },
+		props: { polaroids, heading: 'Snapshots' },
 	});
 }
 
@@ -93,7 +93,7 @@ describe('AboutPolaroids (render contract)', () => {
 	it('keeps the canonical source and omits responsive attributes for unmapped media', () => {
 		const unmappedPolaroids = [{ ...polaroids[0], src: '/images/about/unmapped-polaroid.webp' }];
 		render(AboutPolaroids, {
-			props: { polaroids: unmappedPolaroids, stop: '08', label: 'SNAPSHOTS' },
+			props: { polaroids: unmappedPolaroids, heading: 'Snapshots' },
 		});
 
 		const image = screen.getByRole('img', {

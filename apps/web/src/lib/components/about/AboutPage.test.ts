@@ -194,10 +194,57 @@ describe('AboutPage', () => {
 			expect(quotes).toHaveTextContent('Second author');
 			await fireEvent.click(screen.getByLabelText(aboutPageContent.labels.testimonialsPrevAria.en));
 		}
-		expect(screen.getAllByRole('tab')).toHaveLength(2);
-		await fireEvent.click(screen.getAllByRole('tab')[1]);
+		// The dots are labelled slide buttons ("Quote 2 of 2"), not tabs; the shown one is current (D-M6).
+		const dots = screen.getAllByTestId('about-quote-dot');
+		expect(dots).toHaveLength(2);
+		expect(dots.map((dot) => dot.getAttribute('aria-label'))).toEqual(['Quote 1 of 2', 'Quote 2 of 2']);
+		expect(screen.queryAllByRole('tab')).toHaveLength(0);
+		expect(dots[0]).toHaveAttribute('aria-current', 'true');
+		await fireEvent.click(dots[1]);
 		expect(quotes).toHaveTextContent('Second author');
-		expect(screen.getAllByRole('tab')[1]).toHaveAttribute('aria-selected', 'true');
+		expect(dots[1]).toHaveAttribute('aria-current', 'true');
+		expect(dots[0]).not.toHaveAttribute('aria-current');
+	});
+
+	for (const [locale, name] of [['en', 'Quote 3 of 3'], ['fr', 'Citation 3 sur 3'], ['es', 'Cita 3 de 3']] as const)
+		it(`names each quote dot by its place in ${locale}`, () => {
+			render(AboutPage, {
+				props: { aboutPage: aboutPageContent, weather: null },
+				context: new Map([[Symbol.for('@yesid/ui/locale'), () => locale]]),
+			});
+			const dots = screen.getAllByTestId('about-quote-dot');
+			expect(dots).toHaveLength(aboutPageContent.testimonials.length);
+			expect(dots.at(-1)).toHaveAttribute('aria-label', name);
+		});
+
+	it('starts each card with a plain heading, no stop label, lamp or glow', () => {
+		const { container } = render(AboutPage, { props: { aboutPage: aboutPageContent, weather: null } });
+		expect(container.querySelector('[data-slot="stop-label"]')).toBeNull();
+		expect(container.textContent).not.toMatch(/\b(STOP|ARRÊT|PARADA)\s*\d/);
+		const headings = [...container.querySelectorAll('h2')].map((el) => el.textContent?.trim());
+		expect(headings).toEqual(['Fun facts', 'Quote', 'Core beliefs', 'Education', 'Languages', 'Interests', 'Snapshots', 'Weather', 'Get in touch']);
+		// No hazard tape: the only rule on the page is the dimension line under the terminal title bar.
+		const rules = [...container.querySelectorAll('[data-slot="separator"]')];
+		expect(rules).toHaveLength(1);
+		expect(rules[0]).toHaveAttribute('data-variant', 'dimension');
+		expect(rules[0].closest('[data-testid="about-cta"]')).not.toBeNull();
+		expect(container.querySelectorAll('[data-slot="page-section-boundary"]')).toHaveLength(0);
+	});
+
+	it('marks only the card with links as interactive', () => {
+		const { container } = render(AboutPage, { props: { aboutPage: aboutPageContent, weather: null } });
+		const interactive = [...container.querySelectorAll('[data-slot="card"][data-interactive="true"]')].map((el) => el.getAttribute('data-testid'));
+		expect(interactive).toEqual(['about-cta']);
+	});
+
+	it('speaks to French visitors as "vous" in the introduction', () => {
+		render(AboutPage, {
+			props: { aboutPage: aboutPageContent, weather: null },
+			context: new Map([[Symbol.for('@yesid/ui/locale'), () => 'fr']]),
+		});
+		const intro = screen.getByTestId('about-identity');
+		expect(intro).toHaveTextContent('explorez à votre guise');
+		expect(intro).not.toHaveTextContent('explore à ta guise');
 	});
 
 	for (const testimonials of [[], fixture.testimonials.slice(0, 1)])
@@ -226,9 +273,10 @@ describe('AboutPage', () => {
 			props: { aboutPage: { ...fixture, labels }, weather: null },
 		});
 		expect(screen.getByRole('region', { name: 'Fixture carousel' })).toBeInTheDocument();
-		expect(screen.getByRole('tablist', { name: 'Choose quote' })).toBeInTheDocument();
-		for (const name of ['Earlier', 'Later', 'Choose 1', 'Quote 1 of 2'])
+		expect(screen.getByRole('list', { name: 'Choose quote' })).toBeInTheDocument();
+		for (const name of ['Earlier', 'Later'])
 			expect(screen.getByLabelText(name)).toBeInTheDocument();
+		expect(screen.getByTestId('about-quote-body')).toHaveAttribute('aria-label', 'Quote 1 of 2');
 	});
 
 	it('renders supplied CTA output and destination with configured terminal chrome', () => {

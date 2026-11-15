@@ -11,14 +11,13 @@
 
 	const locale = getLocale();
 	import { aboutPageContent } from '#lib/content/about-page.ts';
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
+	import AboutCardHeading from './AboutCardHeading.svelte';
 	import { SliderButton } from '@yesid/ui/brand';
 	import { variantImage } from '#lib/utils/variant-image.ts';
 	import { persisted } from '@yesid/ui/state';
 
-	let { polaroids, stop, label }: { polaroids: readonly AboutPolaroid[]; stop: string; label: string } = $props();
+	let { polaroids, heading }: { polaroids: readonly AboutPolaroid[]; heading: string } = $props();
 
 	// The persisted index is locale-free, so a language switch can restore it unchanged.
 	const polaroid = persisted<number>('about-polaroid', 0);
@@ -43,13 +42,9 @@
 	const nextPhotoAria = resolveLocale(aboutPageContent.labels.polaroidNextAria, locale);
 </script>
 
-<div
-	class="group h-full"
-	use:cursorGlow
->
 <Card class="h-full p-3" data-testid="about-polaroids">
 	<div class="relative flex h-full flex-col">
-		<StopLabel {stop} {label} as="h2" />
+		<AboutCardHeading text={heading} />
 		{#if current}
 
 		<!-- Polaroid display. Reserve the tallest polaroid frame on mobile so the
@@ -99,4 +94,3 @@
 		{/if}
 	</div>
 </Card>
-</div>
