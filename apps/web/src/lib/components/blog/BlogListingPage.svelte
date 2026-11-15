@@ -14,7 +14,7 @@
 	import BlogRow from './BlogRow.svelte';
 	import BlogFilterSidebar from './BlogFilterSidebar.svelte';
 	import BlogBlueprint from './BlogBlueprint.svelte';
-	import { FilterSummary, SearchInput } from '@yesid/ui/brand';
+	import { filterCountText, FilterSummary, SearchInput } from '@yesid/ui/brand';
 	import { ListingFrame } from '@yesid/ui/layout';
 	import { StateNotice } from '@yesid/ui/feedback';
 	import { persisted } from '@yesid/ui/state';
@@ -161,6 +161,7 @@
 	style={accentColor !== 'var(--accent)' ? `--accent: ${accentColor};` : ''}
 >
 	<ListingFrame
+		resultCountText={filterCountText(filteredPosts.length, countLabel, locale)}
 		{heading}
 		edgeTitle={resolveLocale(siteLabels.pages.blogEdgeTitle, locale)}
 		{subtitle}

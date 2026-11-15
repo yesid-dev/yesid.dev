@@ -12,7 +12,7 @@
 	import ProjectCard, { alignProjectCards } from './ProjectCard.svelte';
 	import ProjectFilterSidebar from './ProjectFilterSidebar.svelte';
 	import ProjectsBlueprint from './ProjectsBlueprint.svelte';
-	import { FilterSummary, SearchInput } from '@yesid/ui/brand';
+	import { filterCountText, FilterSummary, SearchInput } from '@yesid/ui/brand';
 	import { ListingFrame } from '@yesid/ui/layout';
 	import { StateNotice } from '@yesid/ui/feedback';
 	import { siteLabels } from '#lib/content/index.ts';
@@ -149,6 +149,7 @@
 
 <div data-testid="project-listing" class="w-full">
 	<ListingFrame
+		resultCountText={filterCountText(filteredProjects.length, countLabel, locale)}
 		heading={listingHeading}
 		edgeTitle={resolveLocale(siteLabels.pages.projectsEdgeTitle, locale)}
 		subtitle={listingIntro}
