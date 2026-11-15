@@ -51,4 +51,10 @@ describe('contactLines', () => {
 	it('keeps any other supplied line', () => {
 		expect(contactLines([{ text: 'Supplied terminal output', color: 'muted' }], 'en')).toEqual([{ kind: 'text', text: 'Supplied terminal output' }]);
 	});
+
+	it.each(['http-support@example.com', 'https-team@example.com'])('keeps %s as an email address', (address) => {
+		expect(contactLines([{ text: `Email: ${address}`, color: 'muted' }], 'en')).toEqual([
+			{ kind: 'link', label: 'Email:', href: `mailto:${address}`, display: [address], external: false },
+		]);
+	});
 });

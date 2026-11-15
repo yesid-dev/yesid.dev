@@ -68,7 +68,7 @@ export function contactLines(lines: AboutCta['lines'], locale: Locale): AboutCon
 			const match = /^(.*?:)\s*(\S+@\S+\.\S+|https?:\/\/\S+)$/u.exec(text);
 			if (!match) return { kind: 'text', text };
 			const [, label, target] = match;
-			if (!target.startsWith('http')) {
+			if (!/^https?:\/\//u.test(target)) {
 				return { kind: 'link', label: label.trim(), href: `mailto:${target}`, display: [target], external: false };
 			}
 			const short = target.replace(/^https?:\/\/(www\.)?/u, '').replace(/\/+$/u, '');
