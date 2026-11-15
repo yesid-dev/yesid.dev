@@ -3,7 +3,7 @@
   Used in the detail page sidebar to show which services a project links to.
   SVG icon uses SvgIcon for MorphSVG hover/tap effects.
   Title resolved via resolveLocale for i18n.
-  Hover: subtle glow, bg shift, slight scale, and SVG morph.
+  Hover: background shift, slight scale, and SVG morph.
 -->
 <script lang="ts">
 	import type { Service } from '#lib/types.ts';
@@ -56,7 +56,7 @@
 	}
 
 
-	/* Hover: glow, bg shift, slight scale — makes badges feel interactive */
+	/* Hover keeps the background shift and slight scale. */
 	.service-badge {
 		transition: background-color var(--duration-normal) var(--ease-default), border-color var(--duration-normal) var(--ease-default),
 			transform var(--duration-normal) var(--ease-default), box-shadow var(--duration-normal) var(--ease-default);
@@ -65,6 +65,5 @@
 		background-color: var(--surface-4);
 		border-color: color-mix(in srgb, var(--primary) 70%, transparent);
 		transform: scale(1.02);
-		box-shadow: var(--shadow-glow-md);
 	}
 </style>

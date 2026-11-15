@@ -249,7 +249,6 @@
 
 	.services-card:hover {
 		border-color: var(--border-brand-active);
-		box-shadow: var(--shadow-section), inset 0 1px 0 var(--edge-highlight);
 		transform: translateY(-3px);
 	}
 
@@ -308,7 +307,6 @@
 	.services-card-link:hover button.services-svg-panel {
 		background: color-mix(in srgb, var(--primary) 14%, var(--background));
 		border-color: color-mix(in srgb, var(--primary) 38%, transparent);
-		box-shadow: 0 0 24px color-mix(in srgb, var(--glow) 22%, transparent);
 	}
 
 	.svg-inline-wrapper {

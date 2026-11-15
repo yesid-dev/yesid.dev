@@ -260,7 +260,6 @@
 	/* The link layer takes the pointer, so the surface follows the card's hover. */
 	.project-card:hover :global(.card-surface) {
 		border-color: var(--border-brand-active);
-		box-shadow: var(--shadow-section), inset 0 1px 0 var(--edge-highlight);
 	}
 
 	.project-card-link {

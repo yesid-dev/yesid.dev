@@ -256,7 +256,6 @@
 	}
 	.deep-dive-cta:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 20px color-mix(in srgb, var(--glow) 40%, transparent);
 	}
 
 	/* SVG panel: responsive sizing */

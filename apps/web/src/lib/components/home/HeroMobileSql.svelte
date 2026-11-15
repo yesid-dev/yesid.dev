@@ -179,7 +179,6 @@
 		font-size: var(--text-mono);
 	}
 	.refresh-btn:hover {
-		box-shadow: var(--shadow-cta-hover);
 		transform: translateY(-1px);
 	}
 </style>
