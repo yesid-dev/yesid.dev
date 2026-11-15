@@ -29,7 +29,8 @@ for (const path of ['/projects', '/']) {
 								return Math.abs(heights[index] - natural) <= 1;
 							});
 						});
-					}, width === 390 || (path === '/projects' && width === 800))).toBe(true);
+					// The home shows one card a view below 1024px (owner, 15 November), the listing two from 800px.
+					}, width === 390 || width === 800 && (path === '/projects' || path === '/'))).toBe(true);
 				} finally {
 					await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}.png`) });
 				}

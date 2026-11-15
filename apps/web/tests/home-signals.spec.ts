@@ -14,7 +14,7 @@ for (const locale of ['', 'fr/', 'es/']) {
    ? route.fulfill({ status: 503, body: '' })
    : route.fulfill({ json: contract.examples[1].body }));
   await page.goto(`/${locale}`);
-  const panel = page.getByTestId('sql-panel').filter({ visible: true });
+  const panel = page.getByTestId('hero-transit-proof');
   await expect(panel).toHaveAttribute('data-state', 'live');
   await page.screenshot({ path: test.info().outputPath('live-after.png') });
   failing = true;
@@ -22,12 +22,12 @@ for (const locale of ['', 'fr/', 'es/']) {
   await expect(panel).toHaveAttribute('data-state', 'held');
   await page.getByTestId('hero-refresh').click();
   await expect(panel).toHaveAttribute('data-state', 'failure');
-  await expect(panel.locator('[data-testid="status-dot"]')).toHaveCount(0);
+  await expect(page.getByTestId('hero-transit-card').locator('[data-testid="status-dot"]')).toHaveCount(0);
   await page.evaluate(() => sessionStorage.setItem('forceDemo', 'true'));
   await page.reload();
   await expect(panel).toHaveAttribute('data-state', 'demo');
   await page.screenshot({ path: test.info().outputPath('demo-after.png') });
-  await expect(panel.locator('[data-testid="status-dot"]')).toHaveCount(0);
+  await expect(page.getByTestId('hero-transit-card').locator('[data-testid="status-dot"]')).toHaveCount(0);
  });
 }
 

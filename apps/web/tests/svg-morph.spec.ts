@@ -108,7 +108,8 @@ test.describe('SVG morphs always finish', () => {
 
 	test('a home service morphs on hover and returns after the pointer leaves', async ({ page }) => {
 		await page.goto('/');
-		const card = page.getByTestId('services-card').first();
+		// The card is one link (its title's link covers it, D-M1); its art sits in the card, not in the link.
+		const card = page.locator('.services-card').first();
 		await card.scrollIntoViewIfNeeded();
 		const icon = card.locator('.svg-inline-wrapper svg');
 		await expect(icon).toBeVisible({ timeout: 10_000 });

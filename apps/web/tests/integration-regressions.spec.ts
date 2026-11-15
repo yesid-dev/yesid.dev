@@ -103,7 +103,7 @@ test.describe('responsive shell and interrupted menu', () => {
 			const title = await page.getByTestId('hero-line1').boundingBox();
 			expect(title!.y).toBeGreaterThanOrEqual(homePill!.y + homePill!.height + 14);
 			await expect(page.getByTestId('hero-subtitle')).toBeInViewport();
-			await expect(page.getByTestId('hero-cta-projects')).toBeInViewport();
+			await expect(page.getByTestId('hero-cta-project')).toBeInViewport();
 			for (const route of [
 				`/projects/${fixtureProject.slug}`,
 				longTitlePostPath,

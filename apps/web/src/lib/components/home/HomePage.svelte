@@ -9,20 +9,14 @@
 	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import HomeCloser from './HomeCloser.svelte';
 	import ServicesBlueprint from './ServicesBlueprint.svelte';
-	import { Separator } from '@yesid/ui/separator';
-	import { SectionHeading } from '@yesid/ui/brand';
+	import { PageSections, PageSection } from '@yesid/ui/layout';
+	import { RailTitle } from '@yesid/ui/brand';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { ScrollTrigger } from '@yesid/motion/utils/gsap';
-	import { computeRotatedTitleSize } from '#lib/utils/rotated-title-fit.ts';
-	import {
-		registerScrollContext,
-		lenisAwareScrollTo,
-		localeHandoff,
-	} from '#lib/state/locale-handoff.svelte.ts';
-
-	const locale = getLocale();
+	import { registerScrollContext, lenisAwareScrollTo } from '#lib/state/locale-handoff.svelte.ts';
 	import { siteLabels } from '#lib/content/index.ts';
+	import type { GlanceFact } from '#lib/utils/glance-facts.ts';
 	import type {
 		HeroContent,
 		HeroAnimContent,
@@ -34,9 +28,10 @@
 		ProjectSummary,
 		Service,
 		SiteMeta,
-		BlogPost,
 	} from '#lib/types.ts';
 	import type { HeroData } from '#lib/live/index.ts';
+
+	const locale = getLocale();
 
 	interface Props {
 		metroSvg: string;
@@ -51,6 +46,8 @@
 
 		services: readonly Service[];
 		featuredProjects: readonly ProjectSummary[];
+		/** Each featured project's key "At a glance" facts, by slug. */
+		featuredFacts?: Readonly<Record<string, readonly GlanceFact[]>>;
 		serviceSvgContents?: Record<string, string>;
 		siteMeta: SiteMeta;
 		bookingHref: string;
@@ -67,37 +64,27 @@
 		initialHeroData,
 		services,
 		featuredProjects,
-		serviceSvgContents = {},
+		featuredFacts = {},
 		siteMeta,
 		bookingHref,
 	}: Props = $props();
 
-// go2-t1c2: rotated home section titles from site_labels, previous
-	// literals kept as code fallbacks.
+	// Rail titles from site_labels.
 	const sectionProjects = resolveLocale(siteLabels.pages.homeSectionProjects, locale);
 	const sectionServices = resolveLocale(siteLabels.pages.homeSectionServices, locale);
 	const sectionAbout = resolveLocale(siteLabels.pages.homeSectionAbout, locale);
 	const sectionTerminus = resolveLocale(siteLabels.pages.homeSectionTerminus, locale);
 
-	// Fit the longest localized label to the sticky height cap and share its size across the four titles.
-	let rotatedTitleSize = $state<number | null>(null);
-	const rotatedVar = $derived(
-		rotatedTitleSize === null ? undefined : `--rotated-title-size: ${rotatedTitleSize}px`,
+	// Transit is the opening's showcase; the carousel shows the other featured work, client work first.
+	const TRANSIT_SLUG = 'transit-data-pipeline';
+	const transitProject = $derived(featuredProjects.find((project) => project.slug === TRANSIT_SLUG));
+	const carouselProjects = $derived(
+		featuredProjects
+			.filter((project) => project.slug !== TRANSIT_SLUG)
+			.map((project, index) => ({ project, index, client: Boolean(project.location) }))
+			.sort((a, b) => Number(b.client) - Number(a.client) || a.index - b.index)
+			.map(({ project }) => project),
 	);
-
-	function recomputeRotatedTitleFit() {
-		const sample = document.querySelector('.rotated-title .section-heading-text');
-		if (!sample) return;
-		// Budget = the sticky cap (50dvh) with 2% breathing room; max = 6rem.
-		const budget = window.innerHeight * 0.5 * 0.98;
-		const size = computeRotatedTitleSize(
-			sample,
-			[sectionServices, sectionAbout, sectionProjects, sectionTerminus],
-			budget,
-			96,
-		);
-		if (size !== null) rotatedTitleSize = size;
-	}
 
 	let destroyFns: Array<() => void> = [];
 
@@ -114,52 +101,49 @@
 	onMount(() => {
 		if (!browser) return;
 
-		// Rotated-title fit: compute once, again when the web font finishes
-		// loading (metrics change), and on every resize (the height budget
-		// moves with the viewport).
-		recomputeRotatedTitleFit();
-		document.fonts?.ready.then(() => recomputeRotatedTitleFit()).catch(() => {});
-		let fitRaf = 0;
-		const onResize = () => {
-			cancelAnimationFrame(fitRaf);
-			fitRaf = requestAnimationFrame(recomputeRotatedTitleFit);
-		};
-		window.addEventListener('resize', onResize);
-		destroyFns.push(() => {
-			cancelAnimationFrame(fitRaf);
-			window.removeEventListener('resize', onResize);
-		});
+		// The projects settle their height after mount (fonts, aligned card rows); the manifesto's
+		// scrub below them measures its trigger positions, so refresh them once the height changes.
+		const projects = document.querySelector('[data-testid="home-section-projects"]');
+		if (projects && typeof ResizeObserver !== 'undefined') {
+			let height = projects.getBoundingClientRect().height;
+			let timer: ReturnType<typeof setTimeout> | undefined;
+			const observer = new ResizeObserver(() => {
+				const next = projects.getBoundingClientRect().height;
+				if (Math.abs(next - height) < 1) return;
+				height = next;
+				clearTimeout(timer);
+				timer = setTimeout(() => ScrollTrigger.refresh(), 150);
+			});
+			observer.observe(projects);
+			destroyFns.push(() => {
+				clearTimeout(timer);
+				observer.disconnect();
+			});
+		}
 
 		// Restore a scroll fraction after the hero pin refresh because locale and intro state change document height.
 		destroyFns.push(
 			registerScrollContext({
-			capture: () => {
-				const max = maxScroll();
-				return {
-					kind: 'home-fraction',
-					fraction: max > 0 ? window.scrollY / max : 0,
+				capture: () => {
+					const max = maxScroll();
+					return {
+						kind: 'home-fraction',
+						fraction: max > 0 ? window.scrollY / max : 0,
 						y: window.scrollY,
-				};
-			},
-			restore: async (snap) => {
-				const s = snap as { fraction?: number; y?: number } | null;
-				const fraction = Math.min(1, Math.max(0, s?.fraction ?? 0));
+					};
+				},
+				restore: async (snap) => {
+					const s = snap as { fraction?: number; y?: number } | null;
+					const fraction = Math.min(1, Math.max(0, s?.fraction ?? 0));
 
-				// Wait for the pin ScrollTrigger to materialize on the freshly
-				// remounted page. HeroBanner builds it inside setupIntro() and
-				// defers ScrollTrigger.refresh() to a rAF, so the pin (and the
-				// final document height) is not ready synchronously after paint.
-				// Poll a bounded number of frames; once the pin exists we refresh
-				// to lock its start/end + the document height, then jump.
-				//
-				// Intro collapsed (same-day reload / completed): NO pin trigger
-				// ever appears — the poll times out fast and we jump against the
-				// short collapsed height, which is correct for that state.
-				await waitForPinOrTimeout(30);
-				const pin = findPinTrigger();
-				if (pin) ScrollTrigger.refresh();
+					// The pin ScrollTrigger is built in a rAF after paint; poll a bounded number of
+					// frames, refresh to lock its geometry, then jump. A collapsed intro never builds
+					// one, so the poll times out fast and the jump uses the short collapsed height.
+					await waitForPinOrTimeout(30);
+					const pin = findPinTrigger();
+					if (pin) ScrollTrigger.refresh();
 
-				lenisAwareScrollTo(Math.round(fraction * maxScroll()));
+					lenisAwareScrollTo(Math.round(fraction * maxScroll()));
 				},
 			}),
 		);
@@ -187,171 +171,121 @@
 	});
 </script>
 
-<!-- Section 1: Hero — full-bleed, scroll-locked GSAP -->
-<section class="w-full">
-	<HeroBanner
-		metroSvg={metroSvg}
-		hero={hero}
-		heroAnim={heroAnim}
-		initialHeroData={initialHeroData}
-		{bookingHref}
-	/>
-</section>
+<!-- The page's sections (D22): the kit draws the dimension line at the bottom of every section but
+     the last, so none sits before the footer. Order (D-M1): the opening, Projects, the manifesto,
+     Services, About, the closing band, Terminus. -->
+<PageSections class="home-sections" data-testid="home-sections">
+	<!-- 1. The opening: edge to edge, the offer beside Transit's live data. -->
+	<PageSection class="home-opening" data-testid="home-section-opening">
+		<HeroBanner {metroSvg} {hero} {heroAnim} {initialHeroData} {bookingHref} {transitProject} />
+	</PageSection>
 
-<Separator variant="hazard" />
+	<!-- 2. Projects: the blueprint drawing behind, edge to edge; the cards in the centred measure. -->
+	<PageSection class="home-section home-section--projects" data-testid="home-section-projects" aria-labelledby="home-title-projects">
+		<div class="home-section-backdrop" aria-hidden="true"><ServicesBlueprint /></div>
+		<RailTitle heading={sectionProjects} side="left" titleId="home-title-projects">
+			<div class="home-measure">
+				<FeaturedProjects {proofReel} projects={carouselProjects} facts={featuredFacts} />
+			</div>
+		</RailTitle>
+	</PageSection>
 
-<!-- Section 2: Services, rotated title right. -->
-<section
-	class="home-section home-section--right relative"
-	style={rotatedVar}
->
-	<div class="absolute inset-0 -z-10 pointer-events-none opacity-75"><ServicesBlueprint /></div>
-	<div class="home-section-heading-mobile"><SectionHeading heading={sectionServices} /></div>
-	<div class="home-section-content"><HomeServices servicesGrid={servicesGrid} services={services} /></div>
-	<div class="rotated-title rotated-title--right"><SectionHeading heading={sectionServices} /></div>
-</section>
+	<!-- 3. The manifesto, as it is. -->
+	<PageSection class="home-manifesto" data-testid="home-section-manifesto">
+		<Manifesto {manifesto} />
+	</PageSection>
 
-<Separator variant="hazard" />
+	<!-- 4. Services. -->
+	<PageSection class="home-section" data-testid="home-section-services" aria-labelledby="home-title-services">
+		<RailTitle heading={sectionServices} side="right" titleId="home-title-services">
+			<div class="home-measure">
+				<HomeServices {servicesGrid} {services} />
+			</div>
+		</RailTitle>
+	</PageSection>
 
-<!-- Section 3: Manifesto, with its own section-relative scrub. -->
-<section class="w-full"><Manifesto manifesto={manifesto} /></section>
+	<!-- 5. About, exactly as it is on the live home. -->
+	<PageSection class="home-section" data-testid="home-section-about" aria-labelledby="home-title-about">
+		<RailTitle heading={sectionAbout} side="right" titleId="home-title-about">
+			<div class="home-measure home-measure--about">
+				<HomeAboutTeaser {about} />
+			</div>
+		</RailTitle>
+	</PageSection>
 
-<Separator variant="hazard" />
+	<!-- 6. "Let's build something that moves" on its blueprint, edge to edge. -->
+	<PageSection class="home-band" data-testid="home-section-band" style="--cta-blueprint-ink: 0.75">
+		<CtaBand testidPrefix="home-cta-band" leadingRule={false} {bookingHref} />
+	</PageSection>
 
-<!-- Section 4: Projects, rotated title left. -->
-<section class="home-section home-section--left home-section--proof-reel" style={rotatedVar}>
-	<div class="rotated-title rotated-title--left"><SectionHeading heading={sectionProjects} /></div>
-	<div class="home-section-heading-mobile">
-		<SectionHeading heading={sectionProjects} />
-	</div>
-	<div class="home-section-content">
-
-		<FeaturedProjects
-			proofReel={proofReel}
-			projects={featuredProjects}
-			{services}
-			{serviceSvgContents}
-		/>
-	</div>
-</section>
-
-<Separator variant="hazard" />
-
-<!-- Section 5: About, rotated title right. -->
-<section
-	class="home-section home-section--right"
-	style={rotatedVar}
->
-	<div class="home-section-heading-mobile"><SectionHeading heading={sectionAbout} /></div>
-	<div class="home-section-content"><HomeAboutTeaser about={about} /></div>
-	<div class="rotated-title rotated-title--right"><SectionHeading heading={sectionAbout} /></div>
-</section>
-
-<!-- Section 6: CTA strip, including its leading hazard and stronger blueprints. -->
-<section class="w-full" style:--cta-blueprint-ink="0.75">
-	<CtaBand testidPrefix="home-cta-band" />
-</section>
-
-<Separator variant="hazard" />
-
-<!-- Section 7: Terminus and construction props stay together, rotated title left. -->
-<section
-	class="home-section home-section--left home-section--terminus"
-	style={rotatedVar}
->
-	<div class="rotated-title rotated-title--left"><SectionHeading heading={sectionTerminus} /></div>
-	<div class="home-section-heading-mobile"><SectionHeading heading={sectionTerminus} /></div>
-	<div class="home-section-content"><HomeCloser closer={closer} siteMeta={siteMeta} /></div>
-</section>
+	<!-- 7. Terminus and the closing scene: the last section, so no divider before the footer. The
+	     scene keeps today's geometry: the title owns the left rail and the props run to the right edge. -->
+	<PageSection class="home-section home-section--terminus" data-testid="home-section-terminus" aria-labelledby="home-title-terminus">
+		<div class="home-terminus">
+			<div class="home-terminus__rail"><RailTitle heading={sectionTerminus} side="left" titleId="home-title-terminus" /></div>
+			<div class="home-terminus__scene"><HomeCloser {closer} {siteMeta} /></div>
+		</div>
+	</PageSection>
+</PageSections>
 
 <style>
-	/* Use physical max-height for vertical writing so sticky titles retain room to move. */
-	.rotated-title {
-		position: sticky;
-		top: 50%;
-		/* Capped at 50dvh so the title leaves room for sticky to engage at
-		   top: 50% within a ~100dvh section (sticky's max position is
-		   `containing-block-bottom - element-height`). Physical `max-height`
-		   here, not `max-block-size`, because vertical-rl writing-mode flips
-		   the block axis to horizontal. */
-		max-height: 50dvh;
-		writing-mode: vertical-rl;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		white-space: nowrap;
-	}
-
-	/* Left side: rotate 180° (reads bottom → top) */
-	.rotated-title--left {
-		rotate: 180deg;
-	}
-
-	/* Right side: natural vertical-rl (reads top → bottom), no rotation */
-
-	/* Share the measured longest-label size across titles; the CSS fallback covers first paint. */
-	.rotated-title :global(.section-heading-text) {
-		font-size: var(--rotated-title-size, min(clamp(3.5rem, 7vw, 6rem), 5.5dvh));
-		font-weight: 900;
-		letter-spacing: -0.02em;
-		margin-block-end: 0;
-	}
-
-	/* Hide subheading in rotated context */
-	.rotated-title :global([data-slot="section-heading-sub"]) {
-		display: none;
-	}
-
-	/* Recipe 3: Content + Side Column */
-	.home-section {
-		display: grid;
-		grid-template-columns: 1fr;
+	/* The centred measure between the rails; the backgrounds stay edge to edge. */
+	.home-measure {
 		width: 100%;
-	}
-
-	.home-section-content {
+		max-width: 82rem;
+		margin-inline: auto;
 		min-width: 0;
 	}
 
-	/* Left-side heading: heading | content */
+	:global(.home-sections .home-section) {
+		position: relative;
+		isolation: isolate;
+	}
+
+	/* Room above each titled section; its content keeps its own room below. */
+	:global(.home-sections .home-section) {
+		padding-block-start: var(--space-section-y);
+	}
+
+	/* Terminus starts as far from its dimension line as the band's heading does (4rem): the
+	   closing scene keeps its own 4rem on desktop; on phones the room sits above its title. */
+	:global(.home-sections .home-section--terminus) {
+		padding-block-start: 4rem;
+	}
+
 	@media (--desktop-min) {
-		.home-section--left {
-			grid-template-columns: clamp(4.5rem, 8vw, 8rem) 1fr;
-		}
-		.home-section--right {
-			grid-template-columns: 1fr clamp(4.5rem, 8vw, 8rem);
+		:global(.home-sections .home-section--terminus) {
+			padding-block-start: 0;
 		}
 	}
 
-	/* Mobile-only horizontal heading per section — the rotated vertical
-	   title is hidden below 1024px (impractical at narrow widths), so this
-	   horizontal heading takes its place at the top of each section. */
-	.home-section-heading-mobile {
-		display: none;
+	/* Phones and tablets: the title reads across above the scene, in the page gutter. */
+	.home-terminus__rail {
+		padding-inline: var(--space-page-x);
+		margin-block-end: var(--space-card-gap, 1.5rem);
 	}
 
-	/* Hide rotated titles on mobile */
-	@media (--desktop-max) {
-		.rotated-title {
-			display: none;
-		}
+	.home-terminus__scene {
+		min-width: 0;
+	}
 
-		.home-section-heading-mobile {
-			display: block;
-			padding: 2rem var(--space-page-x) 0.5rem;
+	/* Desktop: the title's rail on the left, the scene to the window's right edge, as today. */
+	@media (--desktop-min) {
+		.home-terminus {
+			display: grid;
+			grid-template-columns: var(--rail-title-rail, clamp(4.5rem, 8vw, 8rem)) minmax(0, 1fr);
 		}
+		.home-terminus__rail {
+			padding-inline: 0;
+			margin-block-end: 0;
+		}
+	}
 
-		/* Match the conversion band's divider-to-heading gap only at Terminus. */
-		.home-section--terminus .home-section-heading-mobile {
-			padding-block-start: 4rem;
-		}
-
-		.home-section--proof-reel .home-section-heading-mobile {
-			padding-bottom: 0;
-		}
-
-		.home-section--proof-reel :global(.proof-reel-section) {
-			padding-block-start: clamp(0.75rem, 2dvh, 1.25rem);
-		}
+	.home-section-backdrop {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		pointer-events: none;
+		opacity: 0.75;
 	}
 </style>

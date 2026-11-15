@@ -1,16 +1,16 @@
 import type { Page } from '@playwright/test';
 
-/** Measure from the painted hazard's bottom edge, not an inner content wrapper. */
+/** Measure from the painted dimension line's bottom edge (D22), not an inner content wrapper. */
 export function measureCloserGap(page: Page) {
 	return page.evaluate(() => {
 		const cta = document.querySelector('[data-testid="home-cta-band"]')!;
 		const closer = document.querySelector('[data-testid="closer-section"]')!;
-		const section = closer.closest('.home-section')!;
-		const ctaDivider = cta.previousElementSibling!;
+		const section = closer.closest('[data-slot="page-section"]')!;
+		const ctaDivider = cta.closest('[data-slot="page-section"]')!.previousElementSibling!;
 		const divider = section.previousElementSibling!;
 		for (const edge of [ctaDivider, divider]) {
-			if (edge.getAttribute('data-slot') !== 'separator' || !getComputedStyle(edge).backgroundImage.includes('repeating-linear-gradient')) {
-				throw new Error('Expected the actual hazard divider immediately before the section');
+			if (edge.getAttribute('data-slot') !== 'page-section-boundary' || edge.getAttribute('data-variant') !== 'dimension') {
+				throw new Error('Expected the kit dimension line immediately before the section');
 			}
 		}
 		// A zero-size baseline marker locates the real DOM baseline. Canvas then
@@ -48,9 +48,9 @@ export function measureCloserGap(page: Page) {
 		};
 		const heading = cta.querySelector('.band-heading')!;
 		const ctaInk = ink(heading, heading.querySelector('.band-line')!);
-		const mobileHeading = section.querySelector('.home-section-heading-mobile')!;
-		const stacked = getComputedStyle(mobileHeading).display !== 'none';
-		const first = stacked ? mobileHeading.querySelector('.section-heading-text')! : closer.querySelector('[data-closer-board]')!;
+		const railTitle = section.querySelector('[data-slot="rail-title"]')!;
+		const stacked = getComputedStyle(railTitle.querySelector('h2')!).writingMode === 'horizontal-tb';
+		const first = stacked ? railTitle.querySelector('h2')! : closer.querySelector('[data-closer-board]')!;
 		const firstInk = stacked ? ink(first) : null;
 		const board = closer.querySelector('[data-closer-board]')!;
 		return {
@@ -63,11 +63,8 @@ export function measureCloserGap(page: Page) {
 			first: stacked ? 'heading' : 'board',
 			boardDividerGap: board.getBoundingClientRect().top - divider.getBoundingClientRect().bottom,
 			sharedHeadingGap: stacked ? board.getBoundingClientRect().top - first.getBoundingClientRect().bottom : null,
-			otherHeadings: [...document.querySelectorAll('.home-section-heading-mobile')].filter(el => el !== mobileHeading).map(el => ({
-				text: el.textContent!.trim(), display: getComputedStyle(el).display,
-				paddingTop: getComputedStyle(el).paddingTop, paddingBottom: getComputedStyle(el).paddingBottom,
-				topGap: el.querySelector('.section-heading-text')!.getBoundingClientRect().top - el.parentElement!.getBoundingClientRect().top,
-			})),
+			/** The kit's own space under a horizontal rail title. */
+			railTitleGap: parseFloat(getComputedStyle(railTitle.parentElement!).marginBottom),
 		};
 	});
 }

@@ -1,5 +1,4 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
-import { heroContent } from '../src/lib/content/site-content';
 
 async function styles(target: Locator) {
  return target.evaluate(el => {
@@ -31,9 +30,10 @@ for (const theme of ['light', 'dark']) {
   await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
   await page.locator('html').evaluate((el, theme) => el.setAttribute('data-theme', theme), theme);
   const evidence: Record<string, unknown> = {};
-  evidence.refresh = await checkHover(page, page.locator('.refresh-btn:visible').first(), undefined, true);
+  evidence.regenerate = await checkHover(page, page.getByTestId('hero-regenerate'), undefined, true);
   evidence.home = await checkHover(page, page.locator('.services-card').first());
-  evidence.panel = await checkHover(page, page.locator('.services-svg-panel').first());
+  // The card's title link covers the card (D-M1); hovering the card lights its illustration panel.
+  evidence.panel = await checkHover(page, page.locator('.services-card').first(), page.locator('.services-svg-panel').first());
   await page.goto('/projects');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
   evidence.project = await checkHover(page, page.locator('.project-card').first(), page.locator('.project-card .card-surface').first());
@@ -52,21 +52,17 @@ for (const theme of ['light', 'dark']) {
  });
 }
 for (const theme of ['light', 'dark']) {
- test(`mobile demo refresh responds to a tap in ${theme}`, async ({ page }, testInfo) => {
+ test(`mobile demo example responds to a tap in ${theme}`, async ({ page }, testInfo) => {
   test.skip(!['phone', 'tablet'].includes(testInfo.project.name), 'Tap is exercised on touch projects.');
   await page.addInitScript(theme => localStorage.setItem('theme', theme), theme);
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
-  const demo = page.getByTestId('hero-mobile-sql');
-  const tab = demo.getByRole('button', { expanded: false });
-  if (await tab.count()) await tab.tap();
-  const rows = demo.getByTestId('sql-results');
-  const initial = await rows.textContent();
-  await demo.getByTestId('hero-refresh-mobile').tap();
-  await expect(rows).not.toHaveText(initial!);
-  await expect(demo.getByTestId('sql-meta')).toContainText(heroContent.sqlPanel.stamps.refreshed.en);
-  await page.getByTestId('hero-cta-projects').tap();
-  await expect(page).toHaveURL(/\/projects$/);
+  const figures = page.getByTestId('hero-transit-figures');
+  const initial = await figures.textContent();
+  await page.getByTestId('hero-regenerate').tap();
+  await expect(figures).not.toHaveText(initial!);
+  await page.getByTestId('hero-cta-project').tap();
+  await expect(page).toHaveURL(/\/contact$/);
  });
 }
 for (const locale of ['en', 'fr', 'es']) {
