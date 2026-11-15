@@ -74,15 +74,12 @@
 		color: var(--terminal-ink-muted);
 	}
 
-	/* A 44px target around each short link without moving the lines. */
-	.contact-lines a {
+	/* Each link occupies its own row space; keep the anchor classless for kit text-link styles. */
+	.contact-lines :global(a) {
 		display: inline-block;
+		box-sizing: border-box;
+		min-height: 44px;
 		padding-block: 10px;
-		margin-block: -10px;
-	}
-
-	/* Short addresses break only after a slash (the <wbr> points), never inside a word. */
-	.contact-lines a {
 		overflow-wrap: normal;
 		word-break: normal;
 	}

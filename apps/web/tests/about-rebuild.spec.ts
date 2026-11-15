@@ -173,7 +173,7 @@ test('no word breaks inside itself between 500 and 1023px', async ({ page }) => 
 });
 
 for (const locale of LOCALES)
-	test(`get in touch: real links, no console costume (${locale})`, async ({ page }) => {
+	 test(`get in touch: real links, no console costume (${locale})`, { tag: '@theme' }, async ({ page }) => {
 		await open(page, locale);
 		const card = page.getByTestId('about-cta');
 		await card.scrollIntoViewIfNeeded();
@@ -191,6 +191,25 @@ for (const locale of LOCALES)
 		expect(await card.locator('.terminal-body').innerText()).not.toMatch(/^\s*[>~]/m);
 		for (const box of await links.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()))) {
 			expect(box.height, 'each link keeps a 44px target').toBeGreaterThanOrEqual(44);
+		}
+		for (const link of await links.all()) {
+			await link.scrollIntoViewIfNeeded();
+			const target = await link.evaluate((el) => {
+				const box = el.getBoundingClientRect();
+				const style = getComputedStyle(el);
+				const ownsTarget = [0.05, 0.5, 0.95].every((fraction) =>
+					document.elementFromPoint(box.x + box.width / 2, box.y + box.height * fraction)?.closest('a') === el
+				);
+				const probe = document.createElement('span');
+				probe.style.color = 'var(--primary)';
+				el.append(probe);
+				const orange = getComputedStyle(probe).color;
+				probe.remove();
+				return { ownsTarget, color: style.color, decoration: style.textDecorationLine, orange };
+			});
+			expect(target.ownsTarget, 'each 44px target belongs to its own link').toBe(true);
+			expect(target.color, 'contact links use the kit orange ink').toBe(target.orange);
+			expect(target.decoration, 'contact links retain the kit underline').toContain('underline');
 		}
 		expect(await card.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
 		await expect(card.getByTestId('about-cta-button')).toHaveAttribute('href', locale === 'en' ? '/contact' : `/${locale}/contact`);
