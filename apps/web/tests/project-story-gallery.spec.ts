@@ -20,9 +20,13 @@ test('project gallery follows the reader flow and supports native browsing and k
 	await expect(thumbnails.nth(1)).toBeEnabled({ timeout: 30_000 });
 
 	if (mobile) {
-		const panels = await page.getByTestId('project-glance-panel-mobile').boundingBox();
-		const images = await gallery.boundingBox();
-		expect(images!.y).toBeGreaterThanOrEqual(panels!.y + panels!.height);
+		// Read both boxes in one frame: scroll restoration and late article media
+		// can move the viewport between separate boundingBox calls on a long story.
+		await expect.poll(() => page.evaluate(() => {
+			const panels = document.querySelector('[data-testid="project-glance-panel-mobile"]')!.getBoundingClientRect();
+			const images = document.querySelector('[data-testid="project-image-gallery-mobile"]')!.getBoundingClientRect();
+			return images.top - panels.bottom;
+		})).toBeGreaterThanOrEqual(0);
 		const scroller = gallery.getByTestId('project-image-gallery');
 		await expect(scroller).toHaveCSS('overflow-x', 'auto');
 		// Wheel browsing is independent of the thumbnail's focus handler.

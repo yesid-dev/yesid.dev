@@ -3,12 +3,11 @@
 
 import { test, expect } from '@playwright/test';
 import { visibleContactTerminal } from '../_support/helpers';
+import { contactContent } from '../../src/lib/content/contact-page';
 
-for (const [path, labels] of [
-	['/contact', ['name', 'email', 'message']],
-	['/fr/contact', ['nom', 'courriel', 'message']],
-	['/es/contact', ['nombre', 'correo', 'mensaje']],
-] as const) {
+for (const locale of ['en', 'fr', 'es'] as const) {
+	const path = `${locale === 'en' ? '' : `/${locale}`}/contact`;
+	const labels = (['name', 'email', 'message'] as const).map(field => contactContent.formTerminal.fields[field].label[locale]!);
 	test(`contact labels focus their fields and keyboard order is preserved: ${path}`, async ({ page }) => {
 		await page.goto(path);
 		const terminal = visibleContactTerminal(page);
