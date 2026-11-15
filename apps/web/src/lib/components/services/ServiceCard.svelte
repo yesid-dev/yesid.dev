@@ -60,9 +60,9 @@
 	data-testid="service-card-{service.id}"
 	{...rest}
 >
-	<Card interactive class="service-card" data-ripple-exempt>
-		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-		<div class="service-card-inner" onclick={openFromCard}>
+	<!-- The whole card, padding and edge included, follows "Deep dive"; keyboards use the link. -->
+	<Card interactive class="service-card" data-ripple-exempt onclick={openFromCard}>
+		<div class="service-card-inner">
 			<div class="service-text">
 				<div class="title-row">
 					<h2 class="service-title" id="svc-title-{service.id}" tabindex="-1">

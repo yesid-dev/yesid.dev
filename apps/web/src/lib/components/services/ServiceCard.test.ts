@@ -76,8 +76,11 @@ describe('ServiceCard', () => {
 		});
 		await fireEvent.click(screen.getByText('Queries that run in seconds, not minutes'));
 		expect(followed).toEqual(['deep-dive']);
+		// The card's own padding and edge: the target is the card itself, outside its inner layout.
+		await fireEvent.click(card);
+		expect(followed, 'a click on the outer card padding follows "Deep dive" too').toEqual(['deep-dive', 'deep-dive']);
 		for (const panel of screen.getAllByTestId('service-svg-panel')) await fireEvent.click(panel);
-		expect(followed, 'a tap on the drawing morphs it and never navigates').toEqual(['deep-dive']);
+		expect(followed, 'a tap on the drawing morphs it and never navigates').toEqual(['deep-dive', 'deep-dive']);
 	});
 
 	it('shows the metric value unchanged and its label in sentence case', () => {

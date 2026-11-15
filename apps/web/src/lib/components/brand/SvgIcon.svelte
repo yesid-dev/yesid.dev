@@ -33,14 +33,16 @@
 	let container: HTMLDivElement;
 	let entranceDone = $state(false);
 	let entrance: gsap.core.Timeline | undefined;
+	// Set on destroy, so an instance replaced while its plugins load never starts its entrance.
+	let disposed = false;
 
 	onMount(async () => {
 		if (!container || still) return;
 		// Entrance variants use DrawSVG, and shapes convert through MorphSVG.
 		await Promise.all([loadDrawSVG(), loadMorphSVG()]);
-		// Component may have unmounted while awaiting (tests mount + unmount
-		// rapidly). Re-check before touching the DOM.
-		if (!container) return;
+		// The component may have been destroyed or replaced while awaiting (tests mount and
+		// unmount rapidly; a caller remounts it on a motion change). Re-check before animating.
+		if (disposed || !container) return;
 		initScrollTriggerConfig();
 
 		const svg = container.querySelector('svg');
@@ -58,7 +60,10 @@
 		});
 	});
 
-	onDestroy(() => entrance?.kill());
+	onDestroy(() => {
+		disposed = true;
+		entrance?.kill();
+	});
 </script>
 
 <div
