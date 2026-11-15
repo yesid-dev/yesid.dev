@@ -28,6 +28,12 @@
   // are localized here. The {coverage}/{total} placeholders are filled from the
   // metric's own dynamic numbers (per-render coverage, constant route total).
   const dashboard = siteLabels.heroDashboard;
+  // Proposed copy until site_labels owns hero_dashboard_routes_demo_label.
+  const routesDemoLabel = {
+    en: 'ROUTES SHOWN',
+    fr: 'LIGNES AFFICHÉES',
+    es: 'RUTAS MOSTRADAS',
+  };
 
   function metricLabel(metric: HeroMetric): string {
     switch (metric.key) {
@@ -36,7 +42,7 @@
       case 'delay':
         return resolveLocale(dashboard.delayLabel, locale);
       case 'routes':
-        return live ? resolveLocale(dashboard.routesLabel, locale) : resolveLocale(dashboard.routesSub, locale).replace('{total}', String(metric.total ?? ''));
+        return live ? resolveLocale(dashboard.routesLabel, locale) : resolveLocale(routesDemoLabel, locale);
     }
   }
 

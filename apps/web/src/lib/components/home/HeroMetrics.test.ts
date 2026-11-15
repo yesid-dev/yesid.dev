@@ -49,7 +49,7 @@ describe('HeroMetrics', () => {
     render(HeroMetrics, { props: { metrics } });
     expect(screen.getAllByText(siteLabels.heroDashboard.vehiclesLabel.en).length).toBeGreaterThan(0);
     expect(screen.getAllByText(siteLabels.heroDashboard.delayLabel.en).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(siteLabels.heroDashboard.routesSub.en.replace('{total}', String(metrics.find(m => m.key === 'routes')!.total))).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('ROUTES SHOWN').length).toBeGreaterThan(0);
   });
 
   it('renders sub-labels for each metric (CMS templates, EN, {coverage}/{total} filled)', () => {
@@ -77,7 +77,7 @@ describe('HeroMetrics — fr locale (CMS truth)', () => {
     render(HeroMetrics, { props: { metrics }, context: frContext });
     expect(screen.getAllByText(siteLabels.heroDashboard.vehiclesLabel.fr!).length).toBeGreaterThan(0);
     expect(screen.getAllByText(siteLabels.heroDashboard.delayLabel.fr!).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(siteLabels.heroDashboard.routesSub.fr!.replace('{total}', String(metrics.find(m => m.key === 'routes')!.total))).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('LIGNES AFFICHÉES').length).toBeGreaterThan(0);
   });
 
   it('renders French subs with {coverage}/{total} substituted', () => {
@@ -86,5 +86,20 @@ describe('HeroMetrics — fr locale (CMS truth)', () => {
     expect(screen.getAllByText(siteLabels.heroDashboard.delaySub.fr!.replace('{coverage}', intl.number('fr', { maximumFractionDigits: 1 }).format(metrics.find(m => m.key === 'delay')!.coverage!))).length).toBeGreaterThan(0);
     expect(screen.getAllByText(siteLabels.heroDashboard.routesSub.fr!.replace('{total}', String(metrics.find(m => m.key === 'routes')!.total))).length).toBeGreaterThan(0);
 
+  });
+});
+
+describe.each(['en', 'fr', 'es'] as const)('metric names in %s', locale => {
+  it.each([false, true])('keeps labels distinct from subs with live=%s', live => {
+    const { container } = render(HeroMetrics, {
+      props: { metrics: INITIAL_HERO_DATA.metrics, live },
+      context: new Map([[Symbol.for('@yesid/ui/locale'), () => locale]]),
+    });
+    for (const display of container.querySelectorAll('[data-slot="metric-display"]')) {
+      const label = display.querySelector('.metric-label-text')!.textContent;
+      const sub = display.querySelector(':scope > span:last-child')!.textContent;
+      expect(label).not.toBe(sub);
+    }
+    if (live) expect(screen.getAllByText(siteLabels.heroDashboard.routesLabel[locale]!).length).toBeGreaterThan(0);
   });
 });

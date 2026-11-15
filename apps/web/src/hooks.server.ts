@@ -1,3 +1,4 @@
+import '#lib/schemas/config.ts';
 import { injectThemeBoot } from '@yesid/ui/head';
 import type { Handle, HandleServerError } from '@sveltejs/kit/hooks';
 import { resolveErrorPage } from '#lib/catalog/index.ts';
