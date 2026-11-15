@@ -95,8 +95,9 @@ for (const width of [390, 1440]) {
 }
 
 for (const theme of ['dark', 'light']) {
-	test(`hover: Send message darkens and lifts 1px with no halo, the same in ${theme}`, async ({ page, isMobile }) => {
-		test.skip(isMobile, 'Hover needs a pointer.');
+	test(`hover: Send message darkens and lifts 1px with no halo, the same in ${theme}`, async ({ page }, testInfo) => {
+		// The kit's lift applies under hover-capable pointers only; touch projects get the tap check below.
+		test.skip(testInfo.project.name !== 'desktop', 'Hover is exercised on the desktop pointer project.');
 		await page.emulateMedia({ reducedMotion: 'no-preference' });
 		await page.setViewportSize({ width: 1440, height: 900 });
 		await page.addInitScript((value) => localStorage.setItem('theme', value), theme);
@@ -122,20 +123,78 @@ for (const theme of ['dark', 'light']) {
 	});
 }
 
-test('fields read at 16px and every control is at least 44px tall', async ({ page }) => {
-	await page.setViewportSize({ width: 390, height: 844 });
+// Touch devices have no hover: the controls keep a 44px tap target and a tap adds no glow.
+test('touch: controls keep their tap target and a tap adds no glow', async ({ page }, testInfo) => {
+	test.skip(!['phone', 'tablet'].includes(testInfo.project.name), 'Tap is exercised on touch projects.');
 	await blockExternal(page);
 	await page.goto('/contact');
 	const terminal = visibleContactTerminal(page);
-	await expect(terminal.getByTestId('contact-submit')).toBeEnabled();
-	for (const field of await terminal.getByRole('textbox').all()) {
-		expect(await field.evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
-		expect((await field.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+	const submit = terminal.getByTestId('contact-submit');
+	await expect(submit).toBeEnabled();
+	for (const control of [submit, terminal.getByTestId('contact-booking-link'), page.getByTestId('contact-social-calendar')]) {
+		const box = (await control.boundingBox())!;
+		expect(box.height).toBeGreaterThanOrEqual(44);
+		expect(box.width).toBeGreaterThanOrEqual(44);
 	}
-	for (const control of [
-		terminal.getByTestId('contact-submit'),
-		terminal.getByTestId('contact-booking-link'),
-		...(await page.getByTestId('contact-info-terminal').getByRole('link').all()),
-	])
-		expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+	await submit.tap();
+	await expect(terminal.getByTestId('contact-error-summary')).toBeFocused();
+	expect(
+		await submit.evaluate((el) => {
+			const style = getComputedStyle(el);
+			return { shadow: style.boxShadow, text: style.textShadow, filter: style.filter };
+		}),
+	).toEqual({ shadow: 'none', text: 'none', filter: 'none' });
 });
+
+// Every link and button in the form panel keeps the 44px tap minimum in each state the visitor
+// reaches: the empty form, the errors, the not-sent box (its address link) and the result.
+async function expectTargets(scope: import('@playwright/test').Locator, state: string) {
+	const controls = await scope.locator('a, button').filter({ visible: true }).all();
+	expect(controls.length, `${state}: controls to measure`).toBeGreaterThan(0);
+	for (const control of controls) {
+		const box = (await control.boundingBox())!;
+		const name = `${state}: ${(await control.textContent())?.trim()}`;
+		expect(box.height, name).toBeGreaterThanOrEqual(44);
+		expect(box.width, name).toBeGreaterThanOrEqual(44);
+	}
+}
+
+for (const width of [390, 1440]) {
+	test(`fields read at 16px and every control is at least 44px in every form state at ${width}`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 900 });
+		await blockExternal(page);
+		await page.goto('/contact');
+		const terminal = visibleContactTerminal(page);
+		await expect(terminal.getByTestId('contact-submit')).toBeEnabled();
+		const fields = terminal.getByRole('textbox');
+		for (const field of await fields.all()) {
+			expect(await field.evaluate((el) => getComputedStyle(el).fontSize)).toBe('16px');
+			expect((await field.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+		}
+		await expectTargets(terminal, 'empty');
+		await expectTargets(page.getByTestId('contact-info-terminal'), 'info');
+
+		await terminal.getByTestId('contact-submit').click();
+		await expect(terminal.getByTestId('contact-error-summary')).toBeFocused();
+		await expectTargets(terminal, 'errors');
+
+		await fields.nth(0).fill('Fixture Reader');
+		await fields.nth(1).fill('reader@example.test');
+		await fields.nth(2).fill('A fixture message.');
+		await terminal.getByTestId('contact-submit').click();
+		const failure = terminal.getByTestId('contact-send-error');
+		await expect(failure).toBeFocused();
+		await expect(failure.getByRole('link', { name: 'contact@yesid.dev', exact: true })).toBeVisible();
+		await expectTargets(failure, 'not sent');
+		await expectTargets(terminal, 'not sent');
+
+		await page.unrouteAll({ behavior: 'ignoreErrors' });
+		await page.route('https://api.web3forms.com/submit', (route) => route.fulfill({ json: { success: true } }));
+		await terminal.getByTestId('contact-submit').click();
+		const success = terminal.getByTestId('contact-success');
+		await expect(success.getByTestId('contact-sent-message')).toBeFocused();
+		await expect(success.getByRole('link')).toHaveCount(2);
+		await expectTargets(success, 'sent');
+		await success.getByTestId('contact-reset').click();
+	});
+}

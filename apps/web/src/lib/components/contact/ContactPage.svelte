@@ -436,7 +436,7 @@
 							<!-- The send failure keeps the draft, takes focus and offers the address. -->
 							<div bind:this={failureEl} tabindex="-1" class="contact-box" data-testid="contact-send-error">
 								<p>
-									✗ {failureParts.before}{#if failureParts.linked}<a href={`mailto:${contactEmail}`}>{contactEmail}</a>{/if}{failureParts.after}
+									✗ {failureParts.before}{#if failureParts.linked}<a class="contact-inline-target" href={`mailto:${contactEmail}`}>{contactEmail}</a>{/if}{failureParts.after}
 								</p>
 							</div>
 						{/if}
@@ -480,7 +480,7 @@
 					</p>
 					<p>{replyTime}</p>
 					<p>
-						{#each meanwhileParts(meanwhile) as part}{#if part.href}<a href={part.href}>{part.text}</a>{:else}{part.text}{/if}{/each}
+						{#each meanwhileParts(meanwhile) as part}{#if part.href}<a class="contact-inline-target" href={part.href}>{part.text}</a>{:else}{part.text}{/if}{/each}
 					</p>
 					<Button variant="ghost" onclick={handleReset} data-testid="contact-reset" class="mt-4 min-h-11 self-start px-4 font-mono text-caption">
 						{resolveLocale(contactPage.success.resetLabel, locale)}
@@ -710,6 +710,16 @@
 	}
 	.contact-summary-list a {
 		color: var(--destructive);
+	}
+	/* Links inside a sentence (the not-sent address, the "Meanwhile" links) keep the 44px tap
+	   minimum in both directions without leaving their line. */
+	.contact-inline-target {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-block-size: var(--size-tap-min);
+		min-inline-size: var(--size-tap-min);
+		vertical-align: middle;
 	}
 	.contact-book {
 		display: flex;
