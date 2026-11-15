@@ -668,8 +668,15 @@
 	}
 
 	.hero-text-layer {
+		/* Empty space in the absolute text layer must not intercept the mobile example. */
+		pointer-events: none;
 		width: 100%;
 		padding-top: calc(var(--nav-clearance) + 1rem);
+	}
+
+	.hero-text-layer :global(a),
+	.hero-text-layer :global(button) {
+		pointer-events: auto;
 	}
 
 	.hero-grid {

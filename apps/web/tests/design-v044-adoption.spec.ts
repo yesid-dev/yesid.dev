@@ -1,4 +1,5 @@
 import { test, expect, type Locator, type Page } from '@playwright/test';
+import { heroContent } from '../src/lib/content/site-content';
 
 async function styles(target: Locator) {
  return target.evaluate(el => {
@@ -22,7 +23,8 @@ async function checkHover(page: Page, trigger: Locator, target = trigger, static
  return { before, after };
 }
 for (const theme of ['light', 'dark']) {
- test(`hover keeps lift or colour without added shadow in ${theme}`, async ({ page }) => {
+ test(`hover keeps lift or colour without added shadow in ${theme}`, async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'Hover is exercised on the desktop pointer project.');
   await page.addInitScript(theme => localStorage.setItem('theme', theme), theme);
   await page.goto('/');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
@@ -46,6 +48,24 @@ for (const theme of ['light', 'dark']) {
   await expect(row.locator('[data-slot="card"]')).toHaveAttribute('data-interactive', 'true');
   evidence.blog = await checkHover(page, row, row.locator('[data-slot="card"]'));
   await test.info().attach('computed-hover-styles', { body: JSON.stringify(evidence, null, 2), contentType: 'application/json' });
+ });
+}
+for (const theme of ['light', 'dark']) {
+ test(`mobile demo refresh responds to a tap in ${theme}`, async ({ page }, testInfo) => {
+  test.skip(!['phone', 'tablet'].includes(testInfo.project.name), 'Tap is exercised on touch projects.');
+  await page.addInitScript(theme => localStorage.setItem('theme', theme), theme);
+  await page.goto('/');
+  await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+  const demo = page.getByTestId('hero-mobile-sql');
+  const tab = demo.getByRole('button', { expanded: false });
+  if (await tab.count()) await tab.tap();
+  const rows = demo.getByTestId('sql-results');
+  const initial = await rows.textContent();
+  await demo.getByTestId('hero-refresh-mobile').tap();
+  await expect(rows).not.toHaveText(initial!);
+  await expect(demo.getByTestId('sql-meta')).toContainText(heroContent.sqlPanel.stamps.refreshed.en);
+  await page.getByTestId('hero-cta-projects').tap();
+  await expect(page).toHaveURL(/\/projects$/);
  });
 }
 for (const locale of ['en', 'fr', 'es']) {
