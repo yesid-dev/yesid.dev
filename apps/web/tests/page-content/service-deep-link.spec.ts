@@ -22,7 +22,7 @@ async function expectStation(page: Page, id: string) {
 		)
 		.toBeGreaterThanOrEqual(3);
 	await expect(page.getByTestId(`station-tab-${id}`)).toHaveAttribute(
-		'aria-selected',
+		'aria-current',
 		'true'
 	);
 	expect(new URL(page.url()).searchParams.get('station')).toBe(id);

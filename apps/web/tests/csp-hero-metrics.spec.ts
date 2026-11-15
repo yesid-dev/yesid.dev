@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { fixturePost } from './_support/content-fixtures';
 
-for (const path of ['/', '/projects/transit-data-pipeline', `/blog/${fixturePost('en').slug}`, '/about']) {
+for (const path of ['/', '/projects/transit-data-pipeline', `/blog/${fixturePost('en').slug}`, '/about', '/services', '/fr/services/data-pipeline']) {
  test(`hydration respects CSP on ${path}`, async ({ page }) => {
   await page.addInitScript(() => {
    const violations: object[] = [];

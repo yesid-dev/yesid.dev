@@ -1,9 +1,12 @@
-<!-- Decorative hover/tap morph surface; hover ignores touch so taps retain their toggle state. -->
+<!-- Decorative hover/tap morph surface; hover ignores touch so taps retain their toggle state.
+     Under reduced motion the drawing stands still: no draw-in, no morph. -->
 <script lang="ts">
 	import { cn } from '@yesid/ui/cn';
 	import { CornerMarks } from '@yesid/ui/brand';
 	import { pointerHover } from '#lib/motion/actions/pointerHover.ts';
 	import SvgIcon from '#lib/components/brand/SvgIcon.svelte';
+	import { prefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
+	import { untrack } from 'svelte';
 
 	export interface ServiceSvgPanelProps {
 		/** Raw SVG content string */
@@ -23,6 +26,12 @@
 
 	// Single morph switch — hover sets/clears it (mouse/pen only), tap toggles.
 	let panelMorphed = $state(false);
+
+	// A motion-preference change starts the drawing afresh: no tap carried over.
+	$effect(() => {
+		void $prefersReducedMotion;
+		untrack(() => (panelMorphed = false));
+	});
 </script>
 
 {#if svgContent}
@@ -44,7 +53,11 @@
 		<!-- pointer-events-none: the panel owns the hover/tap, so the morph
 		     fires across the whole tile (HomeServices wrapper precedent). -->
 		<div class="svg-art pointer-events-none">
-			<SvgIcon {svgContent} size={variant === 'banner' ? 120 : 224} hovered={panelMorphed} />
+			<!-- Remounted when the motion preference changes, so the old instance's destroy hooks
+			     cancel its entrance and any morph, and the new one starts in the right form. -->
+			{#key $prefersReducedMotion}
+				<SvgIcon {svgContent} size={variant === 'banner' ? 120 : 224} hovered={panelMorphed} still={$prefersReducedMotion} />
+			{/key}
 		</div>
 	</button>
 {/if}

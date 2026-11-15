@@ -6,13 +6,16 @@
 	import type { Service } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
-
-	const locale = getLocale();
 	import { siteLabels } from '#lib/content/index.ts';
 	import { getLenis } from '@yesid/motion/utils/lenis';
+	import { RailTitle } from '@yesid/ui/brand';
+	import { PageSection, PageSections } from '@yesid/ui/layout';
 	import StationTabs from '#lib/components/shared/StationTabs.svelte';
+	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import ServiceCard from './ServiceCard.svelte';
 	import { orderServices } from '#lib/utils/station.ts';
+
+	const locale = getLocale();
 
 	let {
 		services,
@@ -23,14 +26,15 @@
 	} = $props();
 
 	let sorted = $derived(orderServices(services));
+	const heading = resolveLocale(siteLabels.servicesChrome.listing.heading, locale);
 
-	// untrack: activeId deliberately seeds from the first station once, then the
-	// IntersectionObserver and tab clicks own it.
+	// untrack: activeId seeds from the first station once, then the IntersectionObserver and
+	// station clicks own it.
 	let activeId = $state(untrack(() => sorted[0]?.id ?? ''));
 
-	// Lenis-aware scroll to a station viewport — the authoritative motion; activeId
-	// follows from the IntersectionObserver once the section lands in view.
-	function scrollToStation(id: string) {
+	// Lenis-aware scroll to a service card; activeId follows from the IntersectionObserver
+	// once the card lands in view. Focus moves to the card's title, below the sticky strip.
+	function scrollToStation(id: string, focus = false) {
 		const lenis = getLenis();
 		const target = document.querySelector<HTMLElement>(`#service-${id}`);
 		if (!target) return;
@@ -41,56 +45,50 @@
 			// Native fallback already honours scroll-margin-top.
 			target.scrollIntoView({ behavior: 'smooth', block: 'start' });
 		}
+		if (focus) document.getElementById(`svc-title-${id}`)?.focus({ preventScroll: true });
 	}
 
-	// Write the shareable station parameter only on explicit tab clicks; scroll-spy updates must not rewrite history.
-	async function handleTabSelect(id: string) {
+	// Write the shareable station parameter only on explicit station clicks; scroll-spy updates
+	// must not rewrite history.
+	async function handleStationSelect(id: string) {
 		activeId = id;
 		if (!browser) return;
 		const url = new URL(page.url.href);
 		url.searchParams.set('station', id);
-		// Await the navigation BEFORE scrolling. replaceState keeps the tab-click out
-		// of the history stack (a scroll position, not a destination). On touch devices
-		// (no Lenis) the scroll is a native smooth scrollIntoView, and firing it before
-		// goto settled cancelled it mid-animation: the tab highlighted but the page
-		// never moved. Desktop survived because Lenis owns its own scroll. Awaiting goto
-		// fixes the mobile tab-scroll.
+		// Await the navigation BEFORE scrolling: on touch devices (no Lenis) a native smooth
+		// scroll fired before goto settled was cancelled mid-animation. replaceState keeps the
+		// jump out of the history stack (a scroll position, not a destination).
 		await gotoPreservingScroll(url.toString(), { replaceState: true });
-		scrollToStation(id);
+		scrollToStation(id, true);
 	}
 
 	onMount(() => {
 		if (!browser) return;
 
-		// Deep-link / switch-restore: if ?station=<id> names a real station, scroll
-		// to it after the viewports have painted. The scroll is authoritative —
-		// activeId follows when the section crosses the reading band.
+		// Deep-link / switch-restore: if ?station=<id> names a real station, scroll to it after
+		// the cards have painted.
 		const requested = page.url.searchParams.get('station');
 		if (requested && sorted.some((s) => s.id === requested)) {
 			void tick().then(() => scrollToStation(requested));
 		}
 
-		const viewports = document.querySelectorAll<HTMLElement>('[id^="service-"]');
-		if (viewports.length === 0) return;
+		const cards = document.querySelectorAll<HTMLElement>('[id^="service-"]');
+		if (cards.length === 0) return;
 
 		let observer: IntersectionObserver;
 		function observeStations() {
 			observer?.disconnect();
-			const clearance = parseFloat(getComputedStyle(viewports[0]).scrollMarginTop) || 0;
+			const clearance = parseFloat(getComputedStyle(cards[0]).scrollMarginTop) || 0;
 			const top = Math.min(innerHeight - 1, Math.max(innerHeight * 0.3, clearance));
 			observer = new IntersectionObserver(
 				(entries) => {
 					for (const entry of entries) {
-						if (entry.isIntersecting) {
-							const id = entry.target.id.replace('service-', '');
-							activeId = id;
-						}
+						if (entry.isIntersecting) activeId = entry.target.id.replace('service-', '');
 					}
 				},
 				{ rootMargin: `-${top}px 0px -${innerHeight - top - 1}px 0px` }
 			);
-
-			viewports.forEach((el) => observer.observe(el));
+			cards.forEach((el) => observer.observe(el));
 		}
 		observeStations();
 		window.addEventListener('resize', observeStations);
@@ -103,67 +101,71 @@
 </script>
 
 <!--
-  Services listing page — page-level Lenis scroll, no nested scroll container.
-  Sticky StationTabs at top.
-  IntersectionObserver tracks which service viewport is in view. D190, D191.
+  /services (D-M5, DEV-39): the orange top strip, sticky, selects a service; "Services." on the
+  left rail; four alike service cards; the closing band. Sections end with the kit's divider,
+  except the last (none before the footer).
 -->
-
-<div
-	class="services-page"
-	data-testid="service-listing-page"
->
-	<h1 class="sr-only">{resolveLocale(siteLabels.servicesChrome.listing.heading, locale)}</h1>
-	<!-- Sticky station tabs -->
+<div class="services-page" data-testid="service-listing-page" data-register="reading">
 	<div class="tabs-bar">
-		<StationTabs
-			services={sorted}
-			activeId={activeId}
-			mode="scroll"
-			onSelect={handleTabSelect}
-		/>
+		<StationTabs services={sorted} {activeId} mode="scroll" onSelect={handleStationSelect} />
 	</div>
 
-	<!-- Service viewports — page-level scroll, no nested container -->
-	{#each sorted as service, i (service.id)}
-		<ServiceCard
-			service={service}
-			svgContent={serviceSvgContents[service.id] ?? ''}
-			index={i}
-			total={sorted.length}
-		/>
-	{/each}
+	<PageSections>
+		<PageSection class="services-list-section" aria-labelledby="services-heading">
+			<RailTitle
+				{heading}
+				level={1}
+				titleId="services-heading"
+				side="left"
+				class="services-rail-title"
+				size="clamp(3.5rem, 7vw, 6rem)"
+				style="--rail-title-top: calc(var(--nav-clearance) + var(--strip-h) + 1.5rem)"
+			>
+				<ul class="service-list">
+					{#each sorted as service (service.id)}
+						<ServiceCard {service} svgContent={serviceSvgContents[service.id] ?? ''} />
+					{/each}
+				</ul>
+			</RailTitle>
+		</PageSection>
 
+		<PageSection class="services-band" data-register="expressive" data-testid="services-cta">
+			<CtaBand testidPrefix="services-cta-band" />
+		</PageSection>
+	</PageSections>
 </div>
 
 <style>
 	.services-page {
 		position: relative;
-		/* transparent so the root layout's single .circuit-grid shows through,
-		   matching /projects (the canonical single-grid background). */
+		/* transparent so the root layout's single .circuit-grid shows through */
 		overflow-x: clip;
 	}
 
+	/* Sticky under the header pill; the strip's orange runs up behind the pill. */
 	.tabs-bar {
 		position: sticky;
-		/* Route through the shared nav clearance so the sticky tablist clears the
-		   floating pill (was 5rem/80px = only 4px below the 76px pill, which read
-		   as "01 Databases tucked under the nav"). */
 		top: var(--nav-clearance, 5.5rem);
 		z-index: var(--z-rail);
 	}
 
-	/* Solid band filling the nav gap above the sticky tabs — same colour as the
-	   page background, so service content scrolling up underneath disappears
-	   cleanly into it instead of bleeding through (transparent looked broken on
-	   scroll). Masks the gap between the floating nav pill and the orange tabs. */
-	.tabs-bar::before {
-		content: '';
-		position: absolute;
-		inset-inline: 0;
-		bottom: 100%;
-		height: calc(var(--nav-clearance) + 0.5rem);
-		background: var(--background);
-		pointer-events: none;
+	:global(.services-list-section) {
+		padding-block: clamp(1.5rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
 	}
 
+	/* The cards keep the centred measure between the two rails. */
+	.service-list {
+		display: flex;
+		flex-direction: column;
+		gap: clamp(1rem, 2vw, 1.5rem);
+		max-width: 76rem;
+		margin: 0 auto;
+		padding: 0 var(--space-page-x);
+	}
+
+	@media (min-width: 1024px) {
+		.service-list {
+			padding-inline: 0;
+		}
+	}
 </style>

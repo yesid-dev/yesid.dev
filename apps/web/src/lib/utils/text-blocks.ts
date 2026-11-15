@@ -19,3 +19,13 @@ export function toTextBlocks(text: string): TextBlock[] {
 	}
 	return blocks;
 }
+
+/**
+ * Splits off a paragraph's first sentence, so it can stay in view when its section is closed.
+ * Returns no lead when the text is one sentence (nothing would be left to fold).
+ */
+export function splitLeadSentence(text: string): { lead: string | null; rest: string } {
+	const match = /^\s*(.+?[.!?…])\s+(\S[\s\S]*)$/.exec(text);
+	if (!match) return { lead: null, rest: text.trim() };
+	return { lead: match[1], rest: match[2].trim() };
+}

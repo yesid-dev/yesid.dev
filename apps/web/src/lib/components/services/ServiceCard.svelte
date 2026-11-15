@@ -1,55 +1,36 @@
 <!--
-  ServiceCard — per-viewport service block for the /services listing page.
-  Asymmetric split: text left, SVG panel right (on mobile the icon sits beside the title).
-  Bold orange accents, benefit headline, impact metric. D186.
+  ServiceCard: one of the four alike service cards on /services (D-M5, DEV-39).
+  Words on the left, the drawing on the right in its corner-marked frame (beside the title on
+  phones). A kit interactive card: the whole card leads to its service, "Deep dive" stays the
+  real link for keyboards and screen readers, and the drawing keeps its own hover and tap.
 -->
 <script lang="ts">
 	import type { Service } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { siteLabels } from '#lib/content/index.ts';
+	import { Card } from '@yesid/ui/card';
+	import { Button } from '@yesid/ui/button';
+	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
 
 	const locale = getLocale();
-	import { siteLabels } from '#lib/content/index.ts';
-	import { SectionLabel } from '@yesid/ui/brand';
-	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
-	import { cn } from '@yesid/ui/cn';
-	import { stationNumber } from '#lib/utils/station.ts';
-	import { pressBounce } from '@yesid/motion/actions';
 
 	export interface ServiceCardProps {
 		/** The service data to display */
 		service: Service;
 		/** Raw SVG content for the service illustration */
 		svgContent: string;
-		/** Position index (0-based) in the listing */
-		index: number;
-		/** Total number of services */
-		total: number;
 		class?: string;
 		[key: string]: unknown;
 	}
 
-	let {
-		service,
-		svgContent,
-		index,
-		total,
-		class: className = '',
-		...rest
-	}: ServiceCardProps = $props();
+	let { service, svgContent, class: className = '', ...rest }: ServiceCardProps = $props();
 
-	let stationNum = $derived(stationNumber(index));
-	let totalStr = $derived(String(total).padStart(2, '0'));
-	let stationLabelText = $derived(
-		resolveLocale(siteLabels.servicesChrome.listing.stationLabelTemplate, locale)
-			.replace('{stationNum}', stationNum)
-			.replace('{totalStr}', totalStr)
-	);
 	let deepDiveLabel = $derived(resolveLocale(siteLabels.servicesChrome.listing.deepDiveLabel, locale));
+	let href = $derived(localizeHref(`/services/${service.id}`, locale));
 	let title = $derived(resolveLocale(service.title, locale));
 	let description = $derived(resolveLocale(service.description, locale));
-	let subtitle = $derived(service.subtitle ? resolveLocale(service.subtitle, locale) : null);
 	let benefitHeadline = $derived(
 		service.benefitHeadline ? resolveLocale(service.benefitHeadline, locale) : null
 	);
@@ -59,144 +40,175 @@
 	let metricLabel = $derived(
 		service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : null
 	);
+
+	let deepDive = $state<HTMLAnchorElement | null>(null);
+
+	// A click anywhere on the card that is not on its link or its drawing follows "Deep dive";
+	// a text selection is reading, not a click.
+	function openFromCard(event: MouseEvent) {
+		if (event.defaultPrevented || event.button !== 0) return;
+		const target = event.target as Element | null;
+		if (!target || target.closest('a, button')) return;
+		if (window.getSelection()?.toString()) return;
+		deepDive?.click();
+	}
 </script>
 
-<section
-	class={cn('service-viewport', index === 0 && 'service-viewport-first', className)}
-	data-testid="service-card-{service.id}"
+<li
+	class="service-item {className}"
 	id="service-{service.id}"
-	data-ripple-exempt
+	data-testid="service-card-{service.id}"
 	{...rest}
 >
-	<div class="viewport-inner">
-		<!-- Text content -->
-		<div class="service-text">
-			<SectionLabel text={stationLabelText} variant="station" class="mb-4 block" />
+	<!-- The whole card, padding and edge included, follows "Deep dive"; keyboards use the link. -->
+	<Card interactive class="service-card" data-ripple-exempt onclick={openFromCard}>
+		<div class="service-card-inner">
+			<div class="service-text">
+				<div class="title-row">
+					<h2 class="service-title" id="svc-title-{service.id}" tabindex="-1">
+						{title}<span class="title-dot">.</span>
+					</h2>
+					{#if svgContent}
+						<div class="svg-mobile-banner">
+							<ServiceSvgPanel {svgContent} variant="banner" />
+						</div>
+					{/if}
+				</div>
 
-			<div class="title-row">
-				<h2 class="service-title">
-					{title}<span class="title-dot">.</span>
-				</h2>
-				{#if svgContent}
-					<div class="svg-mobile-banner">
-						<ServiceSvgPanel {svgContent} variant="banner" />
-					</div>
+				{#if benefitHeadline}
+					<p class="benefit-headline">{benefitHeadline}</p>
 				{/if}
-			</div>
 
-			{#if subtitle}
-				<p class="service-subtitle">{subtitle}</p>
-			{/if}
+				<p class="service-description">{description}</p>
 
-			{#if benefitHeadline}
-				<p class="benefit-headline">{benefitHeadline}</p>
-			{/if}
-
-			<p class="service-description">{description}</p>
-
-			<div class="cta-row">
-				{#if metricValue}
-					<div class="metric-group">
-						<div class="metric-inline">
+				<div class="service-foot">
+					{#if metricValue}
+						<p class="service-metric" data-testid="service-metric">
 							<span class="metric-value">{metricValue}</span>
 							{#if metricLabel}
 								<span class="metric-label">{metricLabel}</span>
 							{/if}
-						</div>
-					</div>
-				{/if}
-
-				<!-- Desktop CTA — hidden on mobile -->
-				<a href={localizeHref(`/services/${service.id}`, locale)} class="deep-dive-cta desktop-only tap-press" use:pressBounce>
-					{deepDiveLabel}
-				</a>
+						</p>
+					{/if}
+					<Button
+						bind:ref={deepDive}
+						{href}
+						size="cta"
+						class="deep-dive-cta"
+						data-testid="service-deep-dive-{service.id}"
+					>
+						{deepDiveLabel}<span class="sr-only">: {title}</span>
+					</Button>
+				</div>
 			</div>
-		</div>
 
-		<!-- Mobile: full-width deep-dive CTA. Desktop: SVG panel only. -->
-		<div class="card-bottom">
-			<a href={localizeHref(`/services/${service.id}`, locale)} class="deep-dive-cta mobile-only tap-press" use:pressBounce>
-				{deepDiveLabel}
-			</a>
 			{#if svgContent}
-				<ServiceSvgPanel {svgContent} class="svg-panel-responsive" />
+				<div class="card-art">
+					<ServiceSvgPanel {svgContent} class="svg-panel-responsive" />
+				</div>
 			{/if}
 		</div>
-	</div>
-</section>
+	</Card>
+</li>
 
 <style>
-	.service-viewport {
-		min-height: 100svh;
-		padding-inline: var(--space-page-x);
-		scroll-snap-align: start;
+	.service-item {
+		list-style: none;
+		/* A station jump lands the card below the header pill and the sticky strip. */
+		scroll-margin-top: calc(var(--nav-clearance) + var(--strip-h) + 1rem);
 	}
 
-	/* Pinned box spans the viewport under the nav and tabs, so every station sits at its vertical middle. */
-	.viewport-inner {
-		position: sticky;
-		top: calc(var(--nav-clearance) + var(--strip-h) + 1rem);
-		min-height: calc(100svh - var(--nav-clearance) - var(--strip-h) - 2rem);
+	.service-card-inner {
 		display: flex;
 		align-items: center;
-		/* Original distance restored — the giant title (below) fills the row so the
-		   text no longer floats far from the SVG panel. */
-		gap: clamp(2rem, 4vw, 4rem);
-		width: 100%;
+		gap: clamp(1.5rem, 3vw, 3rem);
+		padding: 0.5rem clamp(1.25rem, 2.5vw, 2rem);
+		cursor: pointer;
 	}
 
 	.service-text {
 		flex: 1;
 		min-width: 0;
+		cursor: auto;
 	}
 
-	/* A step below the hero type, height-aware like --text-hero so a station fits its viewport. */
+	/* Reading size: the four services read as comparable cards, one after another. */
 	.service-title {
 		font-family: var(--font-heading);
-		font-size: clamp(48px, min(6.5vw, 10svh), 88px);
+		font-size: clamp(1.5rem, 1rem + 1.5vw, 2rem);
 		font-weight: 900;
 		color: var(--foreground);
-		line-height: 1.02;
-		letter-spacing: -0.035em;
-		margin-bottom: 1rem;
+		line-height: 1.15;
+		letter-spacing: -0.02em;
+		margin: 0 0 0.75rem;
+		scroll-margin-top: calc(var(--nav-clearance) + var(--strip-h) + 1rem);
 	}
 
-	.title-dot { color: var(--primary); }
-
-	.service-subtitle {
-		font-size: var(--text-heading);
+	.title-dot {
 		color: var(--primary);
-		margin-bottom: 1rem;
-		font-style: italic;
 	}
 
 	.benefit-headline {
-		font-size: clamp(20px, 2.6vw, 26px);
+		font-size: var(--text-subheading);
 		font-weight: 600;
 		color: var(--foreground);
-		line-height: 1.3;
-		margin-bottom: 1.5rem;
+		line-height: 1.35;
+		margin: 0 0 0.75rem;
 	}
 
 	.service-description {
-		font-size: clamp(18px, 1.5vw, 22px);
+		font-size: var(--text-body);
 		line-height: 1.6;
 		color: var(--secondary-foreground);
-		max-width: 55ch;
-		margin-bottom: 1.5rem;
+		max-width: 60ch;
+		margin: 0 0 1.5rem;
 	}
 
-	.cta-row {
+	.service-foot {
 		display: flex;
 		align-items: center;
-		gap: clamp(1.5rem, 3vw, 3rem);
+		justify-content: space-between;
 		flex-wrap: wrap;
+		gap: 1rem 2rem;
+		padding-top: 1rem;
+		border-top: 1px solid var(--border-subtle);
 	}
 
-	/* Desktop: card-bottom is just the SVG panel */
-	.card-bottom {
+	/* The published metric in reading ink, its label in sentence case; the value is unchanged. */
+	.service-metric {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 0.625rem;
+		min-width: 0;
+		margin: 0;
+	}
+
+	.metric-value {
+		max-width: 100%;
+		overflow-wrap: anywhere;
+		font-family: var(--font-heading);
+		font-size: var(--text-heading);
+		font-weight: 900;
+		line-height: 1.2;
+		color: var(--foreground);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.metric-label {
+		font-size: var(--text-small);
+		color: var(--secondary-foreground);
+	}
+
+	.card-art {
 		flex-shrink: 0;
-		overflow: hidden; /* clips SVG during initial render — prevents size flash */
+		overflow: hidden; /* clips the drawing during its first render, before it is sized */
+	}
+
+	/* A square frame at card size, so the four cards stay compact. */
+	.card-art :global(.svg-panel:not(.svg-panel--banner)) {
+		width: clamp(160px, 15vw, 220px);
+		aspect-ratio: 1;
 	}
 
 	@media (--tablet-min) {
@@ -205,148 +217,52 @@
 		}
 	}
 
-	/* Desktop CTA visible, mobile CTA hidden — combined selector beats .deep-dive-cta */
-	.deep-dive-cta.mobile-only { display: none; }
-	.deep-dive-cta.desktop-only { display: inline-block; }
-
-	.metric-group {
-		flex: 1 1 20rem;
-		min-width: 0;
-	}
-
-	.metric-inline {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.75rem;
-	}
-
-	.metric-value {
-		flex: 0 0 auto;
-		max-width: 100%;
-		overflow-wrap: anywhere;
-		font-size: clamp(44px, 5vw, 60px);
-		font-weight: 900;
-		color: var(--accent-text);
-		line-height: 1;
-	}
-
-	.metric-label {
-		flex: 1 1 14rem;
-		min-width: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-small);
-		color: var(--accent-text);
-		text-transform: uppercase;
-		letter-spacing: 1px;
-	}
-
-	.deep-dive-cta {
-		display: inline-block;
-		font-family: var(--font-mono);
-		font-size: var(--text-subheading);
-		font-weight: 700;
-		color: var(--background);
-		background: var(--primary);
-		padding: 1rem 2.5rem;
-		border-radius: var(--radius-pill);
-		text-decoration: none;
-		letter-spacing: 0.5px;
-		transition: transform var(--duration-fast), box-shadow var(--duration-fast);
-	}
-	.deep-dive-cta:hover {
-		transform: translateY(-2px);
-	}
-
-	/* SVG panel: responsive sizing */
-	:global(.svg-panel-responsive) {
-		flex-shrink: 0;
-	}
-
-	/* Mobile: one column, the service icon beside the title.
-	   scroll-margin-top aligns tab clicks below the sticky tabs. */
+	/* Phones: one column, the drawing beside the title, "Deep dive" across the card. */
 	@media (--tablet-max) {
-		.service-viewport {
-			height: auto;
-			min-height: 0;
-			padding-block: clamp(4rem, 14svh, 7rem);
-			margin-bottom: clamp(3rem, 12svh, 6rem);
-			scroll-margin-top: calc(var(--nav-clearance) + var(--strip-h) + 1rem);
-			scroll-snap-align: none;
-		}
-		.service-viewport-first {
-			min-height: calc(100svh - var(--nav-clearance) - var(--strip-h));
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			padding-block: 1rem;
-		}
-		.viewport-inner {
-			position: static;
-			top: auto;
-			min-height: 0;
+		.service-card-inner {
 			flex-direction: column;
 			align-items: stretch;
-			gap: 1rem;
+			gap: 0;
 		}
-		/* Swap CTA visibility */
-		.deep-dive-cta.desktop-only { display: none; }
-		.deep-dive-cta.mobile-only { display: inline-block; }
-		/* The side panel belongs to desktop — mobile gets the banner above. */
-		.card-bottom :global(.svg-panel-responsive) {
+
+		.card-art {
 			display: none;
 		}
-		/* Deep dive closes the card as a full-width tappable bar. */
-		.card-bottom {
-			display: flex;
-		}
-		.deep-dive-cta.mobile-only {
-			flex: 1;
-			text-align: center;
-		}
+
 		.title-row {
 			display: flex;
 			align-items: center;
+			justify-content: space-between;
 			gap: 0.75rem;
-			margin-bottom: 0.5rem;
+			margin-bottom: 0.75rem;
 		}
+
+		.service-title {
+			margin: 0;
+			min-width: 0;
+			overflow-wrap: break-word;
+		}
+
 		.svg-mobile-banner {
 			flex: none;
 		}
+
 		.svg-mobile-banner :global(.svg-panel--banner) {
 			padding: 0.5rem;
 		}
+
 		/* !important outranks SvgIcon's inline size, as in ServiceSvgPanel. */
 		.svg-mobile-banner :global([data-slot='svg-icon']) {
 			width: 56px !important;
 			height: 56px !important;
 		}
-		.service-subtitle {
-			display: none;
-		}
+
 		.service-description {
-			max-width: none;
-			font-size: var(--text-body);
-			line-height: 1.55;
 			margin-bottom: 1rem;
 		}
-		/* Sized so the longest word fits beside the icon; break-word only for the narrowest phones. */
-		.service-title {
-			font-size: clamp(28px, 8.4vw, 36px);
-			margin-bottom: 0;
-			min-width: 0;
-			overflow-wrap: break-word;
-		}
-		.benefit-headline {
-			font-size: var(--text-subheading);
-			margin-bottom: 1rem;
-		}
-		.metric-value {
-			font-size: clamp(34px, 8vw, 46px);
-		}
-		.deep-dive-cta {
-			padding: 1rem 1.5rem;
-			font-size: var(--text-body);
+
+		.service-foot :global(.deep-dive-cta) {
+			flex: 1 1 100%;
 			min-height: 44px;
 		}
 	}

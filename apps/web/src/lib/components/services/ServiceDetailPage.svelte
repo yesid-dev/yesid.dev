@@ -1,8 +1,9 @@
 <!--
-  ServiceDetailPage — consultative deep dive for /services/[id].
-  Asymmetric split hero (text left, orange SVG panel right).
-  Impact metric column (desktop sticky) + standard CollapsibleSection cards.
-  Related projects in right panel (desktop) / bottom list (mobile). D186, D187, D189.
+  ServiceDetailPage: one service's page, /services/[id] (D-M5, DEV-39).
+  The orange top strip with the current service (not sticky), then the opening at reading size
+  with the drawing and its "click me", then three columns on desktop: contents and the metric,
+  the story ("Is this you?" first, in a card that never folds), related work and the stack.
+  Previous and next, the closing band. Sections end with the kit's divider, except the last.
 -->
 <script lang="ts">
 	import '#lib/styles/article-body.css';
@@ -12,12 +13,10 @@
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
-	import { toTextBlocks } from '#lib/utils/text-blocks.ts';
-
-	const locale = getLocale();
+	import { splitLeadSentence, toTextBlocks } from '#lib/utils/text-blocks.ts';
 	import { siteLabels } from '#lib/content/index.ts';
 	import { boop } from '@yesid/motion/actions';
-	import { orderServices, stationNumber } from '#lib/utils/station.ts';
+	import { prefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import StationTabs from '#lib/components/shared/StationTabs.svelte';
 	import ServiceNav from './ServiceNav.svelte';
 	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
@@ -27,15 +26,15 @@
 	import {
 		CollapsibleSection,
 		SectionIcon,
-		SectionLabel,
 		TocNav,
 		useSectionJump,
 		type TocEntry,
 	} from '@yesid/ui/brand';
-	import { DetailFrame } from '@yesid/ui/layout';
-
+	import { DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
 	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import SectionsToggle from '#lib/components/shared/SectionsToggle.svelte';
+
+	const locale = getLocale();
 
 	let {
 		service,
@@ -55,14 +54,6 @@
 
 	let title = $derived(resolveLocale(service.title, locale));
 	let description = $derived(resolveLocale(service.description, locale));
-	let subtitle = $derived(service.subtitle ? resolveLocale(service.subtitle, locale) : null);
-	let stationNum = $derived(stationNumber(orderServices(services).findIndex((s) => s.id === service.id)));
-	let totalStr = $derived(String(services.length).padStart(2, '0'));
-	let stationLabelText = $derived(
-		resolveLocale(siteLabels.servicesChrome.listing.stationLabelTemplate, locale)
-			.replace('{stationNum}', stationNum)
-			.replace('{totalStr}', totalStr)
-	);
 	let svgContent = $derived(serviceSvgContents[service.id] ?? '');
 	let benefitHeadline = $derived(
 		service.benefitHeadline ? resolveLocale(service.benefitHeadline, locale) : null
@@ -73,10 +64,10 @@
 	let metricLabel = $derived(
 		service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : null
 	);
-	// Services chrome — CMS truth (site_labels → servicesChrome.detail / .listing).
+	// Services chrome: CMS truth (site_labels -> servicesChrome.detail / .listing).
 	let stackLabel = $derived(resolveLocale(siteLabels.servicesChrome.detail.stackHeading, locale));
 	let hasStack = $derived((service.stack?.length ?? 0) > 0);
-	// The hero's hand-lettered "click me", left of the logo, its arrow ending at the logo's edge.
+	// The hand-lettered "click me", left of the drawing, its arrow ending at the drawing's edge.
 	const clickMe = getLettering(CLICK_ME[locale]);
 	const clickStart = { x: 4 + clickMe.end.x + 2, y: 20 + clickMe.end.y };
 	const clickWidth = Math.ceil(clickStart.x + 30);
@@ -100,29 +91,37 @@
 		resolveLocale(siteLabels.projectsChrome.listing.seeAllLink, locale)
 	);
 
-	// ── Table of contents (shared TocNav desktop / TocPill mobile) ──
-	// Chrome is shared across detail pages through siteLabels.servicesChrome.
-	const tocHeading = $derived(resolveLocale(siteLabels.navChrome.shared.tocHeading, locale));
-	const tocOpenAria = $derived(resolveLocale(siteLabels.navChrome.shared.tocMobileButton, locale));
-	const tocCloseAria = $derived(resolveLocale(siteLabels.navChrome.shared.tocCloseAria, locale));
-	const tocCounterPrefix = $derived(resolveLocale(siteLabels.navChrome.shared.tocCounterPrefix, locale));
+	// "How this helps you" keeps its own first sentence in view when it is closed.
+	let valueProposition = $derived(
+		service.valueProposition ? splitLeadSentence(resolveLocale(service.valueProposition, locale)) : null
+	);
 
-	// Each TOC entry mirrors its section card's badge (icon shape or number) so the
-	// TOC and the cards never drift: same SectionIcon registry, no ad-hoc copies.
+	// Fit first: the CMS's first section after the deliverables ("Is this you?") opens the story
+	// in a card that never folds; the others keep their place after the deliverables.
+	type StorySection = { anchor: string; title: string; content: string };
+	let storySections = $derived(
+		(service.sections ?? []).map((section, i): StorySection => ({
+			anchor: `svc-section-${i}`,
+			title: resolveLocale(section.title, locale),
+			content: resolveLocale(section.content, locale),
+		}))
+	);
+	let fitSection = $derived(storySections[0] ?? null);
+	let laterSections = $derived(storySections.slice(1));
+
+	// Contents: the sections in reading order. Each entry mirrors its card's icon (the shared
+	// SectionIcon registry); the story sections carry no number badge and there is no counter.
+	const tocHeading = $derived(resolveLocale(siteLabels.navChrome.shared.tocHeading, locale));
 	const tocEntries = $derived.by((): TocEntry[] => {
 		const entries: TocEntry[] = [];
-		if (service.valueProposition)
-			entries.push({ id: 'svc-valueprop', title: valuePropositionHeading, level: 2, badge: { kind: 'icon', name: 'eye' }, children: [] });
-		if (service.deliverables && service.deliverables.length > 0)
-			entries.push({ id: 'svc-deliverables', title: deliverablesHeading, level: 2, badge: { kind: 'icon', name: 'list' }, children: [] });
-		if (service.sections)
-			service.sections.forEach((section, i) =>
-				entries.push({ id: `svc-section-${i}`, title: resolveLocale(section.title, locale), level: 2, badge: { kind: 'number', value: i + 1 }, children: [] })
-			);
-		if (relatedProjects.length > 0)
-			entries.push({ id: 'svc-related', title: relatedProjectsHeading, level: 2, badge: { kind: 'icon', name: 'briefcase' }, rail: true, children: [] });
-		if (hasStack)
-			entries.push({ id: 'svc-stack', title: stackLabel, level: 2, badge: { kind: 'icon', name: 'layers' }, rail: true, children: [] });
+		const add = (id: string, entryTitle: string, icon?: 'eye' | 'list' | 'briefcase' | 'layers', rail = false) =>
+			entries.push({ id, title: entryTitle, level: 2, badge: icon ? { kind: 'icon', name: icon } : undefined, rail, children: [] });
+		if (fitSection) add(fitSection.anchor, fitSection.title);
+		if (service.valueProposition) add('svc-valueprop', valuePropositionHeading, 'eye');
+		if (service.deliverables && service.deliverables.length > 0) add('svc-deliverables', deliverablesHeading, 'list');
+		for (const section of laterSections) add(section.anchor, section.title);
+		if (relatedProjects.length > 0) add('svc-related', relatedProjectsHeading, 'briefcase', true);
+		if (hasStack) add('svc-stack', stackLabel, 'layers', true);
 		return entries;
 	});
 
@@ -131,26 +130,38 @@
 	registerDetailReadingPosition('.sections.article-body > div > [data-toc]', navigation);
 	const hasImpact = $derived(Boolean(metricValue) || tocEntries.length > 0);
 	const hasSidePanel = $derived(hasStack || relatedProjects.length > 0);
-
 </script>
+
+{#snippet sectionBody(content: string)}
+	<div class="section-body">
+		{#each toTextBlocks(content) as block}
+			{#if block.kind === 'list'}
+				<ul class="section-list">
+					{#each block.items as item}
+						<li class="deliverable-item">
+							<span class="deliverable-dot first-line-bullet" aria-hidden="true"></span>
+							<span>{item}</span>
+						</li>
+					{/each}
+				</ul>
+			{:else}
+				<p>{block.text}</p>
+			{/if}
+		{/each}
+	</div>
+{/snippet}
 
 {#snippet impact()}
 	<div class="impact-column">
 		{#if tocEntries.length > 0}
 			<div class="impact-toc">
-				<TocNav
-					entries={tocEntries}
-					activeId={activeTocId}
-					{navigation}
-					heading={tocHeading}
-					counterPrefix={tocCounterPrefix}
-				/>
+				<TocNav entries={tocEntries} activeId={activeTocId} {navigation} heading={tocHeading} counter={false} />
 			</div>
 		{/if}
 
 		{#if metricValue}
 			<div class="impact-metric" data-ripple-exempt>
-				<span class="impact-value" class:impact-value-compact={metricValue.length > 8}>{metricValue}</span>
+				<span class="impact-value">{metricValue}</span>
 				{#if metricLabel}
 					<span class="impact-label">{metricLabel}</span>
 				{/if}
@@ -178,195 +189,165 @@
 	</div>
 {/snippet}
 
-<div class="service-detail" data-testid="service-detail-page">
+{#snippet after()}
+	{#if hasSidePanel}
+		<div class="projects-mobile reading-support" data-ripple-exempt>
+			<ServiceStackPanel
+				variant="mobile"
+				stack={service.stack ?? []}
+				{relatedProjects}
+				{locale}
+				{stackLabel}
+				{relatedProjectsHeading}
+				{relatedProjectsAria}
+				{seeAllProjectsLabel}
+			/>
+		</div>
+	{/if}
 
+	<div class="nav-area">
+		<ServiceNav {prev} {next} />
+	</div>
+{/snippet}
+
+<div class="service-detail" data-testid="service-detail-page" data-register="reading">
 	<div class="tabs-bar">
-		<StationTabs
-			{services}
-			activeId={service.id}
-			mode="navigate"
-		/>
+		<StationTabs {services} activeId={service.id} mode="navigate" />
 	</div>
 
-	{#snippet clickMeNote()}
-		<span class="click-me" style="width: {clickWidth}px">
-			<HeroDotAnnotation lettering={clickMe} width={clickWidth} height={64} x={4} y={20} arrow={clickArrow} tip={clickTip} visible ready />
-		</span>
-	{/snippet}
+	<PageSections>
+		<PageSection class="service-hero-section" aria-labelledby="service-detail-title">
+			<div class="hero-area">
+				<a
+					href={localizeHref('/services', locale)}
+					class="back-link tap-feedback"
+					use:boop={{ scale: 1.05, timing: 200 }}
+				>
+					{backLinkLabel}
+				</a>
 
-	{#snippet header()}
-		<!-- Hero — asymmetric split: text left, SVG right -->
-		<div class="hero-area">
-			<a
-				href={localizeHref('/services', locale)}
-				class="back-link tap-feedback inline-flex items-center min-h-11 px-2"
-				use:boop={{ scale: 1.05, timing: 200 }}
-			>
-				{backLinkLabel}
-			</a>
-
-			<header class="hero-grid">
-				<!-- Text column -->
-				<div class="hero-text">
-					<SectionLabel text={stationLabelText} variant="station" class="mb-4 block" />
-
-					<h1 class="detail-title">
+				<header class="hero-grid">
+					<h1 class="detail-title" id="service-detail-title">
 						{title}<span class="title-dot">.</span>
 					</h1>
 
-					{#if subtitle}
-						<p class="detail-subtitle">{subtitle}</p>
+					{#if svgContent}
+						<!-- Phones: the drawing beside the title. -->
+						<div class="svg-mobile" data-ripple-exempt>
+							<ServiceSvgPanel {svgContent} variant="banner" />
+						</div>
+						<!-- From 768px: the drawing in its frame, "click me" to its left. -->
+						<div class="svg-desktop" data-ripple-exempt>
+							<span class="click-me" style="width: {clickWidth}px">
+								<HeroDotAnnotation
+									lettering={clickMe}
+									width={clickWidth}
+									height={64}
+									x={4}
+									y={20}
+									arrow={clickArrow}
+									tip={clickTip}
+									visible={!$prefersReducedMotion}
+									ready
+								/>
+							</span>
+							<ServiceSvgPanel {svgContent} />
+						</div>
 					{/if}
 
 					<p class="detail-description">{description}</p>
 
-					<div class="sections-slot sections-slot--desktop">
+					<div class="sections-slot">
 						<SectionsToggle />
 					</div>
-				</div>
-
-				<!-- SVG panel — desktop/tablet only (wrapper controls visibility). -->
-				{#if svgContent}
-					<div class="svg-desktop" data-ripple-exempt>
-						{@render clickMeNote()}
-						<ServiceSvgPanel {svgContent} />
-					</div>
-				{/if}
-			</header>
-
-			<!-- SVG banner — mobile only (wrapper controls visibility) -->
-			{#if svgContent}
-				<div class="svg-mobile" data-ripple-exempt>
-					{@render clickMeNote()}
-					<ServiceSvgPanel {svgContent} variant="banner" />
-				</div>
-			{/if}
-
-			<div class="sections-slot sections-slot--mobile">
-				<SectionsToggle />
+				</header>
 			</div>
-		</div>
-	{/snippet}
+		</PageSection>
 
-	{#snippet after()}
-
-		{#if hasStack || relatedProjects.length > 0}
-			<div class="projects-mobile reading-support" data-ripple-exempt>
-				<ServiceStackPanel
-					variant="mobile"
-					stack={service.stack ?? []}
-					{relatedProjects}
-					{locale}
-					{stackLabel}
-					{relatedProjectsHeading}
-					{relatedProjectsAria}
-					{seeAllProjectsLabel}
-				/>
-			</div>
-		{/if}
-
-		<div class="nav-area">
-			<ServiceNav {prev} {next} />
-		</div>
-
-		<!-- End-of-line CTA: THE site conversion band, recycled and centered on
-		     every surface that mounts it. -->
-		<section class="cta-area" data-testid="service-cta">
-			<CtaBand testidPrefix="service-cta-band" />
-		</section>
-	{/snippet}
-
-	<DetailFrame
-		class="reading-detail"
-		{header}
-		{after}
-		style="--detail-rail-top: calc(var(--chrome-offset) + 4rem + 2rem);"
-		left={hasImpact ? impact : undefined}
-		right={hasSidePanel ? projectsAside : undefined}
-		railScroll
-		bind:activeId={activeTocId}
-		toc={{
-			entries: tocEntries,
-			openAria: tocOpenAria,
-			closeAria: tocCloseAria,
-			navigation,
-			landFragments: true,
-		}}
-	>
-		<div class="sections article-body" data-ripple-exempt>
-			<!-- Mobile-only inline metric -->
-			{#if metricValue}
-				<div class="metric-inline">
-					<span class="metric-inline-value">{metricValue}</span>
-					{#if metricLabel}
-						<span class="metric-inline-label">{metricLabel}</span>
-					{/if}
-					{#if benefitHeadline}
-						<p class="metric-inline-headline">{benefitHeadline}</p>
-					{/if}
-				</div>
-			{/if}
-
-			<!-- Value Proposition -->
-			{#if service.valueProposition}
-				<div>
-					<CollapsibleSection title={valuePropositionHeading} anchor="svc-valueprop" open={true}>
-						{#snippet icon()}
-							<SectionIcon name="eye" class="h-4 w-4 shrink-0 text-primary" />
-						{/snippet}
-						<p class="section-body">
-							{resolveLocale(service.valueProposition, locale)}
-						</p>
-					</CollapsibleSection>
-				</div>
-			{/if}
-
-			<!-- Deliverables -->
-			{#if service.deliverables && service.deliverables.length > 0}
-				<div>
-					<CollapsibleSection title={deliverablesHeading} anchor="svc-deliverables" open={true}>
-						{#snippet icon()}
-							<SectionIcon name="list" class="h-4 w-4 shrink-0 text-primary" />
-						{/snippet}
-						<div class="deliverables-grid">
-							{#each service.deliverables as deliverable}
-								<div class="deliverable-item">
-									<span class="deliverable-dot first-line-bullet" aria-hidden="true"></span>
-									<span>{resolveLocale(deliverable, locale)}</span>
-								</div>
-							{/each}
+		<PageSection class="service-story-section">
+			<DetailFrame
+				class="reading-detail"
+				rule="none"
+				{after}
+				style="--detail-rail-top: calc(var(--chrome-offset) + 2rem);"
+				left={hasImpact ? impact : undefined}
+				right={hasSidePanel ? projectsAside : undefined}
+				railScroll
+				bind:activeId={activeTocId}
+				toc={{ entries: tocEntries, navigation, landFragments: true }}
+			>
+				<div class="sections article-body" data-ripple-exempt>
+					<!-- Phones and tablets: the metric before the story. -->
+					{#if metricValue}
+						<div class="metric-inline">
+							<span class="metric-inline-value">{metricValue}</span>
+							{#if metricLabel}
+								<span class="metric-inline-label">{metricLabel}</span>
+							{/if}
+							{#if benefitHeadline}
+								<p class="metric-inline-headline">{benefitHeadline}</p>
+							{/if}
 						</div>
-					</CollapsibleSection>
-				</div>
-			{/if}
+					{/if}
 
-			<!-- Custom sections -->
-			{#if service.sections}
-				{#each service.sections as section, i}
-					<div>
-						<CollapsibleSection title={resolveLocale(section.title, locale)} anchor="svc-section-{i}" open={true} index={i}>
-							<div class="section-body">
-								{#each toTextBlocks(resolveLocale(section.content, locale)) as block}
-									{#if block.kind === 'list'}
-										<ul class="section-list">
-											{#each block.items as item}
-												<li class="deliverable-item">
-													<span class="deliverable-dot first-line-bullet" aria-hidden="true"></span>
-													<span>{item}</span>
-												</li>
-											{/each}
-										</ul>
-									{:else}
-										<p>{block.text}</p>
+					<!-- Is this you? The answer to "is this for me" never folds. -->
+					{#if fitSection}
+						<div>
+							<CollapsibleSection title={fitSection.title} anchor={fitSection.anchor} collapsible={false} textSize="inherit">
+								{@render sectionBody(fitSection.content)}
+							</CollapsibleSection>
+						</div>
+					{/if}
+
+					{#if valueProposition}
+						<div>
+							<CollapsibleSection title={valuePropositionHeading} anchor="svc-valueprop" open={true}>
+								{#snippet icon()}
+									<SectionIcon name="eye" class="h-4 w-4 shrink-0 text-primary" />
+								{/snippet}
+								{#snippet summary()}
+									{#if valueProposition?.lead}
+										<p class="section-lead">{valueProposition.lead}</p>
 									{/if}
-								{/each}
-							</div>
-						</CollapsibleSection>
-					</div>
-				{/each}
-			{/if}
-		</div>
-	</DetailFrame>
+								{/snippet}
+								<p class="section-body">{valueProposition.rest}</p>
+							</CollapsibleSection>
+						</div>
+					{/if}
+
+					{#if service.deliverables && service.deliverables.length > 0}
+						<div>
+							<CollapsibleSection title={deliverablesHeading} anchor="svc-deliverables" open={true}>
+								{#snippet icon()}
+									<SectionIcon name="list" class="h-4 w-4 shrink-0 text-primary" />
+								{/snippet}
+								<div class="deliverables-grid">
+									{#each service.deliverables as deliverable}
+										<div class="deliverable-item">
+											<span class="deliverable-dot first-line-bullet" aria-hidden="true"></span>
+											<span>{resolveLocale(deliverable, locale)}</span>
+										</div>
+									{/each}
+								</div>
+							</CollapsibleSection>
+						</div>
+					{/if}
+
+					{#each laterSections as section (section.anchor)}
+						<div>
+							<CollapsibleSection title={section.title} anchor={section.anchor} open={true}>
+								{@render sectionBody(section.content)}
+							</CollapsibleSection>
+						</div>
+					{/each}
+				</div>
+			</DetailFrame>
+		</PageSection>
+
+		<PageSection class="services-band" data-register="expressive" data-testid="service-cta">
+			<CtaBand testidPrefix="service-cta-band" />
+		</PageSection>
+	</PageSections>
 </div>
 
 <style>
@@ -375,78 +356,87 @@
 		min-height: 100dvh;
 	}
 
-	/* Solid backdrop above the tabs — identical treatment to the /services
-	   listing's .tabs-bar::before: covers the nav gap (main's pt-20 strip)
-	   so the page top reads as the same solid band on both routes. The
-	   detail tabs are not sticky, so no position: sticky here — just the
-	   positioning anchor for the backdrop. */
+	/* Not sticky on a service page: the strip and its orange top scroll away with the page. */
 	.tabs-bar {
 		position: relative;
+		z-index: var(--z-rail);
 	}
 
-	.tabs-bar::before {
-		content: '';
-		position: absolute;
-		inset-inline: 0;
-		bottom: 100%;
-		height: calc(var(--nav-clearance) + 0.5rem);
-		background: var(--background);
-		pointer-events: none;
-	}
-
-	/* ── Hero ── */
+	/* ── Opening ── */
 
 	.hero-area {
-		padding: 0.5rem var(--space-page-x) 2rem;
+		padding: 0.75rem var(--space-page-x) clamp(1.75rem, 3vw, 2.5rem);
 	}
 
 	.back-link {
 		display: inline-flex;
 		align-items: center;
+		min-height: 2.75rem; /* 44px touch target */
+		margin: 0 0 0.25rem -0.5rem; /* compensate the padding so the text stays flush */
+		padding-inline: 0.5rem;
 		font-family: var(--font-mono);
 		font-size: var(--text-back-link);
 		color: var(--primary);
 		text-decoration: none;
-		margin-bottom: 0.5rem;
-		margin-left: -0.5rem; /* compensate px-2 so text stays visually flush */
-		min-height: 2.75rem; /* 44px touch target */
-		padding-inline: 0.5rem;
-		transition: opacity var(--duration-fast);
 	}
+
 	.back-link:hover {
 		text-decoration: underline;
 	}
 
-	/* Desktop: text left, SVG panel right */
+	/* Phones: title and drawing side by side, the description and "Collapse all" below. */
 	.hero-grid {
-		display: flex;
-		flex-direction: column;
-		gap: 2rem;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'title art'
+			'desc desc'
+			'bulk bulk';
+		column-gap: 1rem;
+		align-items: center;
 	}
 
-	@media (--tablet-min) {
-		.hero-grid {
-			display: grid;
-			grid-template-columns: 1fr auto;
-			gap: clamp(2rem, 4vw, 4rem);
-			align-items: start;
-		}
+	.detail-title {
+		grid-area: title;
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: var(--text-title);
+		font-weight: 900;
+		line-height: 1.1;
+		letter-spacing: -0.02em;
+		color: var(--foreground);
+		overflow-wrap: break-word;
 	}
 
-	/* SVG visibility: wrapper divs control show/hide cleanly */
+	.title-dot {
+		color: var(--primary);
+	}
+
+	.svg-mobile {
+		grid-area: art;
+	}
+
+	.svg-mobile :global(.svg-panel--banner) {
+		padding: 0.5rem;
+	}
+
+	/* !important outranks SvgIcon's inline size, as in ServiceSvgPanel. */
+	.svg-mobile :global([data-slot='svg-icon']) {
+		width: 56px !important;
+		height: 56px !important;
+	}
+
 	.svg-desktop {
 		display: none;
-	}
-	@media (--tablet-min) {
-		.svg-desktop {
-			display: block;
-		}
-	}
-
-	.svg-desktop,
-	.svg-mobile {
+		grid-area: art;
 		position: relative;
 	}
+
+	.svg-desktop :global(.svg-panel:not(.svg-panel--banner)) {
+		width: clamp(200px, 18vw, 256px);
+		aspect-ratio: 1;
+	}
+
 	.click-me {
 		position: absolute;
 		top: 1rem;
@@ -454,129 +444,89 @@
 		height: 64px;
 		pointer-events: none;
 	}
-	/* The banner's logo is centred, so the note sits left of its middle; too tight below 360px. */
-	.svg-mobile .click-me {
-		right: calc(50% + 4.25rem);
-	}
-	@media (max-width: 359px) {
-		.svg-mobile .click-me {
-			display: none;
-		}
-	}
 
-	.svg-mobile {
-		margin-top: 1.5rem;
-	}
-	@media (--tablet-min) {
-		.svg-mobile {
-			display: none;
-		}
-	}
-
-	.hero-text {
-		min-width: 0;
+	.detail-description {
+		grid-area: desc;
+		max-width: 60ch;
+		margin: 0.75rem 0 0;
+		font-size: var(--text-body);
+		line-height: 1.6;
+		color: var(--secondary-foreground);
 	}
 
 	.sections-slot {
+		grid-area: bulk;
 		display: flex;
-	}
-
-	.sections-slot--desktop {
-		display: none;
-	}
-
-	.sections-slot--mobile {
 		margin-top: 1rem;
 	}
 
 	@media (--tablet-min) {
-		.sections-slot--desktop {
-			display: flex;
+		.hero-grid {
+			grid-template-rows: auto auto 1fr;
+			grid-template-areas:
+				'title art'
+				'desc art'
+				'bulk art';
+			column-gap: clamp(2rem, 4vw, 4rem);
+			align-items: start;
 		}
 
-		.sections-slot--mobile {
+		.svg-mobile {
 			display: none;
 		}
+
+		.svg-desktop {
+			display: block;
+		}
+
+		/* "click me" hangs left of the drawing: the words keep clear of its arrow. */
+		.detail-title {
+			max-width: calc(100% - 8rem);
+		}
+
+		.detail-description {
+			max-width: min(60ch, calc(100% - 8rem));
+		}
 	}
 
-	/* Bigger station label so "SERVICE 0X / 04" scales with the giant title. */
-	.hero-text :global(.label-station) {
-		font-size: clamp(16px, 1.5vw, 22px);
-	}
-
-	/* Giant on desktop — the service name is the loudest thing on the page. */
-	.detail-title {
-		font-family: var(--font-heading);
-		font-size: clamp(56px, 8vw, 104px);
-		font-weight: 900;
-		color: var(--foreground);
-		line-height: 1.02;
-		letter-spacing: -0.035em;
-		margin-bottom: 0.5rem;
-	}
-
-	.title-dot {
-		color: var(--primary);
-	}
-
-	.detail-subtitle {
-		font-size: var(--text-heading);
-		color: var(--primary);
-		margin-bottom: 1rem;
-		font-style: italic;
-	}
-
-	.detail-description {
-		font-size: clamp(19px, 1.6vw, 24px);
-		line-height: 1.65;
-		color: var(--secondary-foreground);
-		max-width: 60ch;
-		margin-bottom: 1.5rem;
-	}
-
-	/* ── Impact column ── */
+	/* ── Impact column (desktop rail) ── */
 
 	.impact-column {
 		display: flex;
 		flex-direction: column;
 	}
 
+	.impact-toc {
+		margin-bottom: 2rem;
+	}
+
+	/* The published metric in reading ink, smaller, its label in sentence case. */
 	.impact-metric {
 		display: flex;
 		flex-direction: column;
+		gap: 0.25rem;
 	}
 
 	.impact-value {
 		overflow-wrap: anywhere;
 		font-family: var(--font-heading);
-		font-size: clamp(4.875rem, 8.9vw, 7.75rem);
+		font-size: var(--text-title);
 		font-weight: 900;
-		color: var(--accent-text);
-		line-height: 0.8;
-		letter-spacing: -0.05em;
+		line-height: 1.1;
+		color: var(--foreground);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.impact-label {
-		font-family: var(--font-mono);
-		font-size: var(--text-caption);
-		color: var(--accent-text);
-		text-transform: uppercase;
-		letter-spacing: 2px;
-		margin-top: 0.5rem;
-	}
-
-	/* Multi-part values need reading type, rather than the short-number poster scale. */
-	.impact-value-compact {
-		font-size: var(--text-heading);
-		line-height: 1.2;
-		letter-spacing: var(--tracking-tight);
+		font-size: var(--text-small);
+		color: var(--secondary-foreground);
 	}
 
 	.impact-separator {
 		width: 2.5rem;
 		height: 2px;
 		background: color-mix(in srgb, var(--primary) 40%, transparent);
-		margin-block: 1.5rem;
+		margin-block: 1.25rem;
 	}
 
 	.benefit-headline {
@@ -586,18 +536,13 @@
 		line-height: 1.5;
 	}
 
-	/* Keep the metric below the TOC in the desktop impact column. */
-	.impact-toc {
-		margin-bottom: 2rem;
-	}
-
-	/* ── Mobile inline metric (below 1024px) ── */
+	/* ── Inline metric (below 1024px) ── */
 
 	.metric-inline {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 0.5rem;
+		gap: 0.25rem 0.625rem;
 		padding-bottom: 1rem;
 		border-bottom: 1px solid var(--border-subtle);
 		margin-bottom: 0.5rem;
@@ -610,29 +555,24 @@
 	}
 
 	.metric-inline-value {
-		flex: 0 0 auto;
 		max-width: 100%;
 		overflow-wrap: anywhere;
 		font-family: var(--font-heading);
-		font-size: clamp(1.8rem, 4.5vw, 2.25rem);
+		font-size: var(--text-heading);
 		font-weight: 900;
-		color: var(--accent-text);
-		line-height: 1;
+		line-height: 1.2;
+		color: var(--foreground);
+		font-variant-numeric: tabular-nums;
 	}
 
 	.metric-inline-label {
-		flex: 1 1 14rem;
-		min-width: 0;
-		font-family: var(--font-mono);
-		font-size: var(--text-caption);
-		color: var(--accent-text);
-		text-transform: uppercase;
-		letter-spacing: 1px;
+		font-size: var(--text-small);
+		color: var(--secondary-foreground);
 	}
 
 	.metric-inline-headline {
 		flex-basis: 100%;
-		font-size: var(--text-small);
+		font-size: var(--text-body);
 		color: var(--secondary-foreground);
 		line-height: 1.5;
 		margin-top: 0.25rem;
@@ -653,6 +593,11 @@
 		color: var(--secondary-foreground);
 	}
 
+	.section-lead {
+		margin: 0;
+		color: var(--foreground);
+	}
+
 	.section-list {
 		display: flex;
 		flex-direction: column;
@@ -662,12 +607,12 @@
 		margin: 0;
 	}
 
-	/* Deliverables grid */
 	.deliverables-grid {
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 0.625rem;
 	}
+
 	@media (--tablet-min) {
 		.deliverables-grid {
 			grid-template-columns: 1fr 1fr;
@@ -686,15 +631,13 @@
 		background: var(--primary);
 	}
 
-	/* ── Related projects panel (desktop right column) ── */
+	/* ── Related projects and stack ── */
 
 	.projects-panel {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
 	}
-
-	/* ── Related projects mobile (bottom of page) ── */
 
 	.projects-mobile {
 		display: flex;
@@ -709,38 +652,7 @@
 		}
 	}
 
-	/* ── Nav area ── */
-
-	.cta-area {
-		margin-top: 2rem;
-	}
-
 	.nav-area {
-		padding: 0 var(--space-page-x);
-	}
-
-	/* ── Mobile adjustments ── */
-
-	@media (--tablet-max) {
-		.hero-area {
-			padding: 1.5rem var(--space-page-x) 1.5rem;
-		}
-
-		/* Big on mobile too — same loud-name intent, dialled back from the
-		   desktop giant so it never overflows the narrow column. */
-		.detail-title {
-			font-size: clamp(40px, 11vw, 60px);
-		}
-
-		.detail-subtitle {
-			font-size: var(--text-body);
-		}
-
-		.detail-description {
-			font-size: var(--text-body);
-			line-height: 1.55;
-			margin-bottom: 1rem;
-		}
-
+		padding: 0 var(--space-page-x) 1rem;
 	}
 </style>
