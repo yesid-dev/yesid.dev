@@ -180,15 +180,12 @@ test.describe('Contact form submission', () => {
 
 		await terminal.getByTestId('contact-submit').click();
 
-		// Form is replaced by the typed success sequence.
+		// The form is replaced by the result at once (no replayed process), and the focus moves to it.
 		const success = terminal.getByTestId('contact-success');
 		await expect(success).toBeVisible({ timeout: 5000 });
-
-		// Assert the real success copy renders (animation reveals lines over time):
-		// the "send --message" command line and the "Message sent successfully!"
-		// confirmation (contactContent.success.sent).
-		await expect(success.getByText('~ $ send --message')).toBeVisible({ timeout: 5000 });
-		await expect(success.getByText(contactContent.success.sent.en, { exact: false })).toBeVisible({ timeout: 5000 });
+		await expect(success.getByText(contactContent.success.sent.en, { exact: false })).toBeVisible();
+		await expect(success.getByTestId('contact-sent-message')).toBeFocused();
+		await expect(success).not.toContainText('~ $ send --message');
 
 		// The input form is gone.
 		await expect(terminal.getByLabel(new RegExp(`^(?:${Object.values(contactContent.formTerminal.fields.name.label).join('|')}):$`, 'i'))).toHaveCount(0);
@@ -255,8 +252,9 @@ for (const locale of ['', '/fr', '/es'])
 		await page.goto(`${locale}/contact`);
 		const terminal = visibleContactTerminal(page);
 		await expect(terminal.getByTestId('contact-submit')).toBeEnabled();
-		await expect.poll(() => page.locator('.edge-title').evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue('--edge-title-size')))).toBeGreaterThan(0);
-		const title = (await page.locator('.edge-title').boundingBox())!;
+		const railTitle = page.locator('[data-slot="rail-title-text"]');
+		await expect.poll(() => railTitle.evaluate(el => getComputedStyle(el).writingMode)).toBe('vertical-rl');
+		const title = (await railTitle.boundingBox())!;
 		expect(title.y).toBeGreaterThanOrEqual(0);
 		expect(title.y + title.height, 'the rail title remains readable in a short viewport').toBeLessThanOrEqual(600);
 		await page
@@ -292,7 +290,9 @@ for (const locale of ['', '/fr', '/es'])
 		).toBeLessThanOrEqual(1);
 	});
 
-test(`desktop resizing preserves drafts, errors and intrinsic success`, { tag: '@theme' }, async ({
+// The resize handle is gone (owner, DEV-40): the panels keep today's fixed split, a third and two
+// thirds, and a window resize keeps the draft, the errors and an intrinsic success panel.
+test(`desktop window resizing preserves drafts, errors and intrinsic success`, { tag: '@theme' }, async ({
 	page,
 }) => {
 	await page.setViewportSize({ width: 1366, height: 600 });
@@ -305,21 +305,12 @@ test(`desktop resizing preserves drafts, errors and intrinsic success`, { tag: '
 	await message.fill('Un message conservé pendant le redimensionnement. '.repeat(12));
 	await terminal.getByTestId('contact-submit').click();
 	await expect(terminal.locator('[aria-invalid="true"]')).toHaveCount(Object.keys(contactContent.formTerminal.fields).length - 1);
+	await expect(page.locator('[data-slot="resizable-handle"], [data-pane-resizer], .contact-resize-handle')).toHaveCount(0);
 	const info = page.getByTestId('contact-info-terminal').filter({ visible: true });
-	const before = (await info.boundingBox())!.width;
-	const handle = page.locator('.contact-resize-handle');
-	await handle.scrollIntoViewIfNeeded();
-	const box = (await handle.boundingBox())!;
-	await page.mouse.move(
-		box.x + box.width / 2,
-		Math.max(100, Math.min(350, box.y + box.height / 2)),
-	);
-	await page.mouse.down();
-	await page.mouse.move(box.x - 120, Math.max(100, Math.min(350, box.y + box.height / 2)), {
-		steps: 6,
-	});
-	await page.mouse.up();
-	expect((await info.boundingBox())!.width).toBeLessThan(before - 50);
+	const split = async () => (await info.boundingBox())!.width / ((await info.boundingBox())!.width + (await terminal.boundingBox())!.width);
+	expect(await split()).toBeCloseTo(0.33, 1);
+	await page.setViewportSize({ width: 1100, height: 600 });
+	expect(await split()).toBeCloseTo(0.33, 1);
 	await expect(message).toHaveValue(
 		'Un message conservé pendant le redimensionnement. '.repeat(12),
 	);

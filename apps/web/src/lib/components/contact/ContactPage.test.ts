@@ -101,9 +101,10 @@ describe('ContactPage', () => {
 		expect(screen.getByTestId('page-contact')).toBeTruthy();
 	});
 
-	it('renders the station label', () => {
+	// Owner answer 3A: the "NEXT STOP: YOU" eyebrow is gone.
+	it('does not render the station eyebrow', () => {
 		render(ContactPage, { props: { contactPage: contactContent } });
-		expect(screen.getByText('Fixture station')).toBeTruthy();
+		expect(screen.queryByText('Fixture station')).toBeNull();
 	});
 
 	it('renders info terminal', () => {
@@ -136,7 +137,9 @@ describe('ContactPage', () => {
 		await submitForm(screen.getAllByTestId('contact-submit')[0]);
 		for (const field of fields) {
 			expect(field).toHaveAttribute('aria-invalid', 'true');
-			expect(field).toHaveAccessibleDescription(`✗ ${contactContent.validation.required.en.replace('{field}', contactContent.formTerminal.fields[field.name as keyof typeof contactContent.formTerminal.fields].label.en)}`);
+			// Labelled-field recipe: the required line (and the message hint) stay in the description beside the error.
+			const hint = field.name === 'message' ? ` ${contactContent.formTerminal.fields.message.placeholder.en}` : '';
+			expect(field).toHaveAccessibleDescription(`${contactContent.formTerminal.requiredGuidance.en}${hint} ✗ ${contactContent.validation.required.en.replace('{field}', contactContent.formTerminal.fields[field.name as keyof typeof contactContent.formTerminal.fields].label.en)}`);
 		}
 		expect(analyticsMocks.trackAnalyticsEvent).not.toHaveBeenCalled();
 	});
@@ -298,10 +301,10 @@ describe('ContactPage', () => {
 		expect(analyticsMocks.trackAnalyticsEvent.mock.calls).toEqual([['contact_form_error']]);
 	});
 
-	// Launch-edge batch: the Web3Forms round trip is 1-3s of network time — the
-	// button must disable (no double submits) and the terminal must show the
-	// in-flight line instead of dead air.
-	it('disables submit + shows the transmission line while the send is in flight', async () => {
+	// The Web3Forms round trip is 1-3s of network time: the form is busy, a second press does nothing,
+	// the button keeps its words readable and keeps the focus (it is never disabled mid-send), and
+	// "sending" is announced once, with no second "Sending" line in the panel.
+	it('holds the focus on a busy, readable button while the send is in flight', async () => {
 		let resolveFetch!: (v: unknown) => void;
 		globalThis.fetch = vi.fn().mockReturnValue(
 			new Promise((resolve) => {
@@ -312,31 +315,33 @@ describe('ContactPage', () => {
 		render(ContactPage, { props: { contactPage: contactContent } });
 		await fillForm();
 
-		const submitBtns = screen.getAllByTestId('contact-submit') as HTMLButtonElement[];
-		await submitForm(submitBtns[0]);
+		const submit = screen.getByTestId('contact-submit') as HTMLButtonElement;
+		submit.focus();
+		await submitForm(submit);
 
-		// In flight: disabled button, visible transmission line.
-		expect(submitBtns[0].disabled).toBe(true);
-		expect(screen.getAllByTestId('contact-sending-line').length).toBeGreaterThanOrEqual(1);
+		expect(submit.disabled).toBe(false);
+		expect(submit).toHaveAttribute('aria-disabled', 'true');
+		expect(submit).toHaveTextContent('Sending');
+		expect(document.activeElement).toBe(submit);
+		expect(submit.closest('form')).toHaveAttribute('aria-busy', 'true');
+		for (const field of screen.getAllByRole('textbox')) expect(field).toHaveAttribute('readonly');
+		expect(screen.getByTestId('contact-status')).toHaveTextContent('Sending');
+		expect(within(screen.getByTestId('contact-form-terminal')).getAllByText('Sending')).toHaveLength(1);
+		expect(screen.queryByTestId('contact-sending-line')).toBeNull();
 
 		// A second submit while in flight must not re-fire the request.
-		// (The mount-time weather fetch shares the same stub — count only
-		// the Web3Forms calls.)
+		// (The mount-time weather fetch shares the same stub: count only the Web3Forms calls.)
 		const web3formsCalls = () =>
 			(globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.filter((call) =>
 				String(call[0]).includes('web3forms'),
 			).length;
 		expect(web3formsCalls()).toBe(1);
-		await submitForm(submitBtns[0]);
+		await submitForm(submit);
 		expect(web3formsCalls()).toBe(1);
 		expect(analyticsMocks.trackAnalyticsEvent).not.toHaveBeenCalled();
 
-		// Resolve → the success sequence takes over.
 		resolveFetch({ ok: true, json: async () => ({ success: true }) });
-		await waitFor(
-			() => expect(screen.getAllByTestId('contact-success').length).toBeGreaterThanOrEqual(1),
-			{ timeout: 4000 },
-		);
+		await waitFor(() => expect(screen.getByTestId('contact-success')).toBeInTheDocument());
 		expect(analyticsMocks.trackAnalyticsEvent).toHaveBeenCalledTimes(1);
 		expect(analyticsMocks.trackAnalyticsEvent).toHaveBeenCalledWith('contact_form_success');
 	});
@@ -357,11 +362,11 @@ describe('ContactPage', () => {
 		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
 		const submit = screen.getAllByTestId('contact-submit')[0] as HTMLButtonElement;
 		await submitForm(submit);
-		expect(submit).toBeDisabled();
+		expect(submit).toHaveAttribute('aria-disabled', 'true');
 		await vi.advanceTimersByTimeAsync(15_000);
 		await tick();
 
-		expect(submit).not.toBeDisabled();
+		expect(submit).not.toHaveAttribute('aria-disabled');
 		expect(screen.getAllByText('✗ Fixture delivery failed').length).toBeGreaterThanOrEqual(1);
 		expect(screen.getAllByLabelText(/^name/i)[0]).toHaveValue('Visitor');
 		expect(screen.getAllByLabelText(/^email/i)[0]).toHaveValue('visitor@example.com');
@@ -552,5 +557,244 @@ describe('ContactPage state across remounts', () => {
 		await tick();
 		expect(screen.queryAllByTestId('contact-success')).toHaveLength(0);
 		expect(persisted('contact-success', true).value).toBe(false);
+	});
+});
+
+// The rebuild from the reviewed preview D-M4 (DEV-40): the kit's pieces, the AI slop gone, and
+// every state of the form with its focus and announcements.
+describe('ContactPage rebuild (DEV-40)', () => {
+	const fr = () => new Map([[Symbol.for('@yesid/ui/locale'), () => 'fr']]);
+	const es = () => new Map([[Symbol.for('@yesid/ui/locale'), () => 'es']]);
+
+	it('draws "Contact." as the kit RailTitle: the one h1, ending on the orange dot', () => {
+		const { container } = render(ContactPage, { props: { contactPage: contactContent } });
+		const headings = screen.getAllByRole('heading', { level: 1 });
+		expect(headings).toHaveLength(1);
+		expect(headings[0]).toHaveTextContent('Contact fixture.');
+		expect(headings[0]).toHaveAttribute('id', 'contact-title');
+		const rail = headings[0].closest('[data-slot="rail-title"]');
+		expect(rail).not.toBeNull();
+		expect(rail).toHaveAttribute('data-side', 'left');
+		expect(headings[0].querySelector('[data-slot="rail-title-dot"]')).toHaveAttribute('aria-hidden', 'true');
+		// The page's one section is named by the title; the panels sit in the rail layout's content.
+		const section = container.querySelector('[data-slot="page-section"]');
+		expect(section).toHaveAttribute('aria-labelledby', 'contact-title');
+		const layout = container.querySelector('[data-slot="rail-title-layout"]') as HTMLElement;
+		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('9rem');
+		expect(
+			layout.querySelector('[data-slot="rail-title-content"] [data-testid="contact-form-terminal"]'),
+		).not.toBeNull();
+	});
+
+	it('draws the kit dimension line under both title bars and no divider before the footer', () => {
+		const { container } = render(ContactPage, { props: { contactPage: contactContent } });
+		for (const id of ['contact-info-terminal', 'contact-form-terminal']) {
+			const panel = screen.getByTestId(id);
+			const titlebar = panel.querySelector('.terminal-titlebar') as HTMLElement;
+			expect(titlebar.nextElementSibling).toHaveAttribute('data-variant', 'dimension');
+			expect(panel.querySelectorAll('.terminal-rule')).toHaveLength(1);
+		}
+		expect(container.querySelectorAll('[data-slot="page-section"]')).toHaveLength(1);
+		expect(container.querySelector('[data-slot="page-section-boundary"]')).toBeNull();
+	});
+
+	it('removes the pretend commands and the resize handle, and keeps the window titles', () => {
+		const { container } = render(ContactPage, { props: { contactPage: contactContent } });
+		const text = container.textContent ?? '';
+		for (const slop of ['$ info', '$ contact', 'Ready', '~ $']) expect(text).not.toContain(slop);
+		expect(text).not.toMatch(/(^|\s)~(\s|$)/);
+		expect(
+			container.querySelector('[data-slot="resizable-handle"], [data-pane-resizer], .contact-resize-handle'),
+		).toBeNull();
+		expect(screen.getByTestId('contact-info-terminal')).toHaveTextContent('Fixture info');
+		expect(screen.getByTestId('contact-form-terminal')).toHaveTextContent('Fixture form');
+	});
+
+	it('puts the details before the form, for phones (owner answer 1A)', () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		const info = screen.getByTestId('contact-info-terminal');
+		const form = screen.getByTestId('contact-form-terminal');
+		expect(info.compareDocumentPosition(form) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(screen.getAllByTestId('contact-form-terminal')).toHaveLength(1);
+	});
+
+	for (const [locale, context, reply] of [
+		['en', undefined, 'I usually reply within one business day.'],
+		['fr', fr, 'Je réponds habituellement dans un délai d’un jour ouvrable.'],
+		['es', es, 'Normalmente respondo en un día hábil.'],
+	] as const)
+		it(`states the reply time in ${locale} instead of the ~24h line`, () => {
+			const { container } = render(ContactPage, {
+				props: { contactPage: contactContent },
+				...(context ? { context: context() } : {}),
+			});
+			expect(screen.getByTestId('contact-reply-time')).toHaveTextContent(reply);
+			expect(container.textContent).not.toContain('Soon');
+		});
+
+	it('labels Connect "ME JOINDRE" in French', () => {
+		render(ContactPage, { props: { contactPage: contactContent }, context: fr() });
+		expect(screen.getByTestId('contact-connect-label')).toHaveTextContent('ME JOINDRE');
+		expect(screen.getByRole('heading', { level: 2, name: 'ME JOINDRE' })).toBeInTheDocument();
+	});
+
+	it('shows the message prompt as a visible hint above the field, not as a placeholder', () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		const message = screen.getByRole('textbox', { name: 'message:' });
+		const hint = screen.getByText('Your note');
+		expect(hint.tagName).toBe('P');
+		expect(hint.compareDocumentPosition(message) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		expect(message).not.toHaveAttribute('placeholder');
+		expect(message).toHaveAccessibleDescription('guidance Your note');
+		expect(screen.getByRole('textbox', { name: 'name:' })).toHaveAccessibleDescription('guidance');
+	});
+
+	it('starts empty and ready after hydration', () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		for (const field of screen.getAllByRole('textbox')) {
+			expect(field).toHaveValue('');
+			expect(field).not.toHaveAttribute('aria-invalid');
+			expect(field).toBeRequired();
+		}
+		expect(screen.getByTestId('contact-submit')).toBeEnabled();
+		expect(screen.queryByTestId('contact-error-summary')).toBeNull();
+		expect(screen.queryByTestId('contact-send-error')).toBeNull();
+	});
+
+	it('puts the error summary before the fields, focuses it, and its links focus each field', async () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		await submitForm(screen.getByTestId('contact-submit'));
+		const summary = await screen.findByTestId('contact-error-summary');
+		await waitFor(() => expect(document.activeElement).toBe(summary));
+		expect(summary).toHaveAttribute('role', 'group');
+		expect(summary).toHaveAccessibleName('3 errors');
+		const name = screen.getByRole('textbox', { name: 'name:' });
+		expect(summary.compareDocumentPosition(name) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+		const links = within(summary).getAllByRole('link');
+		expect(links.map((link) => link.getAttribute('href'))).toEqual([
+			'#contact-field-name',
+			'#contact-field-email',
+			'#contact-field-message',
+		]);
+		for (const [index, label] of ['name:', 'email:', 'message:'].entries()) {
+			await fireEvent.click(links[index]);
+			expect(document.activeElement).toBe(screen.getByRole('textbox', { name: label }));
+		}
+		for (const field of screen.getAllByRole('textbox')) {
+			expect(field).toHaveAttribute('aria-invalid', 'true');
+			expect(document.getElementById(`${field.id}-error`)).toHaveTextContent(/^✗ /);
+		}
+	});
+
+	it('gives a malformed address its own line, then sends once it is fixed', async () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		await fillForm('Test', 'not-an-email', 'Hello');
+		await submitForm(screen.getByTestId('contact-submit'));
+		const email = screen.getByRole('textbox', { name: 'email:' });
+		expect(email).toHaveAttribute('aria-invalid', 'true');
+		expect(document.getElementById(`${email.id}-error`)).toHaveTextContent('✗ Invalid email format');
+		expect(screen.getByRole('textbox', { name: 'name:' })).not.toHaveAttribute('aria-invalid');
+		expect(within(screen.getByTestId('contact-error-summary')).getAllByRole('link')).toHaveLength(1);
+		globalThis.fetch = vi.fn(async () => Response.json({ success: true })) as typeof globalThis.fetch;
+		await typeInto(email as HTMLInputElement, 'reader@example.com');
+		await submitForm(screen.getByTestId('contact-submit'));
+		await waitFor(() => expect(screen.getByTestId('contact-success')).toBeInTheDocument());
+	});
+
+	it('keeps the draft when not sent, focuses the failure, links the address and retries', async () => {
+		let attempts = 0;
+		globalThis.fetch = vi.fn(async (input: string | URL | Request) => {
+			if (!String(input).includes('web3forms')) return Response.json(null);
+			attempts++;
+			return Response.json({ success: attempts > 1 });
+		}) as typeof globalThis.fetch;
+		const failing = {
+			...contactContent,
+			sendErrorMessage: { en: 'Not sent. Try again or email contact@yesid.dev.' },
+		} satisfies ContactContent;
+		render(ContactPage, { props: { contactPage: failing } });
+		await fillForm('Visitor', 'visitor@example.com', 'Keep me');
+		await submitForm(screen.getByTestId('contact-submit'));
+		const failure = await screen.findByTestId('contact-send-error');
+		await waitFor(() => expect(document.activeElement).toBe(failure));
+		expect(failure).toHaveTextContent('✗ Not sent. Try again or email contact@yesid.dev.');
+		expect(within(failure).getByRole('link', { name: 'contact@yesid.dev' })).toHaveAttribute(
+			'href',
+			'mailto:contact@yesid.dev',
+		);
+		expect(screen.queryByTestId('contact-error-summary')).toBeNull();
+		expect(screen.getByTestId('contact-status').textContent).toBe('');
+		expect(screen.getByRole('textbox', { name: 'message:' })).toHaveValue('Keep me');
+		const submit = screen.getByTestId('contact-submit');
+		expect(submit.compareDocumentPosition(failure) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+		await submitForm(submit);
+		await waitFor(() => expect(screen.getByTestId('contact-success')).toBeInTheDocument());
+		expect(attempts).toBe(2);
+	});
+
+	it('shows the result at once, focuses it, offers the links and sends another', async () => {
+		globalThis.fetch = vi.fn(async () => Response.json({ success: true })) as typeof globalThis.fetch;
+		render(ContactPage, { props: { contactPage: contactContent } });
+		await fillForm();
+		await submitForm(screen.getByTestId('contact-submit'));
+		const result = await screen.findByTestId('contact-sent-message');
+		await waitFor(() => expect(document.activeElement).toBe(result));
+		expect(result).toHaveTextContent('✓ Delivered');
+		const success = screen.getByTestId('contact-success');
+		expect(success).toHaveTextContent('I usually reply within one business day.');
+		for (const slop of ['~ $ send', 'Checking', 'OK']) expect(success.textContent).not.toContain(slop);
+		expect(within(success).getAllByRole('link').map((link) => link.getAttribute('href'))).toEqual([
+			'/services',
+			'/blog',
+		]);
+		// Announced by the focus move, not a second time by the status region.
+		expect(screen.getByTestId('contact-status').textContent).toBe('');
+		await fireEvent.click(within(success).getByRole('button', { name: 'Send another' }));
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole('textbox', { name: 'name:' })),
+		);
+		for (const field of screen.getAllByRole('textbox')) expect(field).toHaveValue('');
+	});
+
+	it('does not move the focus when a later mount shows the earlier result', async () => {
+		persisted('contact-success', false).value = true;
+		render(ContactPage, { props: { contactPage: contactContent } });
+		await tick();
+		expect(screen.getByTestId('contact-sent-message')).toBeInTheDocument();
+		expect(document.activeElement).toBe(document.body);
+		await fireEvent.click(screen.getByRole('button', { name: 'Send another' }));
+	});
+
+	it('writes the French "Meanwhile" line in vous', async () => {
+		persisted('contact-success', false).value = true;
+		render(ContactPage, {
+			props: {
+				contactPage: {
+					...contactContent,
+					success: {
+						...contactContent.success,
+						meanwhile: { en: 'x', fr: 'jette un œil' },
+						workLinkLabel: { en: 'work', fr: 'services' },
+						blogLinkLabel: { en: 'blog', fr: 'blogue' },
+					},
+				},
+			},
+			context: fr(),
+		});
+		await tick();
+		const success = screen.getByTestId('contact-success');
+		expect(success).toHaveTextContent('En attendant, jetez un œil à mes services ou à mon blogue');
+		expect(success).not.toHaveTextContent('jette');
+		await fireEvent.click(within(success).getByRole('button'));
+	});
+
+	it('offers Book a call beside the message, in a new tab', () => {
+		render(ContactPage, { props: { contactPage: contactContent } });
+		const book = screen.getByTestId('contact-booking-link');
+		expect(book).toHaveAttribute('href', 'https://cal.com/fixture');
+		expect(book).toHaveAttribute('target', '_blank');
+		expect(book).toHaveTextContent('Book');
+		expect(book).not.toHaveTextContent('~');
+		expect(book.closest('form')).toBe(screen.getByTestId('contact-submit').closest('form'));
 	});
 });

@@ -1,31 +1,32 @@
 <!--
-  Contact page: full-bleed Recipe 4 Edge Title Grid.
-  Rotated "Contact." edge title + accent line + resizable dual terminals.
-  Info terminal (left): location, weather, local time, response time, social links.
-  Form terminal (right): name, email, message + success confirmation.
+  Contact page (page type: contact, D20), rebuilt from the owner-reviewed preview D-M4 (DEV-40).
+  One page section: the rotated "Contact." is the kit's RailTitle (the page's h1, sticky on the left
+  rail from 1024px, horizontal below), then two TerminalPanels with the kit's dimension line under
+  their title bars: the info panel (location, weather, local time, reply time, languages, best fit,
+  connect) and the form panel. Phones stack the details first. No divider before the footer.
+  The form follows yesid.design's labelled-field recipe: visible labels, the required line and
+  the message hint in each field's description, the error summary before the fields.
 -->
 <script lang="ts">
-	import { onMount, onDestroy, tick } from 'svelte';
-	import { computeRotatedTitleSize } from '#lib/utils/rotated-title-fit.ts';
+	import { onMount, tick } from 'svelte';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale, intl } from '#lib/utils/locale-context.ts';
-
-	const locale = getLocale();
 	import { fillTemplate } from '#lib/utils/labels.ts';
 	import { siteLabels, siteMeta } from '#lib/content/index.ts';
 	import { clock, persisted } from '@yesid/ui/state';
 	import type { ContactContent } from '#lib/types.ts';
-	import { TerminalPanel } from '@yesid/ui/brand';
+	import { RailTitle, TerminalPanel } from '@yesid/ui/brand';
+	import { PageSection, PageSections } from '@yesid/ui/layout';
 	import { Button } from '@yesid/ui/button';
-	import { ResizablePaneGroup, ResizablePane } from '@yesid/ui/resizable';
-	import { ResizableHandle } from '@yesid/ui/resizable';
 	import type { WeatherData } from '#lib/utils/weather.ts';
 	import { fetchFreshWeather } from '#lib/utils/weather-refresh.ts';
-	import { escapeHtml } from '#lib/utils/code-fences.ts';
 	import { bookingHref, directContactChannel } from '#lib/utils/high-intent-links.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
 	import { trackAnalyticsEvent } from '#lib/analytics/client.ts';
+	import { connectLabelFr, formHeadingCopy, meanwhileFr, replyTimeCopy } from './contact-copy.ts';
+
+	const locale = getLocale();
 
 	let {
 		contactPage,
@@ -35,26 +36,30 @@
 		weather?: WeatherData | null;
 	} = $props();
 
-	// $derived on the contactPage reads so they recompute if the prop changes:
-	// a plain const captures only the initial value, which Svelte 5 flags.
+	// $derived on the contactPage reads so they recompute if the prop changes.
 	const pageTitle = $derived(resolveLocale(contactPage.pageTitle, locale));
-	const stationLabel = $derived(resolveLocale(contactPage.stationLabel, locale));
 	const sendErrorMessage = $derived(resolveLocale(contactPage.sendErrorMessage, locale));
 	const workLinkLabel = $derived(resolveLocale(contactPage.success.workLinkLabel, locale));
 	const blogLinkLabel = $derived(resolveLocale(contactPage.success.blogLinkLabel, locale));
+	const replyTime = resolveLocale(replyTimeCopy, locale);
+	const formHeading = resolveLocale(formHeadingCopy, locale);
+	const connectLabel = $derived(
+		resolveLocale({ ...contactPage.infoTerminal.sectionLabels.connect, fr: connectLabelFr }, locale),
+	);
+	const meanwhile = $derived(
+		resolveLocale({ ...contactPage.success.meanwhile, fr: meanwhileFr }, locale),
+	);
+	const contactEmail = siteMeta.links.email;
 
 	let freshWeather = $state<WeatherData | null>(null);
 	const currentWeather = $derived(freshWeather ?? weather);
 
-	// Hydration gate (consolidation-deploy-honesty): the page is prerendered,
-	// so the static HTML paints before handleSubmit is attached. A submit in
-	// that window would fall back to a NATIVE GET submit: full reload with the
-	// form values dumped into the query string. The form requires JS to send
-	// (Web3Forms fetch), so the honest pre-hydration state is a disabled
-	// button; it enables the moment the handler exists.
+	// Hydration gate: the page is prerendered, so the static HTML paints before handleSubmit is
+	// attached. A submit in that window would fall back to a native GET submit (the form values in
+	// the query string). The form needs JS to send, so the button is disabled until hydration.
 	let hydrated = $state(false);
 
-	// --- Local time (Montreal), client-only: the page is prerendered ---
+	// Local time (Montreal), client-only: the page is prerendered.
 	const montrealTime = intl.dateTime('en', {
 		timeZone: 'America/Montreal',
 		hour: '2-digit',
@@ -65,47 +70,16 @@
 	const localTime = $derived(hydrated ? montrealTime.format(clock.now) : '');
 	$effect(() => clock.subscribe());
 
-	// Measure the rotated label to fit the edge column; CSS provides the first-paint fallback.
-	let edgeColumnEl = $state<HTMLElement | undefined>(undefined);
-	let edgeTitleSize = $state<number | null>(null);
-	const edgeVar = $derived(
-		edgeTitleSize === null ? undefined : `--edge-title-size: ${edgeTitleSize}px`,
-	);
-	let edgeFitRaf = 0;
-
-	function recomputeEdgeFit() {
-		const sample = edgeColumnEl?.querySelector('.edge-title');
-		if (!sample || !edgeColumnEl) return;
-		// The dot rides after the label: measure the full rendered string.
-		const budget = edgeColumnEl.clientHeight * 0.95;
-		if (budget <= 0) return;
-		const size = computeRotatedTitleSize(sample, [`${pageTitle}.`], budget, 208);
-		if (size !== null) edgeTitleSize = size;
-	}
-
-	function onEdgeResize() {
-		cancelAnimationFrame(edgeFitRaf);
-		edgeFitRaf = requestAnimationFrame(recomputeEdgeFit);
-	}
-
 	onMount(() => {
 		hydrated = true;
-		void fetchFreshWeather(locale).then((w) => { if (w) freshWeather = w; });
-		recomputeEdgeFit();
-		document.fonts?.ready.then(() => recomputeEdgeFit()).catch(() => {});
-		window.addEventListener('resize', onEdgeResize);
-	});
-
-	onDestroy(() => {
-		if (typeof window !== 'undefined') {
-			cancelAnimationFrame(edgeFitRaf);
-			window.removeEventListener('resize', onEdgeResize);
-		}
+		void fetchFreshWeather(locale).then((w) => {
+			if (w) freshWeather = w;
+		});
 	});
 
 	// --- Form state ---
-	// A half-typed message survives a locale switch or a reload: name/email/message
-	// are tab-scoped via persisted(). They are user-typed primitives, never copy.
+	// A half-typed message survives a locale switch or a reload: the fields are tab-scoped via
+	// persisted(). They are user-typed primitives, never copy.
 	const name = persisted<string>('contact-name', '');
 	const email = persisted<string>('contact-email', '');
 	const message = persisted<string>('contact-message', '');
@@ -114,76 +88,73 @@
 		{ key: 'email', state: email },
 		{ key: 'message', state: message },
 	] as const;
+	type FieldKey = (typeof fields)[number]['key'];
 
-	let submitted = $state(false);
-	let errors = $state<Record<string, string>>({});
-	let showSuccess = $state(false);
-	let successLines = $state<{ text: string; color: string; visible: boolean }[]>([]);
+	const fieldId = (key: FieldKey) => `contact-field-${key}`;
+	const requiredId = 'contact-required';
+	const messageHintId = 'contact-message-hint';
 
-	// Only the locale-free "the send succeeded" bit is stored. The success lines are
-	// translated, so any mount of a sent form rebuilds them in the current locale.
+	let errors = $state<Partial<Record<FieldKey, string>>>({});
+	let sendFailed = $state(false);
+	let sending = $state(false);
+	let announcement = $state('');
+
+	// Only the locale-free "the send succeeded" bit is stored, so a later mount (a language switch)
+	// shows the result again in the current locale until "Send another message".
 	const wasSuccessful = persisted<boolean>('contact-success', false);
-	$effect(() => {
-		if (wasSuccessful.value && !showSuccess) {
-			rebuildSuccessLines();
-			showSuccess = true;
-		}
-	});
+	const showSuccess = $derived(wasSuccessful.value);
+
+	let summaryEl = $state<HTMLElement>();
+	let failureEl = $state<HTMLElement>();
+	let resultEl = $state<HTMLElement>();
+
+	const errorCount = $derived(Object.keys(errors).length);
+
+	function fieldLabel(field: FieldKey): string {
+		return resolveLocale(contactPage.formTerminal.fields[field].label, locale);
+	}
 
 	// --- Validation ---
 	function validate(): boolean {
-		const newErrors: Record<string, string> = {};
-
-		if (!name.value.trim()) {
-			newErrors.name = resolveLocale(contactPage.validation.required, locale).replace('{field}', fieldLabel('name'));
-		}
-		if (!email.value.trim()) {
-			newErrors.email = resolveLocale(contactPage.validation.required, locale).replace('{field}', fieldLabel('email'));
-		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-			newErrors.email = resolveLocale(contactPage.validation.invalidEmail, locale);
-		}
-		if (!message.value.trim()) {
-			newErrors.message = resolveLocale(contactPage.validation.required, locale).replace('{field}', fieldLabel('message'));
-		}
-
-		errors = newErrors;
-		return Object.keys(newErrors).length === 0;
+		const next: Partial<Record<FieldKey, string>> = {};
+		const required = resolveLocale(contactPage.validation.required, locale);
+		if (!name.value.trim()) next.name = required.replace('{field}', fieldLabel('name'));
+		if (!email.value.trim()) next.email = required.replace('{field}', fieldLabel('email'));
+		else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim()))
+			next.email = resolveLocale(contactPage.validation.invalidEmail, locale);
+		if (!message.value.trim()) next.message = required.replace('{field}', fieldLabel('message'));
+		errors = next;
+		return Object.keys(next).length === 0;
 	}
 
-	function errorCount(): number {
-		return Object.keys(errors).length;
+	function describedBy(key: FieldKey): string {
+		return [requiredId, key === 'message' ? messageHintId : '', errors[key] ? `${fieldId(key)}-error` : '']
+			.filter(Boolean)
+			.join(' ');
 	}
 
-	// --- Submit (client-side: Web3Forms free tier requires client calls) ---
-	let sending = $state(false);
-	let announcement = $state('');
-	let activeForm: HTMLFormElement | undefined;
-
-	async function focusErrors() {
-		await tick();
-		activeForm?.querySelector<HTMLElement>('[data-testid="contact-error-summary"]')?.focus();
-	}
-
+	// --- Submit (client-side: the Web3Forms free tier requires client calls) ---
 	function failSend(): void {
-		errors = { form: sendErrorMessage };
 		sending = false;
 		announcement = '';
-		void focusErrors();
+		sendFailed = true;
 		trackAnalyticsEvent('contact_form_error');
+		void tick().then(() => failureEl?.focus());
 	}
 
-	async function handleSubmit(e: Event) {
-		e.preventDefault();
-		if (sending) return; // in-flight guard: no double submits
-		activeForm = e.currentTarget as HTMLFormElement;
-		submitted = true;
+	async function handleSubmit(event: SubmitEvent) {
+		event.preventDefault();
+		if (sending) return; // In flight: a second press does nothing.
+		sendFailed = false;
 		announcement = '';
 		if (!validate()) {
-			await focusErrors();
+			await tick();
+			summaryEl?.focus();
 			return;
 		}
 
 		sending = true;
+		// Announced once, from the status region outside the busy form.
 		announcement = resolveLocale(contactPage.success.sending, locale);
 		// A stalled provider must release the form without discarding the draft.
 		const controller = new AbortController();
@@ -196,7 +167,8 @@
 				body: JSON.stringify({
 					access_key: contactPage.web3formsKey,
 					subject: fillTemplate(
-						resolveLocale(siteLabels.email.contactSubjectTemplate, locale) || 'New contact from {name} via yesid.dev',
+						resolveLocale(siteLabels.email.contactSubjectTemplate, locale) ||
+							'New contact from {name} via yesid.dev',
 						{ name: name.value },
 					),
 					from_name: name.value,
@@ -205,7 +177,6 @@
 				}),
 			});
 			const result = await res.json();
-
 			if (!res.ok || !result.success) return failSend();
 		} catch {
 			return failSend();
@@ -215,277 +186,258 @@
 
 		trackAnalyticsEvent('contact_form_success');
 		sending = false;
-		await playSuccessSequence();
-		announcement = resolveLocale(contactPage.success.sent, locale);
-	}
-
-	// --- Success confirmation ---
-	// The success lines are translated, so they are re-derived in the current locale,
-	// never persisted. rebuildSuccessLines() shows them at once on a later mount;
-	// A successful send shows the confirmation immediately.
-	function buildSuccessLines() {
-		const okText = resolveLocale(contactPage.success.fieldOk, locale);
-		return [
-			{ text: resolveLocale(contactPage.success.command, locale), color: 'muted' },
-			{ text: `→ ${resolveLocale(contactPage.success.validating, locale)}`, color: 'orange' },
-			{ text: `✓ ${fieldLabel('name')}: ${okText}`, color: 'green' },
-			{ text: `✓ ${fieldLabel('email')}: ${okText}`, color: 'green' },
-			{ text: `✓ ${fieldLabel('message')}: ${okText}`, color: 'green' },
-			{ text: `→ ${resolveLocale(contactPage.success.sending, locale)}`, color: 'orange' },
-			{ text: `✓ ${resolveLocale(contactPage.success.sent, locale)}`, color: 'green' },
-			{ text: `→ ${resolveLocale(contactPage.success.responseTime, locale)}`, color: 'accent' },
-			{ text: `→ ${resolveLocale(contactPage.success.meanwhile, locale)}`, color: 'muted' }
-		];
-	}
-
-	// The form already succeeded earlier in this tab: show the lines fully visible.
-	function rebuildSuccessLines() {
-		successLines = buildSuccessLines().map((l) => ({ ...l, visible: true }));
-	}
-
-	async function playSuccessSequence() {
-		// Clear the persisted draft so a sent message can't resurrect, and flag the
-		// success so a later mount re-shows the success screen.
+		announcement = '';
+		// The draft goes so a sent message cannot come back; the result shows at once.
 		name.value = '';
 		email.value = '';
 		message.value = '';
 		wasSuccessful.value = true;
-
-		rebuildSuccessLines();
-		showSuccess = true;
+		await tick();
+		resultEl?.focus();
 	}
 
-	// --- Reset ---
-	function handleReset() {
-		// Clear the persisted sessions too (incl. the success flag) so "send another"
-		// starts empty and stays empty on a later mount.
+	// --- Send another message ---
+	async function handleReset() {
 		name.value = '';
 		email.value = '';
 		message.value = '';
 		wasSuccessful.value = false;
-		submitted = false;
 		errors = {};
+		sendFailed = false;
 		announcement = '';
-		showSuccess = false;
-		successLines = [];
+		await tick();
+		document.getElementById(fieldId('name'))?.focus();
 	}
 
-	// --- Helpers ---
-	function fieldBorderClass(field: string): string {
-		if (!submitted) return 'border-[var(--input)]';
-		if (errors[field]) return 'border-[var(--destructive)]';
-		return 'border-[var(--input)]';
+	function focusField(event: MouseEvent, key: FieldKey) {
+		event.preventDefault();
+		document.getElementById(fieldId(key))?.focus();
 	}
 
-	function contactChannelLabel(label: ContactContent['socials'][number]['label']): string {
-		return resolveLocale(label, locale);
+	/** Splits a CMS template on its {work} and {blog} slots, so the links render without HTML strings. */
+	function meanwhileParts(template: string): { text: string; href?: string }[] {
+		return template
+			.split(/(\{work\}|\{blog\})/)
+			.filter((part) => part !== '')
+			.map((part) =>
+				part === '{work}'
+					? { text: workLinkLabel, href: localizeHref('/services', locale) }
+					: part === '{blog}'
+						? { text: blogLinkLabel, href: localizeHref('/blog', locale) }
+						: { text: part },
+			);
 	}
 
-	function fieldLabel(field: keyof ContactContent['formTerminal']['fields']): string {
-		const label = contactPage.formTerminal.fields[field].label;
-		return typeof label === 'string' ? label : resolveLocale(label, locale);
-	}
+	/** The send failure names the address; it becomes a link, one tap to write instead. */
+	const failureParts = $derived.by(() => {
+		const at = sendErrorMessage.indexOf(contactEmail);
+		return at < 0
+			? { before: sendErrorMessage, after: '', linked: false }
+			: {
+					before: sendErrorMessage.slice(0, at),
+					after: sendErrorMessage.slice(at + contactEmail.length),
+					linked: true,
+				};
+	});
 
-	function handleContactChannelClick(
-		event: MouseEvent,
-		social: ContactContent['socials'][number],
-	): void {
+	function handleContactChannelClick(event: MouseEvent, social: ContactContent['socials'][number]): void {
 		if (social.icon === 'calendar') {
 			trackLinkActivation(event, 'booking_click', { placement: 'contact' });
 			return;
 		}
-
 		const channel = directContactChannel(social.href);
 		if (channel) trackLinkActivation(event, 'direct_contact_click', { placement: 'contact', channel });
 	}
-
 </script>
 
-<div role="status" aria-atomic="true" class="sr-only">{announcement}</div>
+<div class="contact-page" data-testid="page-contact" data-register="task">
+	<PageSections>
+		<PageSection class="contact-section" aria-labelledby="contact-title">
+			<RailTitle
+				heading={pageTitle}
+				level={1}
+				titleId="contact-title"
+				side="left"
+				size="9rem"
+				style="--rail-title-rail: clamp(4.5rem, 12vw, 10.5rem)"
+			>
+				<div class="contact-content">
+					<div class="contact-panels">
+						{@render infoTerminal()}
+						{@render formTerminal()}
+					</div>
+				</div>
+			</RailTitle>
+		</PageSection>
+	</PageSections>
 
-<div class="contact-grid" data-testid="page-contact">
-	<!-- ═══ EDGE TITLE (desktop only) ═══ -->
-	<div class="edge-title-column" bind:this={edgeColumnEl} style={edgeVar}>
-		<h1 class="edge-title">{pageTitle}<span class="edge-dot">.</span></h1>
-	</div>
-
-	<!-- ═══ ACCENT LINE ═══ -->
-	<div class="accent-rail"></div>
-
-	<!-- ═══ CONTENT ═══ -->
-	<div class="contact-content">
-		<!-- Mobile: visible heading. Desktop: sr-only (rotated edge title is the heading) -->
-		<h1 class="mobile-heading text-display font-bold">{pageTitle}<span class="text-[var(--primary)]">.</span></h1>
-		<div class="mb-2 font-mono text-caption uppercase tracking-[2px] text-[var(--muted-foreground)]">
-			{stationLabel}
-		</div>
-
-		<!-- Desktop: Resizable split -->
-		<div class="desktop-terminals">
-			<ResizablePaneGroup direction="horizontal" class="h-auto rounded-lg">
-				<ResizablePane defaultSize={33} minSize={20}>
-					{@render infoTerminal()}
-				</ResizablePane>
-				<ResizableHandle withHandle class="contact-resize-handle" />
-				<ResizablePane defaultSize={67} minSize={40}>
-					{@render formTerminal('desktop')}
-				</ResizablePane>
-			</ResizablePaneGroup>
-		</div>
-
-		<!-- Mobile: Stacked -->
-		<div class="mobile-terminals">
-			{@render infoTerminal()}
-			{@render formTerminal('mobile')}
-		</div>
-	</div>
+	<!-- One status region outside the busy form, so "sending" is announced once. -->
+	<div role="status" aria-atomic="true" class="sr-only" data-testid="contact-status">{announcement}</div>
 </div>
 
-<!-- ═══ INFO TERMINAL SNIPPET ═══ -->
 {#snippet infoTerminal()}
-	<TerminalPanel title={contactPage.infoTerminal.title} class="h-full" data-testid="contact-info-terminal">
-		<div class="font-mono text-body leading-relaxed">
-			<!-- Command line -->
-			<div class="mb-4 text-[var(--secondary-foreground)]">
-				<span class="text-[var(--foreground)]">~</span> {contactPage.infoTerminal.command}
-			</div>
-
-			<!-- LOCATION section -->
-			<div class="mb-4">
-				<div class="mb-1 text-caption uppercase tracking-[2px] text-[var(--primary)]">{resolveLocale(contactPage.infoTerminal.sectionLabels.location, locale)}</div>
-				<div class="text-[var(--secondary-foreground)]">{resolveLocale(contactPage.infoTerminal.location, locale)}</div>
+	<TerminalPanel
+		title={contactPage.infoTerminal.title}
+		rule="dimension"
+		class="h-full min-w-0"
+		data-testid="contact-info-terminal"
+	>
+		<div class="contact-term">
+			<div class="contact-block">
+				<h2 class="contact-label">{resolveLocale(contactPage.infoTerminal.sectionLabels.location, locale)}</h2>
+				<p class="contact-value">{resolveLocale(contactPage.infoTerminal.location, locale)}</p>
 				{#if currentWeather}
-					<div class="mt-0.5 font-mono text-small text-[var(--accent-text)]">
+					<p class="contact-small contact-weather">
 						{currentWeather.temp}°C · <span class="capitalize">{currentWeather.condition}</span>
-					</div>
+					</p>
 				{/if}
 				{#if localTime}
-					<div class="mt-0.5 font-mono text-small text-[var(--secondary-foreground)]">
-						{localTime}
-					</div>
+					<p class="contact-small"><time>{localTime}</time></p>
 				{/if}
-				<!-- The 24h promise renders BEFORE submit (it previously existed in the
-				     CMS but only appeared on the success screen). -->
-				<div class="mt-0.5 font-mono text-small text-[var(--secondary-foreground)]">
-					{resolveLocale(contactPage.infoTerminal.responseTime, locale)}
-				</div>
+				<p class="contact-small" data-testid="contact-reply-time">{replyTime}</p>
 			</div>
 
-			<div class="mb-4">
-				<div class="mb-1 text-caption uppercase tracking-[2px] text-[var(--primary)]">{resolveLocale(contactPage.infoTerminal.sectionLabels.languages, locale)}</div>
-				<div class="text-[var(--secondary-foreground)]">{resolveLocale(contactPage.infoTerminal.languages, locale)}</div>
+			<div class="contact-block">
+				<h2 class="contact-label">{resolveLocale(contactPage.infoTerminal.sectionLabels.languages, locale)}</h2>
+				<p class="contact-value">{resolveLocale(contactPage.infoTerminal.languages, locale)}</p>
 			</div>
 
 			{#if contactPage.infoTerminal.bestFit?.length}
-				<div class="mb-4" data-testid="contact-best-fit">
+				<div class="contact-block" data-testid="contact-best-fit">
 					{#if contactPage.infoTerminal.sectionLabels.bestFit}
-						<div class="mb-1 text-caption uppercase tracking-[2px] text-[var(--primary)]">{resolveLocale(contactPage.infoTerminal.sectionLabels.bestFit, locale)}</div>
+						<h2 class="contact-label">{resolveLocale(contactPage.infoTerminal.sectionLabels.bestFit, locale)}</h2>
 					{/if}
-					{#each contactPage.infoTerminal.bestFit as line}
-						<div class="text-[var(--secondary-foreground)]">{resolveLocale(line, locale)}</div>
-					{/each}
+					<ul class="contact-fit">
+						{#each contactPage.infoTerminal.bestFit as line}
+							<li>{resolveLocale(line, locale)}</li>
+						{/each}
+					</ul>
 				</div>
 			{/if}
 
-			<!-- CONNECT section -->
-			<div class="mb-4">
-				<div class="mb-2 text-caption uppercase tracking-[2px] text-[var(--primary)]">{resolveLocale(contactPage.infoTerminal.sectionLabels.connect, locale)}</div>
-				<div class="flex flex-col gap-1">
+			<div class="contact-block">
+				<h2 class="contact-label" data-testid="contact-connect-label">{connectLabel}</h2>
+				<ul class="contact-connect">
 					{#each contactPage.socials as social}
-						<a
-							href={social.href}
-							data-testid="contact-social-{social.icon}"
-							onclick={(event) => handleContactChannelClick(event, social)}
-							onauxclick={(event) => handleContactChannelClick(event, social)}
-							class="tap-feedback flex items-center gap-2 rounded px-2 py-3 min-h-11 text-[var(--foreground)] transition-colors duration-200 hover:bg-primary/15 active:bg-primary/25"
-							{...(social.icon === 'email' ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-						>
-							<span class="text-[var(--primary)]" aria-hidden="true">→</span>
-							<span class="text-small">{contactChannelLabel(social.label)}</span>
-							{#if social.icon === 'calendar'}
-								<!-- The booking row keeps its address as a muted suffix. -->
-								<span class="text-small text-[var(--muted-foreground)]">{social.href.replace(/^https?:\/\//, '')}</span>
-							{/if}
-						</a>
+						<li>
+							<a
+								href={social.href}
+								data-testid="contact-social-{social.icon}"
+								onclick={(event) => handleContactChannelClick(event, social)}
+								onauxclick={(event) => handleContactChannelClick(event, social)}
+								class="contact-lift"
+								{...social.icon === 'email' ? {} : { target: '_blank', rel: 'noopener noreferrer' }}
+							>
+								<span class="contact-arrow" aria-hidden="true">→</span>
+								<span class="contact-connect-label">{resolveLocale(social.label, locale)}</span>
+								{#if social.icon === 'calendar'}
+									<!-- The booking row keeps its address as a muted suffix. -->
+									<span class="contact-connect-suffix">{social.href.replace(/^https?:\/\//, '')}</span>
+								{/if}
+							</a>
+						</li>
 					{/each}
-				</div>
-			</div>
-
-			<!-- Retain the terminal row height without a decorative cursor. -->
-			<div class="flex items-center gap-1">
-				<span class="text-[var(--secondary-foreground)]">~</span>
-
+				</ul>
 			</div>
 		</div>
 	</TerminalPanel>
 {/snippet}
 
-<!-- ═══ FORM TERMINAL SNIPPET ═══ -->
-{#snippet formTerminal(layout: 'desktop' | 'mobile')}
-	<TerminalPanel title={contactPage.formTerminal.title} class="h-full" data-testid="contact-form-terminal">
-		<div class="font-mono text-body leading-relaxed">
-			<!-- Command + output -->
-			<div class="mb-1 text-[var(--secondary-foreground)]">
-				<span class="text-[var(--foreground)]">~</span> {contactPage.formTerminal.command}
-			</div>
-			<div class="mb-4 text-caption text-[var(--muted-foreground)]">
-				{resolveLocale(contactPage.formTerminal.commandOutput, locale)}
-			</div>
-
+{#snippet formTerminal()}
+	<TerminalPanel
+		title={contactPage.formTerminal.title}
+		rule="dimension"
+		class="h-full min-w-0"
+		data-testid="contact-form-terminal"
+	>
+		<div class="contact-term">
+			<h2 class="sr-only" id="contact-form-heading">{formHeading}</h2>
 			{#if !showSuccess}
-				<!-- ─── FORM ─── -->
 				<form
 					onsubmit={handleSubmit}
 					novalidate
-					class="mt-3 space-y-3"
+					class="contact-form"
+					aria-labelledby="contact-form-heading"
+					aria-busy={sending ? 'true' : undefined}
 				>
-					<p>{resolveLocale(contactPage.formTerminal.requiredGuidance, locale)}</p>
-					<noscript><p>{resolveLocale(contactPage.formTerminal.noScript, locale)} <a href={`mailto:${siteMeta.links.email}`}>{siteMeta.links.email}</a>.</p></noscript>
-					<div class="flex flex-col gap-4">
+					{#if errorCount > 0}
+						<!-- The summary comes before the fields, takes focus and links to each field. -->
+						<div
+							bind:this={summaryEl}
+							tabindex="-1"
+							role="group"
+							aria-labelledby="contact-error-summary-heading"
+							data-testid="contact-error-summary"
+							class="contact-box"
+						>
+							<p id="contact-error-summary-heading">
+								{resolveLocale(contactPage.validation.errorSummary, locale).replace('{count}', String(errorCount))}
+							</p>
+							<ul class="contact-summary-list">
+								{#each fields as { key }}
+									{#if errors[key]}
+										<li>
+											<a href={`#${fieldId(key)}`} onclick={(event) => focusField(event, key)}>{errors[key]}</a>
+										</li>
+									{/if}
+								{/each}
+							</ul>
+						</div>
+					{/if}
 
+					<p class="contact-required" id={requiredId}>{resolveLocale(contactPage.formTerminal.requiredGuidance, locale)}</p>
+					<noscript>
+						<p>
+							{resolveLocale(contactPage.formTerminal.noScript, locale)}
+							<a href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+						</p>
+					</noscript>
+
+					<div class="contact-fields">
 						{#each fields as { key, state }}
-							{@const id = `contact-${layout}-${key}`}
-							{@const error = submitted && errors[key]}
+							{@const id = fieldId(key)}
+							{@const error = errors[key]}
 							{@const attributes = {
 								id,
 								name: key,
 								required: true,
+								readonly: sending || undefined,
 								autocomplete: key === 'message' ? undefined : key,
 								'data-handoff-focus': `contact-${key}`,
-								'aria-invalid': error ? true : undefined,
-								'aria-describedby': error ? `${id}-error` : undefined,
-								placeholder: resolveLocale(contactPage.formTerminal.fields[key].placeholder, locale),
-								class: `form-field tap-feedback rounded border bg-[var(--background)] px-4 py-3 font-mono text-body text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] transition-colors duration-200 ${key === 'message' ? 'resize-none' : 'min-h-11'} ${fieldBorderClass(key)}`,
+								'aria-invalid': error ? ('true' as const) : undefined,
+								'aria-describedby': describedBy(key),
+								class: 'contact-input',
 							}}
-							<div class="flex flex-col gap-1">
-								<label for={id} class="text-caption text-[var(--primary)]">
-									{fieldLabel(key)}:
-								</label>
+							<div class="contact-field">
+								<label for={id}>{fieldLabel(key)}:</label>
 								{#if key === 'message'}
+									<!-- The prompt is a visible hint above the box, so it stays while you type. -->
+									<p class="contact-hint" id={messageHintId}>
+										{resolveLocale(contactPage.formTerminal.fields.message.placeholder, locale)}
+									</p>
 									<textarea {...attributes} bind:value={state.value} rows="6"></textarea>
 								{:else}
-									<input {...attributes} type={key === 'email' ? 'email' : 'text'} bind:value={state.value} />
+									<input
+										{...attributes}
+										type={key === 'email' ? 'email' : 'text'}
+										autocapitalize={key === 'email' ? 'off' : undefined}
+										spellcheck={key === 'email' ? false : undefined}
+										placeholder={resolveLocale(contactPage.formTerminal.fields[key].placeholder, locale)}
+										bind:value={state.value}
+									/>
 								{/if}
 								{#if error}
-									<div id={id + '-error'} class="text-caption text-[var(--destructive)]">✗ {error}</div>
+									<p id={`${id}-error`} class="contact-error">✗ {error}</p>
 								{/if}
 							</div>
 						{/each}
 
-						{#if submitted && errorCount() > 0}
-							<div tabindex="-1" data-testid="contact-error-summary" class="rounded border border-[var(--destructive)] px-3 py-2 text-caption text-[var(--destructive)]">
-								{#if errors.form}
-									✗ {errors.form}
-								{:else}
-									{resolveLocale(contactPage.validation.errorSummary, locale).replace('{count}', String(errorCount()))}
-									<ul class="space-y-1">
-										{#each fields as { key }}
-											{#if errors[key]}
-												<li><a class="flex min-h-11 items-center rounded px-1 py-2" href={`#contact-${layout}-${key}`} onclick={(event) => { event.preventDefault(); document.getElementById(`contact-${layout}-${key}`)?.focus(); }}>{errors[key]}</a></li>
-											{/if}
-										{/each}
-									</ul>
-								{/if}
+						{#if sendFailed}
+							<!-- The send failure keeps the draft, takes focus and offers the address. -->
+							<div bind:this={failureEl} tabindex="-1" class="contact-box" data-testid="contact-send-error">
+								<p>
+									✗ {failureParts.before}{#if failureParts.linked}<a class="contact-inline-target" href={`mailto:${contactEmail}`}>{contactEmail}</a>{/if}{failureParts.after}
+								</p>
 							</div>
 						{/if}
 
@@ -493,173 +445,312 @@
 							variant="conversion"
 							size="cta"
 							type="submit"
-							disabled={sending || !hydrated}
-							aria-busy={sending}
+							disabled={!hydrated}
+							aria-disabled={sending ? 'true' : undefined}
 							data-testid="contact-submit"
+							wrap
+							class="min-h-11 motion-reduce:transition-none motion-reduce:translate-none"
 						>
-							<span aria-hidden="true">~ $</span>
 							{sending
 								? resolveLocale(contactPage.success.sending, locale)
 								: resolveLocale(contactPage.formTerminal.submitLabel, locale)}
 						</Button>
 
-						<!-- In-flight transmission line (terminal voice) -->
-						{#if sending}
-							<div class="text-caption text-[var(--primary)]" aria-hidden="true" data-testid="contact-sending-line">
-								→ {resolveLocale(contactPage.success.sending, locale)}
-							</div>
-						{/if}
-
-						<div class="mt-1 flex flex-wrap items-center gap-2 font-mono text-caption">
-							<span class="text-[var(--secondary-foreground)]">{resolveLocale(contactPage.formTerminal.bookingPrompt, locale)}</span>
+						<p class="contact-book">
+							<span class="contact-book-prompt">{resolveLocale(contactPage.formTerminal.bookingPrompt, locale)}</span>
 							<a
 								href={bookingHref(contactPage.socials)}
 								target="_blank"
 								rel="noopener"
 								data-testid="contact-booking-link"
+								class="contact-lift"
 								onclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'contact' })}
 								onauxclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'contact' })}
-								class="tap-feedback rounded px-1 py-0.5 inline-flex min-h-11 items-center text-[var(--primary)] transition-colors duration-200 hover:bg-primary/15"
 							>
-								<span aria-hidden="true">~ $</span>
 								{resolveLocale(contactPage.formTerminal.bookingButtonLabel, locale)}
 							</a>
-						</div>
-
+						</p>
 					</div>
 				</form>
-
 			{:else}
-				<!-- ─── SUCCESS ─── -->
-				<div data-testid="contact-success" class="flex flex-col gap-0.5">
-					{#each successLines as line}
-						{#if line.visible}
-							<div class="{line.color === 'orange'
-								? 'text-[var(--primary)]'
-								: line.color === 'green'
-									? 'text-[var(--success)]'
-									: line.color === 'accent'
-										? 'text-[var(--accent-text)]'
-										: 'text-[var(--secondary-foreground)]'} text-small">
-								{#if line.color === 'muted' && line.text.includes('{work}') && line.text.includes('{blog}')}
-									{@html line.text
-										.replace('{work}', `<a href="${localizeHref('/services', locale)}">${escapeHtml(workLinkLabel)}</a>`)
-										.replace('{blog}', `<a href="${localizeHref('/blog', locale)}">${escapeHtml(blogLinkLabel)}</a>`)}
-								{:else}
-									{line.text}
-								{/if}
-							</div>
-						{/if}
-					{/each}
-
-					<!-- Reset button -->
-					<Button
-						variant="ghost"
-						onclick={handleReset}
-						data-testid="contact-reset"
-						class="mt-4 self-start font-mono text-caption tap-feedback min-h-11 px-4"
-					>
+				<!-- The result, at once: no replayed process. A send moves the focus here. -->
+				<div data-testid="contact-success" class="contact-sent">
+					<p class="contact-sent-ok" tabindex="-1" bind:this={resultEl} data-testid="contact-sent-message">
+						✓ {resolveLocale(contactPage.success.sent, locale)}
+					</p>
+					<p>{replyTime}</p>
+					<p>
+						{#each meanwhileParts(meanwhile) as part}{#if part.href}<a class="contact-inline-target" href={part.href}>{part.text}</a>{:else}{part.text}{/if}{/each}
+					</p>
+					<Button variant="ghost" onclick={handleReset} data-testid="contact-reset" class="mt-4 min-h-11 self-start px-4 font-mono text-caption">
 						{resolveLocale(contactPage.success.resetLabel, locale)}
 					</Button>
 				</div>
 			{/if}
-
 		</div>
 	</TerminalPanel>
 {/snippet}
 
 <style>
-	/* ═══ Recipe 4: Edge Title Grid ═══ */
-	.contact-grid {
-		display: block;
-		width: 100%;
+	.contact-page {
 		padding-block: var(--space-section-y);
 	}
-	.edge-title-column { display: none; }
-	.accent-rail { display: none; }
 	.contact-content {
 		min-width: 0;
 		padding-inline: var(--space-page-x);
 	}
-
-	/* Mobile: resizable hidden, stacked visible */
-	.desktop-terminals { display: none; }
-	.mobile-terminals {
+	/* Phones and tablets: the details first, then the form (owner answer 1A). */
+	.contact-panels {
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-card-gap);
 	}
 
-	/* Mobile heading visible, hidden on desktop (rotated edge title replaces it) */
-	.mobile-heading { display: block; margin-bottom: 0.5rem; }
-
 	@media (--desktop-min) {
-		.mobile-heading { display: none; }
-		.contact-grid {
-			display: grid;
-
-			grid-template-columns: auto 2px minmax(0, 1fr);
-			padding-block: 0;
-			margin-top: calc(-1 * var(--nav-clearance));
+		.contact-page {
+			padding-block: var(--space-card-gap);
 		}
+		/* Today's orange accent line along the rail, kept with the rotated title. */
 		.contact-content {
-			padding-top: calc(var(--nav-clearance) + var(--space-card-gap));
-			padding-bottom: var(--space-card-gap);
-			padding-inline: var(--space-page-x);
-			display: flex;
-			flex-direction: column;
+			min-height: 100%;
+			border-inline-start: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
 		}
-		/* Edge title starts at top, extends behind nav */
-		.edge-title-column {
-			display: flex;
-			position: sticky;
-			top: 0;
-			height: 100dvh;
-			align-self: start;
-			align-items: center;
-			justify-content: center; /* centered within its own column */
-			writing-mode: vertical-rl;
-			transform: rotate(180deg);
-			padding: 0 1.5rem;
+		/* Today's split, a third and two thirds, fixed: no resize handle. */
+		.contact-panels {
+			display: grid;
+			grid-template-columns: minmax(0, 33fr) minmax(0, 67fr);
+			gap: 10px;
+			align-items: stretch;
 		}
-		.edge-title {
-			margin: 0;
-			font-family: var(--font-heading);
-			/* The size variable is measured after hydration; its fallback covers first paint. */
-			font-size: var(--edge-title-size, min(clamp(6rem, 12vw, 13rem), 11dvh));
-			font-weight: 900;
-			color: var(--foreground);
-			white-space: nowrap;
-			line-height: 1;
-			letter-spacing: -0.04em;
-		}
-		.edge-dot {
-			color: var(--primary);
-		}
-		.accent-rail {
-			display: block;
-			background: color-mix(in srgb, var(--primary) 35%, transparent);
-		}
-
-		.desktop-terminals { display: block; }
-		.mobile-terminals { display: none; }
 	}
 
-	/* ═══ iOS keyboard-overlap mitigation ═══ */
-	/* Focused form fields need breathing room above the virtual keyboard */
-	.form-field {
-		scroll-margin-bottom: 100px;
-
-		caret-color: var(--primary);
+	.contact-term {
+		font-family: var(--font-mono);
+		font-size: var(--text-body);
+		line-height: 1.625;
 	}
 
-	.contact-grid :global(.contact-resize-handle) {
-		width: 8px;
-		background: var(--border);
+	/* ---------- The info panel ---------- */
+	.contact-block + .contact-block {
+		margin-top: 1rem;
+	}
+	.contact-label {
+		margin: 0 0 0.25rem;
+		font-family: var(--font-mono);
+		font-size: var(--text-caption);
+		font-weight: 400;
+		line-height: 1.5;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		color: var(--primary);
+	}
+	.contact-value,
+	.contact-fit li {
+		color: var(--secondary-foreground);
+	}
+	.contact-fit {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.contact-small {
+		margin-top: 0.125rem;
+		font-size: var(--text-small);
+		color: var(--secondary-foreground);
+	}
+	.contact-weather {
+		color: var(--accent-text);
+	}
+	.contact-connect {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0.5rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.contact-connect a {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		column-gap: 0.5rem;
+		min-height: var(--size-tap-min);
+		padding: calc(0.75rem - 1px) calc(0.5rem - 1px);
+		color: var(--foreground);
+		text-decoration: none;
+	}
+	.contact-arrow {
+		color: var(--primary);
+	}
+	.contact-connect-label {
+		font-size: var(--text-small);
+	}
+	.contact-connect-suffix {
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+	}
+
+	/* The page's own links that act: on hover the edge lights up and they lift 1px, the same in
+	   light and dark; no tint, no glow, no shadow (D21). Still under reduced motion. */
+	.contact-lift {
+		border: 1px solid transparent;
 		border-radius: var(--radius-sm);
-		transition: background var(--duration-fast) var(--ease-default);
+		transition:
+			border-color var(--duration-fast) var(--ease-default),
+			translate var(--duration-fast) var(--ease-default);
 	}
-	.contact-grid :global(.contact-resize-handle:hover) {
-		background: var(--primary);
+	.contact-lift:hover {
+		border-color: var(--border-brand-active);
+		translate: 0 -1px;
+	}
+	.contact-lift:active {
+		translate: none;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.contact-lift,
+		.contact-lift:hover {
+			transition: none;
+			translate: none;
+		}
+	}
+
+	/* ---------- The form ---------- */
+	.contact-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.contact-required {
+		font-weight: 700;
+		color: var(--foreground);
+	}
+	.contact-fields {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+	.contact-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+	.contact-field label {
+		font-size: var(--text-caption);
+		color: var(--primary);
+	}
+	.contact-hint {
+		font-size: var(--text-caption);
+		color: var(--secondary-foreground);
+	}
+	/* The labelled-field recipe's boundary (--input) and 44px minimum, in the panel's mono type;
+	   16px text so phones never zoom into the field. */
+	.contact-field :global(.contact-input) {
+		display: block;
+		width: 100%;
+		min-height: var(--size-tap-min);
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--input);
+		border-radius: var(--radius-sm);
+		background: var(--background);
+		color: var(--foreground);
+		caret-color: var(--primary);
+		font-family: var(--font-mono);
+		font-size: 1rem;
+		line-height: 1.625;
+		scroll-margin-top: calc(var(--nav-clearance, 5.5rem) + 2rem);
+		/* iOS keyboard: focused fields keep room above the virtual keyboard. */
+		scroll-margin-bottom: 100px;
+		transition: border-color var(--duration-fast) var(--ease-default);
+	}
+	.contact-field :global(.contact-input::placeholder) {
+		color: var(--muted-foreground);
+		opacity: 1;
+	}
+	.contact-field :global(textarea.contact-input) {
+		resize: none;
+	}
+	.contact-field :global(.contact-input[aria-invalid='true']) {
+		border-color: var(--destructive);
+	}
+	.contact-error {
+		font-size: var(--text-caption);
+		color: var(--destructive);
+	}
+	/* Today's red box: the error summary (before the fields) and the send failure (above the button). */
+	.contact-box {
+		padding: 0.5rem 0.75rem;
+		border: 1px solid var(--destructive);
+		border-radius: var(--radius-sm);
+		font-size: var(--text-caption);
+		color: var(--destructive);
+		scroll-margin-top: calc(var(--nav-clearance, 5.5rem) + 1rem);
+	}
+	.contact-summary-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin: 0.25rem 0 0;
+		padding: 0;
+		list-style: none;
+	}
+	.contact-summary-list a {
+		display: flex;
+		align-items: center;
+		min-height: var(--size-tap-min);
+		padding: 0.5rem 0.25rem;
+		color: var(--destructive);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.contact-box a,
+	.contact-sent a {
+		color: var(--primary);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	.contact-summary-list a {
+		color: var(--destructive);
+	}
+	/* Links inside a sentence (the not-sent address, the "Meanwhile" links) keep the 44px tap
+	   minimum in both directions without leaving their line. */
+	.contact-inline-target {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-block-size: var(--size-tap-min);
+		min-inline-size: var(--size-tap-min);
+		vertical-align: middle;
+	}
+	.contact-book {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 0.25rem;
+		font-size: var(--text-caption);
+	}
+	.contact-book-prompt {
+		color: var(--secondary-foreground);
+	}
+	.contact-book a {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--size-tap-min);
+		padding: calc(0.125rem - 1px) calc(0.25rem - 1px);
+		color: var(--primary);
+		text-decoration: none;
+	}
+
+	/* ---------- Sent ---------- */
+	.contact-sent {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		font-size: var(--text-small);
+		color: var(--secondary-foreground);
+	}
+	.contact-sent-ok {
+		color: var(--success);
+		scroll-margin-top: calc(var(--nav-clearance, 5.5rem) + 1rem);
 	}
 </style>
