@@ -51,3 +51,22 @@ describe('keyGlanceFacts', () => {
 		expect(keyGlanceFacts({ en: { time: 0, version: '2', blocks: [] } } as unknown as LocalizedBlockEditorDoc, 'en')).toEqual([]);
 	});
 });
+
+describe('glance fact text parsing', () => {
+	it('reads quoted attributes and entities as text, discarding scripts and styles', () => {
+		const doc = { en: table([
+			['At a glance', ''],
+			['<b title="a > b">Business</b>', '<script>alert(1)</script><style>p{}</style><a title="a > b">Coffee &eacute; &#x1f600;</a>'],
+		]) } as unknown as LocalizedBlockEditorDoc;
+		expect(keyGlanceFacts(doc, 'en')).toEqual([{ label: 'Business', value: 'Coffee é 😀' }]);
+	});
+
+	it('handles malformed nested tags without leaving tag fragments', () => {
+		const doc = { en: table([
+			['At a glance', ''],
+			['Business', 'Safe <scr<script>ipt>alert(1)</scr</script>ipt> words'],
+		]) } as unknown as LocalizedBlockEditorDoc;
+		const [fact] = keyGlanceFacts(doc, 'en');
+		expect(fact.value).not.toContain('<script');
+	});
+});

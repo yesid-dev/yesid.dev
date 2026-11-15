@@ -19,7 +19,7 @@
 	const title = $derived(resolveLocale(project.title, locale));
 </script>
 
-<Card interactive class="home-card h-full gap-0 py-0" data-testid="proof-card" role="group" aria-labelledby={titleId}>
+<Card interactive class="home-card w-full h-full gap-0 py-0" data-testid="proof-card" role="group" aria-labelledby={titleId}>
 	<div class="home-card__zone" data-testid="proof-card-image">
 		{#if project.image}
 			<ProjectHeroPreview
@@ -54,7 +54,7 @@
 </Card>
 
 <style>
-	/* The screenshots: one height for every card on desktop, natural on phones. */
+	/* The screenshots: a bounded frame from tablet width, natural on phones. */
 	.home-card__zone {
 		padding: 1rem 1rem 0.75rem;
 	}
@@ -134,7 +134,7 @@
 		}
 	}
 
-	@media (--desktop-min) {
+	@media (--tablet-min) {
 		.home-card__zone {
 			height: 16rem;
 			padding: 1.25rem 1.25rem 1rem;

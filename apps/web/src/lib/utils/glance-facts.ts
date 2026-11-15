@@ -1,4 +1,5 @@
-import type { BlockEditorDoc, LocalizedBlockEditorDoc } from '@repo/shared';
+import { sanitizeTableCell, type BlockEditorDoc, type LocalizedBlockEditorDoc } from '@repo/shared';
+import { DomUtils, parseDocument } from 'htmlparser2';
 import type { Locale } from '#lib/types.ts';
 
 /** One "At a glance" row as plain text. */
@@ -7,17 +8,9 @@ export interface GlanceFact {
 	value: string;
 }
 
-const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
-
-/** Table cells hold inline HTML (links, code); a card shows their words only. */
+/** Use the same inline-HTML policy as table rendering, then read parsed text nodes. */
 function plainText(html: string): string {
-	return html
-		.replace(/<[^>]*>/g, '')
-		.replace(/&(?:#(\d+)|#x([0-9a-f]+)|(amp|lt|gt|quot|apos|nbsp));/gi, (entity, dec?: string, hex?: string, name?: string) => {
-			if (name) return NAMED_ENTITIES[name.toLowerCase()]!;
-			const code = dec ? Number(dec) : parseInt(hex!, 16);
-			return code > 0 && code <= 0x10ffff ? String.fromCodePoint(code) : entity;
-		})
+	return DomUtils.textContent(parseDocument(sanitizeTableCell(html)))
 		.replace(/\s+/g, ' ')
 		.trim();
 }
