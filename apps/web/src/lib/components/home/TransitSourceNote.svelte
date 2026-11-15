@@ -21,6 +21,5 @@
 		text-decoration: underline;
 		text-underline-offset: 2px;
 	}
-	.transit-source a:hover { color: var(--accent-text); }
 	.transit-source a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 </style>

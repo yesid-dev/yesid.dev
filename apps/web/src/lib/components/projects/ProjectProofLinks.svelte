@@ -117,7 +117,6 @@
 		text-decoration: underline;
 		text-underline-offset: 3px;
 	}
-	.project-links a:hover { color: var(--accent-text); }
 	.project-links a:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 	.project-links__private { color: var(--secondary-foreground); }
 </style>
