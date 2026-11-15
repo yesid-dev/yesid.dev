@@ -1,78 +1,83 @@
+<!--
+  Core beliefs: four ideas, not steps (D-M6): no number badges and no boxes inside the card, a
+  thin line above each belief instead, titles in sentence case and reading ink. Two across only
+  when the card itself is 400px or wider, so a title never breaks inside a word. A static card.
+-->
 <script lang="ts">
 	import type { AboutMethodStep } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 
 	const locale = getLocale();
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
-	import { stationNumber } from '#lib/utils/station.ts';
 	import { Card } from '@yesid/ui/card';
+	import AboutCardHeading from './AboutCardHeading.svelte';
+	import { sentenceCase } from './about-copy.ts';
 
-	let { steps, stop, label }: { steps: readonly AboutMethodStep[]; stop: string; label: string } = $props();
+	let { steps, heading }: { steps: readonly AboutMethodStep[]; heading: string } = $props();
 </script>
 
-<div
-	class="group h-full"
-	use:cursorGlow
->
-<Card class="h-full p-3" data-testid="about-method">
+<Card class="beliefs-card h-full p-3" data-testid="about-method">
 	<div class="relative flex flex-col">
-		<StopLabel {stop} {label} as="h2" />
+		<AboutCardHeading text={heading} />
 
 		<div
 			class="mt-3 pr-1"
 			data-testid="about-method-scroll"
 		>
-		<div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-			{#each steps as step, i}
-				{@const stepLabel = resolveLocale(step.label, locale)}
-				{@const stepDesc = resolveLocale(step.description, locale)}
-
-				<div class="belief-card">
-					<div class="flex items-center gap-2">
-						<div class="belief-badge">
-							{stationNumber(i)}
-						</div>
-						<div class="belief-title">{stepLabel}</div>
-					</div>
-					<p class="mt-2 text-body leading-relaxed text-[var(--secondary-foreground)]">{stepDesc}</p>
-				</div>
+		<ul class="beliefs">
+			{#each steps as step}
+				<li class="belief">
+					<p class="belief-title">{sentenceCase(resolveLocale(step.label, locale), locale)}</p>
+					<p class="belief-text">{resolveLocale(step.description, locale)}</p>
+				</li>
 			{/each}
-		</div>
+		</ul>
 		</div>
 	</div>
 </Card>
-</div>
 
 <style>
-	.belief-card {
-		min-width: 0;
-		border: 1px solid var(--border);
-		border-radius: 2px;
-		padding: 0.55rem;
-		background: color-mix(in srgb, var(--card) 88%, var(--primary) 12%);
+	:global(.beliefs-card) {
+		container: about-beliefs / inline-size;
 	}
 
-	.belief-badge {
+	.beliefs {
 		display: grid;
-		width: 1.65rem;
-		height: 1.65rem;
-		flex: 0 0 auto;
-		place-items: center;
-		border: 1px solid var(--primary);
-		font-family: var(--font-mono);
-		font-size: var(--text-caption);
-		font-weight: 800;
-		color: var(--primary);
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.75rem 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	@container about-beliefs (min-width: 400px) {
+		.beliefs {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	.belief {
+		min-width: 0;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--border);
 	}
 
 	.belief-title {
-		overflow-wrap: anywhere;
-		font-family: var(--font-mono);
-		font-size: var(--text-caption);
-		font-weight: 800;
-		letter-spacing: 0.08em;
-		color: var(--primary);
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: var(--text-body);
+		font-weight: 600;
+		line-height: 1.3;
+		color: var(--foreground);
+		overflow-wrap: normal;
+		word-break: normal;
+		hyphens: none;
+	}
+
+	.belief-text {
+		margin-top: 0.375rem;
+		font-size: var(--text-body);
+		line-height: 1.6;
+		color: var(--secondary-foreground);
 	}
 </style>

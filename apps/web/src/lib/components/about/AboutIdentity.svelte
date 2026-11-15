@@ -1,8 +1,7 @@
 <!--
-  About page identity card: V1 Editorial Glow.
-  Side-by-side: headshot with gradient ring + ambient glow, text right.
-  Metro stop label top-left. Cursor-following glow.
-  All text from data layer via props.
+  About page identity card: the headshot in its gradient ring beside the page's h1 and the
+  introduction. No label above the title (no eyebrow) and no glow (D-M6). A static card: it
+  never reacts to the pointer. All text from the data layer via props.
 -->
 <script lang="ts">
 	import type { AboutIdentity } from '#lib/types.ts';
@@ -10,37 +9,20 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 
 	const locale = getLocale();
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
 	import { variantImage } from '#lib/utils/variant-image.ts';
+	import { aboutIntro } from './about-copy.ts';
 
-	let { identity, stop, label }: { identity: AboutIdentity; stop: string; label: string } = $props();
+	let { identity }: { identity: AboutIdentity } = $props();
 
 	const name = $derived(resolveLocale(identity.name, locale));
 	const title = $derived(resolveLocale(identity.title, locale));
-	const valueProp = $derived(resolveLocale(identity.valueProp, locale));
+	const valueProp = $derived(aboutIntro(identity.valueProp, locale));
 	const headshotMedia = $derived(variantImage(identity.headshot));
 </script>
 
-<div
-	class="group h-full"
-	use:cursorGlow
->
 <Card class="relative h-full p-3" data-testid="about-identity">
-	<!-- Ambient glow behind headshot -->
-	<div
-		class="pointer-events-none absolute -top-10 -left-10 h-44 w-44 opacity-[0.28] dark:opacity-[0.12]"
-		style="background: radial-gradient(circle, var(--glow) 0%, transparent 70%);"
-		aria-hidden="true"
-	></div>
-
-	<div class="relative flex flex-col">
-		<!-- Stop label. Every OTHER bento card renders its stop label as the
-		     card's <h2>; this one stays a plain <div> so the page's first heading
-		     is the <h1> below it and the outline reads h1 → h2…, never h2 → h1. -->
-		<StopLabel {stop} {label} />
-
+	<div class="relative flex h-full flex-col justify-center">
 		<div
 			class="pr-1"
 			data-testid="about-identity-scroll"
@@ -68,20 +50,12 @@
 				</div>
 			</div>
 
-			<!-- Text block -->
+			<!-- Text block: the identity title is /about's single h1, in sentence case and reading ink. -->
 			<div class="text-center md:pt-1 md:text-left">
-				<!-- The identity title IS /about's single <h1> (WCAG 1.3.1): the page
-				     had no heading element at all, and this is the one existing text
-				     node that reads as the page title. Element only — the classes,
-				     copy and computed styles are unchanged (Tailwind preflight zeroes
-				     the h1 margin and inherits its weight, and .label-station owns the
-				     size), so nothing moves. -->
-				<h1 class="label-station text-caption">
-					{title}
-				</h1>
-				<!-- Gradient separator -->
-				<div class="mx-auto mt-4 h-px w-10 md:mx-0" style="background: linear-gradient(90deg, var(--primary), transparent);"></div>
-				<p class="mt-4 max-w-md text-body leading-relaxed text-[var(--secondary-foreground)]">
+				<h1 class="about-title">{title}</h1>
+				<!-- The short orange rule under the title, kept from today. -->
+				<div class="mx-auto mt-4 h-px w-10 md:mx-0" style="background: linear-gradient(90deg, var(--primary), transparent);" aria-hidden="true"></div>
+				<p class="about-intro mt-4 max-w-md text-body leading-relaxed text-[var(--secondary-foreground)]">
 					{valueProp}
 				</p>
 			</div>
@@ -89,4 +63,21 @@
 		</div>
 	</div>
 </Card>
-</div>
+
+<style>
+	.about-title {
+		margin: 0;
+		font-family: var(--font-heading);
+		font-size: var(--text-heading);
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: -0.01em;
+		color: var(--foreground);
+		text-wrap: balance;
+	}
+
+	/* Never leave ":)" alone on the last line. */
+	.about-intro {
+		text-wrap: pretty;
+	}
+</style>

@@ -3,22 +3,20 @@
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
 	import { SliderButton } from '@yesid/ui/brand';
+	import AboutCardHeading from './AboutCardHeading.svelte';
+	import { aboutLabels } from './about-copy.ts';
 
 	const locale = getLocale();
 
 	let {
 		testimonials,
-		stop,
-		label,
+		heading,
 		labels,
 	}: {
 		testimonials: readonly AboutTestimonial[];
-		stop: string;
-		label: string;
+		heading: string;
 		labels: AboutLabels;
 	} = $props();
 
@@ -49,17 +47,18 @@
 		activeIndex = index;
 	}
 
+	// Each dot names its slide ("Quote 2 of 3"); the shown one is current (D-M6).
 	function showSlideAria(index: number): string {
-		return fillTemplate(resolveLocale(labels.showTestimonialAria, locale), {
+		return fillTemplate(resolveLocale(aboutLabels.quoteDotAria, locale), {
 			index: String(index + 1),
+			total: String(testimonials.length),
 		});
 	}
 </script>
 
-<div class="group h-full" use:cursorGlow>
-	<Card class="h-full min-h-[19rem] p-3" data-testid="about-testimonials" role="region" aria-label={carouselAria}>
+<Card class="h-full min-h-[19rem] p-3" data-testid="about-testimonials" role="region" aria-label={carouselAria}>
 		<div class="relative flex flex-1 flex-col">
-			<StopLabel {stop} {label} as="h2" />
+			<AboutCardHeading text={heading} />
 
 			<div class="grid flex-1 items-center pr-1" data-testid="about-quote-body" aria-label={slideAria} aria-live="polite">
 				{#each testimonials as testimonial, i}
@@ -76,11 +75,11 @@
 					<div class="mt-5 flex items-center gap-3">
 						<span class="h-px w-10 bg-[var(--primary)]" aria-hidden="true"></span>
 						<div class="min-w-0">
-							<div class="font-mono text-caption font-bold tracking-[0.12em] text-[var(--accent-text)]">
+							<div class="text-small font-semibold text-[var(--foreground)]" data-testid="about-quote-author">
 								{testimonial.author}
 							</div>
 							{#if role}
-								<div class="mt-1 font-mono text-[0.64rem] tracking-[0.1em] text-[var(--muted-foreground)]">
+								<div class="mt-0.5 text-caption text-[var(--muted-foreground)]">
 									{role}
 								</div>
 							{/if}
@@ -93,26 +92,26 @@
 			{#if hasSlides}
 				<div class="mt-3 flex shrink-0 items-center justify-between gap-3" data-testid="about-quote-controls">
 					<SliderButton direction="previous" aria-label={prevAria} onclick={previous} />
-					<div class="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-1" role="tablist" aria-label={tabNavAria}>
+					<ul class="flex min-w-0 flex-1 flex-wrap items-center justify-center gap-1" aria-label={tabNavAria}>
 						{#each testimonials as _testimonial, i}
-							<button
-								type="button"
-								class="quote-dot"
-								class:quote-dot-active={i === activeIndex}
-								data-testid="about-quote-dot"
-								aria-label={showSlideAria(i)}
-								aria-selected={i === activeIndex}
-								role="tab"
-								onclick={() => goTo(i)}
-							></button>
+							<li>
+								<button
+									type="button"
+									class="quote-dot"
+									class:quote-dot-active={i === activeIndex}
+									data-testid="about-quote-dot"
+									aria-label={showSlideAria(i)}
+									aria-current={i === activeIndex ? 'true' : undefined}
+									onclick={() => goTo(i)}
+								></button>
+							</li>
 						{/each}
-					</div>
+					</ul>
 					<SliderButton direction="next" aria-label={nextAria} onclick={next} />
 				</div>
 			{/if}
 		</div>
 	</Card>
-</div>
 
 <style>
 	/* Every localized quote sizes the same grid cell, including hidden items. */

@@ -1,8 +1,9 @@
 <!--
-  CTA — Terminal style.
-  Fake terminal: $ yesid --contact with typed lines.
-  Social links, send button.
-  Stop label top-left.
+  Get in touch: the terminal panel without its console costume (D-M6). No pretend command, no
+  ">" prompts and no filler line; the email, GitHub and LinkedIn are real links, and the
+  dimension line sits under the title bar (D22). The card contains links, so it is the kit's
+  interactive card: it lifts 1px and lights its edge, the same in both themes. The one yellow
+  "talk to Yesid" button closes it.
 -->
 <script lang="ts">
 	import type { AboutCta } from '#lib/types.ts';
@@ -13,60 +14,44 @@
 	const locale = getLocale();
 	import { TerminalPanel } from '@yesid/ui/brand';
 	import { siteLabels } from '#lib/content/index.ts';
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Button } from '@yesid/ui/button';
 	import { Card } from '@yesid/ui/card';
+	import AboutCardHeading from './AboutCardHeading.svelte';
+	import { aboutLabels, contactLines } from './about-copy.ts';
 
-	let { cta, stop, label }: { cta: AboutCta; stop: string; label: string } = $props();
+	let { cta, heading }: { cta: AboutCta; heading: string } = $props();
 
 	const buttonLabel = $derived(resolveLocale(cta.buttonLabel, locale));
 	const terminalTitle = $derived(resolveLocale(siteLabels.ui.terminalTitle, locale));
+	const lines = $derived(contactLines(cta.lines, locale));
+	const newTab = $derived(resolveLocale(aboutLabels.opensInNewTab, locale));
 </script>
 
-<div
-	class="group h-full"
-	use:cursorGlow
->
-<Card class="relative h-full p-3" data-testid="about-cta">
-	<!-- Ambient glow -->
-	<div
-		class="pointer-events-none absolute inset-0 opacity-[0.2] dark:opacity-[0.07]"
-		style="background: radial-gradient(ellipse at 20% 50%, var(--glow), transparent 70%);"
-		aria-hidden="true"
-	></div>
-
+<Card interactive class="relative h-full p-3" data-testid="about-cta">
 	<div class="relative flex flex-col">
-		<StopLabel {stop} {label} as="h2" />
+		<AboutCardHeading text={heading} />
 
-		<!-- Terminal window -->
-		<TerminalPanel title={terminalTitle} class="mt-3">
-			<div class="break-words font-mono text-reading-code leading-[1.6] lg:text-reading-code-desktop">
-				<!-- Command -->
-				<div class="text-[var(--secondary-foreground)]">
-					<span class="text-[var(--foreground)]">~</span> {cta.command}
-				</div>
-
-				<!-- Output lines -->
-				{#each cta.lines as line}
-					<div class="{line.color === 'orange'
-						? 'text-[var(--primary)]'
-						: line.color === 'accent'
-							? 'text-[var(--accent-text)]'
-							: 'text-[var(--secondary-foreground)]'}">
-						{typeof line.text === 'string' ? line.text : resolveLocale(line.text, locale)}
-					</div>
+		<TerminalPanel title={terminalTitle} rule="dimension" class="mt-3">
+			<ul class="contact-lines font-mono text-reading-code leading-[1.6] lg:text-reading-code-desktop" data-testid="about-contact-lines">
+				{#each lines as line}
+					{#if line.kind === 'link'}
+						<li>
+							<span class="contact-label">{line.label}</span>
+							<a
+								href={line.href}
+								target={line.external ? '_blank' : undefined}
+								rel={line.external ? 'noopener noreferrer' : undefined}
+								data-testid="about-contact-link"
+							>{#each line.display as part, i}{#if i > 0}<wbr />{/if}{part}{/each}{#if line.external}<span class="sr-only"> {newTab}</span>{/if}</a>
+						</li>
+					{:else}
+						<li>{line.text}</li>
+					{/if}
 				{/each}
-
-				<!-- Retain the terminal row height without a decorative cursor. -->
-				<div class="mt-1 flex items-center gap-1">
-					<span class="text-[var(--secondary-foreground)]">~</span>
-
-				</div>
-			</div>
+			</ul>
 		</TerminalPanel>
 
-		<!-- Action row: the About view's one "talk to Yesid" conversion → yellow. -->
+		<!-- Action row: the About view's one "talk to Yesid" conversion, yellow. -->
 		<div class="mt-3 flex flex-wrap items-center gap-3">
 			<Button variant="conversion" size="cta" href={localizeHref(cta.buttonHref, locale)} data-testid="about-cta-button">
 				{buttonLabel}
@@ -74,4 +59,28 @@
 		</div>
 	</div>
 </Card>
-</div>
+
+<style>
+	.contact-lines {
+		display: grid;
+		gap: 2px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		color: var(--terminal-ink);
+	}
+
+	.contact-label {
+		color: var(--terminal-ink-muted);
+	}
+
+	/* Each link occupies its own row space; keep the anchor classless for kit text-link styles. */
+	.contact-lines :global(a) {
+		display: inline-block;
+		box-sizing: border-box;
+		min-height: 44px;
+		padding-block: 10px;
+		overflow-wrap: normal;
+		word-break: normal;
+	}
+</style>

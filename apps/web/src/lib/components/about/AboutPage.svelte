@@ -4,7 +4,7 @@
 
 	const locale = getLocale();
 	import type { AboutContent } from '#lib/types.ts';
-	import { Separator } from '@yesid/ui/separator';
+	import { PageSection, PageSections } from '@yesid/ui/layout';
 	import AboutIdentity from './AboutIdentity.svelte';
 	import AboutPolaroids from './AboutPolaroids.svelte';
 	import AboutMetrics from './AboutMetrics.svelte';
@@ -16,6 +16,7 @@
 	import AboutInterests from './AboutInterests.svelte';
 	import AboutCta from './AboutCta.svelte';
 	import AboutTrain from './AboutTrain.svelte';
+	import { aboutLabels } from './about-copy.ts';
 
 	let {
 		aboutPage,
@@ -26,43 +27,49 @@
 	} = $props();
 
 	const c = $derived(aboutPage);
-
-	// Programmatic stop numbers from card render order. Train is stopless.
-	const s = Array.from({ length: 10 }, (_, i) => String(i).padStart(2, '0'));
+	// Each card starts with its plain heading (D-M6): no "STOP 0n" numbers, no lamp.
+	const heading = $derived({
+		metrics: resolveLocale(c.stopLabels.metrics, locale),
+		testimonials: resolveLocale(c.stopLabels.testimonials, locale),
+		process: resolveLocale(c.stopLabels.process, locale),
+		stack: resolveLocale(c.stopLabels.stack, locale),
+		clients: resolveLocale(c.stopLabels.clients, locale),
+		interests: resolveLocale(c.stopLabels.interests, locale),
+		snapshots: resolveLocale(c.stopLabels.snapshots, locale),
+		weather: resolveLocale(aboutLabels.weatherHeading, locale),
+		cta: resolveLocale(aboutLabels.ctaHeading, locale),
+	});
 </script>
 
-<!-- Top Stripe -->
-<div class="px-3 pt-1" aria-hidden="true">
-	<Separator variant="hazard" />
-</div>
-
-<!-- Bento Dashboard -->
-<section class="w-full" style="min-height: calc(100dvh - 5rem)" data-testid="page-about">
+<!-- About is one section, the page's last: the kit draws no divider, and the footer's street edge closes it. -->
+<PageSections data-register="reading">
+<PageSection class="w-full" style="min-height: calc(100dvh - 5rem)" data-testid="page-about">
 	<div class="px-3 py-2">
 		<div class="dashboard">
 
 				<!-- SELL ROW 1 -->
-				<div class="area-identity"><AboutIdentity identity={c.identity} stop={s[0]} label={resolveLocale(c.stopLabels.identity, locale)} /></div>
-				<div class="area-metrics"><AboutMetrics metrics={c.metrics} stop={s[1]} label={resolveLocale(c.stopLabels.metrics, locale)} /></div>
-				<div class="area-testimonials"><AboutTestimonials testimonials={c.testimonials} stop={s[4]} label={resolveLocale(c.stopLabels.testimonials, locale)} labels={c.labels} /></div>
+				<div class="area-identity"><AboutIdentity identity={c.identity} /></div>
+				<div class="area-metrics"><AboutMetrics metrics={c.metrics} heading={heading.metrics} /></div>
+				<div class="area-testimonials"><AboutTestimonials testimonials={c.testimonials} heading={heading.testimonials} labels={c.labels} /></div>
 
 				<!-- SELL ROW 2 -->
-				<div class="area-process"><AboutMethod steps={c.methodology} stop={s[2]} label={resolveLocale(c.stopLabels.process, locale)} /></div>
-				<div class="area-stack"><AboutEducation education={c.education} stop={s[3]} label={resolveLocale(c.stopLabels.stack, locale)} /></div>
+				<div class="area-process"><AboutMethod steps={c.methodology} heading={heading.process} /></div>
+				<div class="area-stack"><AboutEducation education={c.education} heading={heading.stack} /></div>
 
 				<!-- SELL/PERSONAL ROW 3 -->
-				<div class="area-clients"><AboutLanguages languages={c.languages} stop={s[5]} label={resolveLocale(c.stopLabels.clients, locale)} /></div>
-				<div class="area-interests"><AboutInterests interests={c.interests} stop={s[7]} label={resolveLocale(c.stopLabels.interests, locale)} /></div>
-				<div class="area-snapshots" data-testid="about-polaroids-cell"><AboutPolaroids polaroids={c.identity.polaroids} stop={s[8]} label={resolveLocale(c.stopLabels.snapshots, locale)} /></div>
+				<div class="area-clients"><AboutLanguages languages={c.languages} heading={heading.clients} /></div>
+				<div class="area-interests"><AboutInterests interests={c.interests} heading={heading.interests} /></div>
+				<div class="area-snapshots" data-testid="about-polaroids-cell"><AboutPolaroids polaroids={c.identity.polaroids} heading={heading.snapshots} /></div>
 
 				<!-- ACTION ROW 4 -->
-				<div class="area-weather"><AboutWeather config={c.weather} {weather} stop={s[6]} label={resolveLocale(c.stopLabels.location, locale)} /></div>
+				<div class="area-weather"><AboutWeather config={c.weather} {weather} heading={heading.weather} /></div>
 				<div class="area-train"><AboutTrain /></div>
-				<div class="area-cta"><AboutCta cta={c.cta} stop={s[9]} label={resolveLocale(c.stopLabels.next, locale)} /></div>
+				<div class="area-cta"><AboutCta cta={c.cta} heading={heading.cta} /></div>
 
 			</div>
 		</div>
-</section>
+</PageSection>
+</PageSections>
 
 <style>
 	/* ═══ DASHBOARD: CSS Grid Named Areas ═══ */
