@@ -1,4 +1,4 @@
-import { readRunningAnimations, shared, weather, unexpectedLoops, unexpectedFinite } from './_support/motion-inventory';
+import { readRunningAnimations, shared, weatherMotionRules, unexpectedLoops, unexpectedFinite } from './_support/motion-inventory';
 import { writeFileSync } from 'node:fs';
 import { test, expect } from '@playwright/test';
 import { fixturePostPath, fixtureProject, fixtureService } from './_support/content-fixtures';
@@ -22,14 +22,14 @@ for (const width of [390, 1440]) for (const path of routes) {
   for (const fraction of [0, 0.35, 0.7, 1]) {
    await page.evaluate(f => window.scrollTo(0, (document.documentElement.scrollHeight - innerHeight) * f), fraction);
    await page.waitForTimeout(750);
-   const animations = await page.evaluate(readRunningAnimations);
-   samples.push({ animations, ...await page.evaluate(() => {
+   const animations = await page.evaluate(readRunningAnimations, weatherMotionRules);
+   samples.push({ animations, ...await page.evaluate((rules) => {
     const describe = (el: Element | null) => el ? `${el.tagName.toLowerCase()}${el.id ? '#' + el.id : ''}${el.getAttribute('data-slot') ? '[data-slot=' + el.getAttribute('data-slot') + ']' : ''}.${el.getAttribute('class') ?? ''}` : 'unknown';
     return {
-     css: [...document.querySelectorAll('*')].flatMap(el => ['', '::before', '::after'].flatMap(pseudo => { const s = getComputedStyle(el, pseudo || null); return s.animationName === 'none' ? [] : [{ target: describe(el) + pseudo, name: s.animationName, iterations: s.animationIterationCount, state: s.animationPlayState }]; })),
+     css: [...document.querySelectorAll('*')].flatMap(el => ['', '::before', '::after'].flatMap(pseudo => { const s = getComputedStyle(el, pseudo || null); if (s.animationName === 'none') return []; const name = s.animationName.replace(/^svelte-[^-]+-/, ''); const selector = Object.hasOwn(rules.loops, name) ? rules.loops[name] : ''; const card = el.closest(rules.card); const scene = el.closest(rules.scene); const weatherLoop = Boolean(!pseudo && card && scene?.closest(rules.card) === card && selector && el.matches(selector)); return [{ target: describe(el) + pseudo, name: s.animationName, iterations: s.animationIterationCount, state: s.animationPlayState, weatherLoop }]; })),
      dots: [...document.querySelectorAll('[data-slot="status-dot"], [data-slot="stop-label"], [class*="cursor"], [class*="dot"], [class*="signal"], [class*="light-"], [data-construction-prop]')].map(describe),
     };
-   }) });
+   }, weatherMotionRules) });
   }
   writeFileSync(info.outputPath('inventory.json'), JSON.stringify({ path, width, samples }, null, 2));
   await info.attach('motion-inventory', { body: JSON.stringify({ path, width, samples }, null, 2), contentType: 'application/json' });
@@ -39,7 +39,7 @@ for (const width of [390, 1440]) for (const path of routes) {
    expect(unexpected).toEqual([]);
    await expect(page.locator('.manifesto__flow-line, .manifesto__flow-line-v')).toHaveCount(0);
    const cssLoops = samples.flatMap(s => s.css).filter(a => a.iterations.split(',').some(n => n.trim() === 'infinite'));
-   expect(cssLoops.filter(a => !(weather.test(normalize(a.name)) && /weather-/.test(a.target))
+   expect(cssLoops.filter(a => !a.weatherLoop
     && !(shared.test(normalize(a.name)) && /stop-label|terminal-signal|status-dot|light-a|light-b|terminal-cursor|metro-station|separator/.test(a.target)))).toEqual([]);
    const finite = unexpectedFinite(samples.flatMap(s => s.animations));
    expect(finite).toEqual([]);
@@ -50,5 +50,6 @@ for (const width of [390, 1440]) for (const path of routes) {
   await page.screenshot({ path: info.outputPath('light.png'), fullPage: true });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect.poll(() => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running' && a.effect?.getTiming().iterations === Infinity).map(a => (a as CSSAnimation).animationName))).toEqual([]);
+  await expect.poll(() => page.evaluate(cardSelector => [...document.querySelectorAll(cardSelector)].flatMap(card => card.getAnimations({ subtree: true }).filter(a => a.playState === 'running').map(a => a instanceof CSSAnimation ? a.animationName : a instanceof CSSTransition ? `transition:${a.transitionProperty}` : 'WebAnimation')), weatherMotionRules.card)).toEqual([]);
  });
 }
