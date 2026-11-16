@@ -1,7 +1,13 @@
+// Owner correction: retain the compact card, with four clusters gathering toward the centre.
+// Enlarged text may grow the card; ordinary desktop text must not stretch the bento row.
 import { expect, test, type Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
+import { aboutPageContent } from '../src/lib/content/about-page';
+import { resolveLocale } from '../src/lib/utils/locale';
+import { sentenceCase } from '../src/lib/components/about/about-copy';
 
 const locales = ['en', 'fr', 'es'] as const;
-const widths = [320, 390, 499, 500, 639, 640, 767, 768, 1023, 1024, 1280, 1440, 1789, 1790, 1795, 1796, 1797, 1800, 1920];
+const widths = [320, 390, 499, 500, 639, 640, 767, 768, 1023, 1024, 1280, 1440, 1920];
 
 async function openAbout(page: Page, locale: string) {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -34,11 +40,23 @@ async function geometry(page: Page) {
 			}
 			return { ...rect(element), align: getComputedStyle(element).textAlign, fontSize: parseFloat(getComputedStyle(element).fontSize), words, lines };
 		};
+		const panel = card.querySelector<HTMLElement>('[data-testid="about-metrics-quadrants"]')!;
 		const facts = [...card.querySelectorAll('li')];
 		return {
-			card: rect(card), cell: rect(card.closest('.area-metrics')!),
-			content: rect(card.querySelector('h2')!.parentElement!),
+			card: rect(card),
+			cell: rect(card.closest('.area-metrics')!),
+			panel: rect(panel),
+			panelStyle: {
+				blockSize: getComputedStyle(panel).blockSize,
+				minBlockSize: getComputedStyle(panel).minBlockSize,
+				gridRows: getComputedStyle(panel).gridTemplateRows,
+			},
+			contentScroll: {
+				x: panel.scrollWidth - panel.clientWidth,
+				y: panel.scrollHeight - panel.clientHeight,
+			},
 			heading: rect(card.querySelector('h2')!),
+			headingText: card.querySelector('h2')!.textContent?.trim() ?? '',
 			facts: facts.map((fact) => {
 				const figure = fact.querySelector('b')!;
 				return {
@@ -59,40 +77,63 @@ async function geometry(page: Page) {
 	});
 }
 
-async function expectLayout(page: Page, width: number) {
+async function expectLayout(page: Page, locale: string) {
 	const state = await geometry(page);
-	const { card, facts } = state;
+	const { card, panel, facts } = state;
 	expect(facts).toHaveLength(4);
-	// Four in a row needs 560px of content; phones always use the corners.
-	const fourColumns = width >= 640 && state.content.width >= 560;
-	// Pin the mode to the spec's ranges for the current About grid so a grid change cannot shift them silently.
-	const specFourColumns = (width >= 640 && width <= 767) || width >= 1796;
-	expect(fourColumns, `${width}px uses ${specFourColumns ? 'four columns' : 'two-by-two corners'}`).toBe(specFourColumns);
-	if (fourColumns) {
-		for (let i = 1; i < facts.length; i++) expect(facts[i].left).toBeGreaterThan(facts[i - 1].right);
-	} else {
-		for (const i of [0, 2]) {
-			expect(facts[i].left).toBeLessThan(card.left + card.width / 2);
-			expect(facts[i + 1].left).toBeGreaterThan(card.left + card.width / 2);
-		}
-		expect(facts[2].top).toBeGreaterThan(Math.max(facts[0].bottom, facts[1].bottom));
-		expect(facts[2].left).toBeCloseTo(facts[0].left, 0);
-		expect(facts[3].left).toBeCloseTo(facts[1].left, 0);
+	expect(facts.map((fact) => fact.figure.text), 'the four facts keep their order and values').toEqual(
+		aboutPageContent.metrics.map((metric) => metric.value),
+	);
+
+	// Retain the original compact footprint instead of making height follow the card's width.
+	if (page.viewportSize()!.width >= 1280) {
+		expect(card.height, 'ordinary facts must not enlarge the desktop bento row').toBeLessThanOrEqual(300);
 	}
-	expect(Math.abs(card.height - state.cell.height), 'card stretches with its grid row').toBeLessThanOrEqual(1);
+	// Fits inside the card it was given, centred, never exceeding the card's inner box.
+	expect(panel.left).toBeGreaterThanOrEqual(card.left);
+	expect(panel.right).toBeLessThanOrEqual(card.right + 0.5);
+	expect(Math.abs((panel.left - card.left) - (card.right - panel.right)), 'the quadrants are centred in the card').toBeLessThanOrEqual(1);
+	expect(state.contentScroll.x, 'the facts never overflow horizontally').toBeLessThanOrEqual(1);
+	expect(state.contentScroll.y, 'the facts never overflow vertically').toBeLessThanOrEqual(1);
+	expect(panel.bottom).toBeLessThanOrEqual(card.bottom + 0.5);
+
+	// The heading stays at the card top, clear of the facts.
+	expect(state.heading.bottom).toBeLessThanOrEqual(panel.top + 0.5);
+	expect(state.headingText).not.toBe('');
+
+	// Every cluster gathers to the corner nearest the central intersection, with a gap between.
+	const centreX = panel.left + panel.width / 2;
+	const centreY = panel.top + panel.height / 2;
+	for (const i of [0, 2]) {
+		expect(facts[i].right, 'left-hand facts sit against the centre column').toBeLessThanOrEqual(centreX - 1);
+		expect(facts[i].right, 'left-hand facts reach the centre column').toBeGreaterThan(centreX - 40);
+		expect(['right', 'end']).toContain(facts[i].align);
+	}
+	for (const i of [1, 3]) {
+		expect(facts[i].left, 'right-hand facts sit against the centre column').toBeGreaterThanOrEqual(centreX + 1);
+		expect(facts[i].left, 'right-hand facts reach the centre column').toBeLessThan(centreX + 40);
+		expect(['left', 'start']).toContain(facts[i].align);
+	}
+	for (const i of [0, 1]) {
+		expect(facts[i].bottom, 'upper facts sit against the centre row').toBeLessThanOrEqual(centreY - 1);
+		expect(facts[i].bottom, 'upper facts reach the centre row').toBeGreaterThan(centreY - 40);
+	}
+	for (const i of [2, 3]) {
+		expect(facts[i].top, 'lower facts sit against the centre row').toBeGreaterThanOrEqual(centreY + 1);
+		expect(facts[i].top, 'lower facts reach the centre row').toBeLessThan(centreY + 40);
+	}
+
 	for (const fact of facts) {
-		// D-M6: a short sentence in reading ink with its figure in bold; no yellow metric figure.
 		expect(fact.fontSize, 'facts read at body size').toBeGreaterThanOrEqual(16);
 		expect(fact.figure.weight).toBeGreaterThanOrEqual(700);
 		expect(fact.figure.color, 'the figure reads in reading ink').toBe(state.ink.foreground);
 		expect(fact.figure.color, 'the figure is not yellow').not.toBe(state.ink['accent-text']);
 		expect(fact.color, 'the sentence is not yellow').not.toBe(state.ink['accent-text']);
-		expect(['left', 'start']).toContain(fact.align);
 		for (const line of fact.lines) {
-			expect(line.left).toBeGreaterThanOrEqual(card.left);
-			expect(line.right).toBeLessThanOrEqual(card.right);
-			expect(line.top).toBeGreaterThanOrEqual(card.top);
-			expect(line.bottom).toBeLessThanOrEqual(card.bottom);
+			expect(line.left).toBeGreaterThanOrEqual(panel.left);
+			expect(line.right).toBeLessThanOrEqual(panel.right);
+			expect(line.top).toBeGreaterThanOrEqual(panel.top);
+			expect(line.bottom).toBeLessThanOrEqual(panel.bottom);
 		}
 		for (const word of fact.words) expect(word.rects, `word stays whole: ${word.word}`).toHaveLength(1);
 	}
@@ -100,23 +141,55 @@ async function expectLayout(page: Page, width: number) {
 }
 
 for (const locale of locales) {
-	test(`${locale} About facts align at phone, tablet, desktop and layout boundaries`, async ({ page }, testInfo) => {
+	test(`${locale} enlarged facts stay inside the panel and clear of adjacent content`, async ({ page }, testInfo) => {
+		const enlargedWidths = testInfo.project.name === 'phone' ? [320, 390] : [page.viewportSize()!.width];
+		for (const width of enlargedWidths) {
+			await page.setViewportSize({ width, height: 900 });
+			await openAbout(page, locale);
+			await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+			const state = await geometry(page);
+			const diagnosticPath = testInfo.outputPath(`${locale}-${width}-text200.json`);
+			await writeFile(diagnosticPath, JSON.stringify(state, null, 2));
+			await testInfo.attach(`${locale}-${width}-text200.json`, { path: diagnosticPath, contentType: 'application/json' });
+			expect(state.facts).toHaveLength(4);
+			expect(state.facts.map(fact => fact.figure.text)).toEqual(aboutPageContent.metrics.map(metric => metric.value));
+			expect(state.heading.bottom).toBeLessThanOrEqual(state.panel.top + 0.5);
+			expect(state.panel.bottom).toBeLessThanOrEqual(state.card.bottom + 0.5);
+			expect(state.card.bottom).toBeLessThanOrEqual(state.cell.bottom + 0.5);
+			expect(state.contentScroll.x).toBeLessThanOrEqual(1);
+			expect(state.contentScroll.y).toBeLessThanOrEqual(1);
+			for (const fact of state.facts) {
+				expect(fact.fontSize, 'the regression actually enlarges the text').toBeGreaterThanOrEqual(32);
+				for (const line of fact.lines) {
+					expect(line.left).toBeGreaterThanOrEqual(state.panel.left);
+					expect(line.right).toBeLessThanOrEqual(state.panel.right);
+					expect(line.top).toBeGreaterThanOrEqual(state.panel.top);
+					expect(line.bottom).toBeLessThanOrEqual(state.panel.bottom);
+				}
+			}
+		}
+	});
+
+	test(`${locale} facts keep compact two-by-two quadrants at phone, tablet and desktop widths`, async ({ page }, testInfo) => {
 		// Each project owns its range, avoiding triplicated boundary sweeps in CI.
 		const projectWidths = widths.filter(width => testInfo.project.name === 'phone' ? width < 640 : testInfo.project.name === 'tablet' ? width >= 640 && width < 1024 : width >= 1024);
 		await openAbout(page, locale);
 		const measurements = [];
 		for (const width of projectWidths) {
 			await page.setViewportSize({ width, height: width < 640 ? 844 : 900 });
-			measurements.push({ width, ...await expectLayout(page, width) });
+			measurements.push({ width, ...await expectLayout(page, locale) });
 		}
 		await testInfo.attach(`${locale}-geometry.json`, { body: JSON.stringify(measurements, null, 2), contentType: 'application/json' });
 	});
 
-	test(`${locale} About facts read as sentences in both themes @theme`, async ({ page }, testInfo) => {
+	test(`${locale} facts read as sentences in both themes @theme`, async ({ page }, testInfo) => {
 		await openAbout(page, locale);
-		for (const [name, width, height] of [['phone', 390, 844], ['tablet', 768, 1024], ['desktop', 1440, 900], ['four-columns-min', 640, 900], ['desktop-four-columns-min', 1796, 900]] as const) {
+		await expect(page.getByTestId('about-metrics').getByRole('heading', { level: 2 })).toHaveText(
+			sentenceCase(resolveLocale(aboutPageContent.stopLabels.metrics, locale), locale),
+		);
+		for (const [name, width, height] of [['phone', 390, 844], ['tablet', 768, 1024], ['desktop', 1440, 900], ['short-desktop', 1280, 640]] as const) {
 			await page.setViewportSize({ width, height });
-			await expectLayout(page, width);
+			await expectLayout(page, locale);
 			await page.getByTestId('about-metrics').screenshot({ path: testInfo.outputPath(`${locale}-${name}-${testInfo.project.name}-block.png`) });
 			if (['phone', 'tablet', 'desktop'].includes(name)) await page.screenshot({ path: testInfo.outputPath(`${locale}-${name}-${testInfo.project.name}-about.png`), fullPage: true });
 		}

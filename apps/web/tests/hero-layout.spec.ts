@@ -149,3 +149,54 @@ test('short phones keep the English subtitle and both CTAs in the first screen',
 		expect(boxes[0].bottom, 'subtitle clears the CTA row').toBeLessThanOrEqual(boxes[1].top);
 	}
 });
+
+// Owner live QA (DEV-43): on desktop the heading, lead and both actions read as one left-aligned
+// block, vertically centred beside the Transit card. Phones and tablets keep the stack order
+// (offer, then Transit), which the hero geometry test above already pins.
+test('desktop: the offer is one left-aligned block centred beside the Transit card', async ({ page }) => {
+	test.skip(page.viewportSize()!.width < 1024, 'The two-column opening only.');
+	const measure = () =>
+		page.evaluate(() => {
+			const box = (element: Element) => element.getBoundingClientRect().toJSON();
+			const grid = document.querySelector('[data-testid="hero-text-container"] .hero-grid')!;
+			return {
+				align: getComputedStyle(grid).alignItems,
+				block: box(grid.firstElementChild!),
+				card: box(document.querySelector('[data-testid="hero-transit-card"]')!),
+				pill: box(document.querySelector('[data-testid="nav-pill"]')!),
+				heading: box(document.querySelector('[data-testid="hero-heading"]')!),
+				actions: box(document.querySelector('[data-testid="hero-cta-project"]')!),
+				overflow: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - innerWidth,
+			};
+		});
+	const centreOffset = (sample: Awaited<ReturnType<typeof measure>>) =>
+		Math.abs((sample.block.top + sample.block.bottom) / 2 - (sample.card.top + sample.card.bottom) / 2);
+
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	for (const [width, height] of [[1024, 900], [1280, 760], [1440, 900], [1920, 1080]] as const) {
+		await page.setViewportSize({ width, height });
+		await page.goto('/');
+		await expect(page.getByTestId('hero-transit-card')).toBeVisible();
+		await page.evaluate(() => document.fonts.ready);
+		const geometry = await measure();
+		expect(centreOffset(geometry), `the offer and the card share a vertical centre at ${width}px`).toBeLessThanOrEqual(2);
+		// One left-aligned block: the heading and the actions start at the block's left edge.
+		expect(Math.abs(geometry.heading.left - geometry.block.left)).toBeLessThanOrEqual(1);
+		expect(Math.abs(geometry.actions.left - geometry.block.left)).toBeLessThanOrEqual(1);
+		// Beside the card, never over it, and clear of the header pill.
+		expect(geometry.block.right).toBeLessThanOrEqual(geometry.card.left + 1);
+		expect(geometry.block.top).toBeGreaterThanOrEqual(geometry.pill.bottom - 1);
+		expect(geometry.overflow).toBeLessThanOrEqual(1);
+	}
+
+	// 200% text in a short window: the block still starts clear of the pill.
+	await page.setViewportSize({ width: 1280, height: 700 });
+	await page.goto('/');
+	await page.evaluate(() => {
+		document.documentElement.style.fontSize = '200%';
+	});
+	await page.evaluate(() => document.fonts.ready);
+	const enlarged = await measure();
+	expect(enlarged.block.top, 'the enlarged offer clears the header pill').toBeGreaterThanOrEqual(enlarged.pill.bottom - 1);
+	expect(enlarged.overflow, 'the enlarged offer does not scroll sideways').toBeLessThanOrEqual(1);
+});

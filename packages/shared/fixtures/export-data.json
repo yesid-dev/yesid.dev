@@ -299,7 +299,7 @@
 			"stopLabels": {
 				"identity": {"en":"IDENTITY","fr":"IDENTITÉ","es":"IDENTIDAD"},
 				"metrics": {"en":"FUN FACTS","fr":"ANECDOTES","es":"DATOS CURIOSOS"},
-				"testimonials": {"en":"QUOTE","fr":"CITATION","es":"CITA"},
+				"testimonials": {"en":"QUOTES","fr":"CITATIONS","es":"CITAS"},
 				"process": {"en":"CORE BELIEFS","fr":"CONVICTIONS","es":"CONVICCIONES"},
 				"stack": {"en":"EDUCATION","fr":"FORMATION","es":"FORMACIÓN"},
 				"clients": {"en":"LANGUAGES","fr":"LANGUES","es":"IDIOMAS"},
