@@ -256,7 +256,7 @@ test.describe('the service page', () => {
 
 	test('phone: the 56px drawing keeps its "click me", the desktop panel stays away', async ({ page }) => {
 		for (const width of [320, 390]) {
-			for (const locale of ['en', 'fr']) {
+			for (const locale of ['en', 'fr', 'es']) {
 				await page.setViewportSize({ width, height: 844 });
 				await open(page, locale === 'en' ? DETAIL : `/fr${DETAIL}`);
 				await expect(page.locator('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeVisible();
