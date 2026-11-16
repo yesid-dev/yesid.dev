@@ -1,12 +1,36 @@
 import { getContext, setContext } from 'svelte';
 import type { ImageBlock } from '@repo/shared';
 import type { YouTubeVideo } from '#lib/utils/youtube.ts';
+import type { Locale } from '#lib/types.ts';
+import { resolveLocale } from '#lib/utils/locale.ts';
+import { siteLabels } from '#lib/content/index.ts';
 import { imageIdentity, imagePairIdentity, type GalleryImage } from '#lib/projects/project-images.ts';
 
-export const articleMediaLabels = {
-	en: { dark: 'Dark', light: 'Light', images: 'Images', previous: 'Previous', next: 'Next', position: 'Position', diagram: 'Enlarge diagram' },
-	fr: { dark: 'Sombre', light: 'Clair', images: 'Images', previous: 'Précédent', next: 'Suivant', position: 'Position', diagram: 'Agrandir le diagramme' },
-	es: { dark: 'Oscuro', light: 'Claro', images: 'Imágenes', previous: 'Anterior', next: 'Siguiente', position: 'Posición', diagram: 'Ampliar diagrama' },
+type MediaLabels = {
+	dark: string;
+	light: string;
+	images: string;
+	previous: string;
+	next: string;
+	position: string;
+	diagram: string;
+};
+
+const mediaLabels = (locale: Locale): MediaLabels => ({
+	dark: resolveLocale(siteLabels.mediaChrome.dark, locale),
+	light: resolveLocale(siteLabels.mediaChrome.light, locale),
+	images: resolveLocale(siteLabels.mediaChrome.images, locale),
+	previous: resolveLocale(siteLabels.mediaChrome.previous, locale),
+	next: resolveLocale(siteLabels.mediaChrome.next, locale),
+	position: resolveLocale(siteLabels.mediaChrome.position, locale),
+	diagram: resolveLocale(siteLabels.mediaChrome.enlargeDiagram, locale),
+});
+
+/** Article and project media chrome, resolved from CMS labels (DEV-28 G1). */
+export const articleMediaLabels: Record<Locale, MediaLabels> = {
+	en: mediaLabels('en'),
+	fr: mediaLabels('fr'),
+	es: mediaLabels('es'),
 };
 
 type Selection = { kind: 'image' | 'video'; index: number } | { kind: 'diagram'; svg: string; label: string };

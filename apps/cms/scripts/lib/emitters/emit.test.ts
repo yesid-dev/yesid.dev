@@ -155,6 +155,25 @@ describe('emitModule', () => {
 		expect(out).toContain('export const a: number = 1;\n\nexport const b: number = 2;');
 	});
 
+	it('combines imported label records without embedding their values again', () => {
+		const out = emitModule({
+			filePath: '/tmp/labels.ts',
+			description: 'Complete labels assembled from separately loaded groups.',
+			imports: [{ symbols: ['pageLabels', 'navigationLabels'], from: './groups.ts' }],
+			exports: [{ name: 'labels', typeName: 'Labels', spread: ['pageLabels', 'navigationLabels'] }],
+		});
+		expect(out).toContain('export const labels: Labels = { ...pageLabels, ...navigationLabels };');
+	});
+
+	for (const reference of ['labels.copy', 'labels; throw new Error()']) {
+		it(`rejects a non-identifier spread reference: ${reference}`, () => {
+			expect(() => emitModule({
+				filePath: '/tmp/labels.ts', description: 'Invalid reference.', imports: [],
+				exports: [{ name: 'labels', typeName: 'Labels', spread: [reference] }],
+			})).toThrow('Invalid export spread reference');
+		});
+	}
+
 	it('module output is idempotent', () => {
 		const cfg = {
 			filePath: '/tmp/test.ts',

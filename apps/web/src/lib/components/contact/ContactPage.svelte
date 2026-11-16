@@ -24,7 +24,6 @@
 	import { bookingHref, directContactChannel } from '#lib/utils/high-intent-links.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
 	import { trackAnalyticsEvent } from '#lib/analytics/client.ts';
-	import { connectLabelFr, formHeadingCopy, meanwhileFr, replyTimeCopy } from './contact-copy.ts';
 
 	const locale = getLocale();
 
@@ -41,14 +40,11 @@
 	const sendErrorMessage = $derived(resolveLocale(contactPage.sendErrorMessage, locale));
 	const workLinkLabel = $derived(resolveLocale(contactPage.success.workLinkLabel, locale));
 	const blogLinkLabel = $derived(resolveLocale(contactPage.success.blogLinkLabel, locale));
-	const replyTime = resolveLocale(replyTimeCopy, locale);
-	const formHeading = resolveLocale(formHeadingCopy, locale);
-	const connectLabel = $derived(
-		resolveLocale({ ...contactPage.infoTerminal.sectionLabels.connect, fr: connectLabelFr }, locale),
-	);
-	const meanwhile = $derived(
-		resolveLocale({ ...contactPage.success.meanwhile, fr: meanwhileFr }, locale),
-	);
+	const replyTime = $derived(resolveLocale(contactPage.infoTerminal.responseTime, locale));
+	const successReplyTime = $derived(resolveLocale(contactPage.success.responseTime, locale));
+	const formHeading = $derived(resolveLocale(contactPage.formTerminal.heading, locale));
+	const connectLabel = $derived(resolveLocale(contactPage.infoTerminal.sectionLabels.connect, locale));
+	const meanwhile = $derived(resolveLocale(contactPage.success.meanwhile, locale));
 	const contactEmail = siteMeta.links.email;
 
 	let freshWeather = $state<WeatherData | null>(null);
@@ -479,7 +475,7 @@
 					<p class="contact-sent-ok" tabindex="-1" bind:this={resultEl} data-testid="contact-sent-message">
 						✓ {resolveLocale(contactPage.success.sent, locale)}
 					</p>
-					<p>{replyTime}</p>
+					<p>{successReplyTime}</p>
 					<p>
 						{#each meanwhileParts(meanwhile) as part}{#if part.href}<a class="contact-inline-target" href={part.href}>{part.text}</a>{:else}{part.text}{/if}{/each}
 					</p>

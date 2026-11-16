@@ -1,4 +1,4 @@
-import { migrationCopy } from './copy-migration';
+import { migrationCopy, migrateLegacyExact } from './copy-migration';
 /**
  * site_labels fetcher (go2-t1c) — reads the site_labels singleton and
  * regroups the prefix-named flat columns (a11y_/ui_/pages_/email_) into the
@@ -81,6 +81,12 @@ function toBlogEntryRail(raw: SiteLabelsRow, tr: Translations): BlogEntryRail {
 
 export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 	const tr = raw.translations ?? [];
+	const dashboardLabels = toLocalizedFields(tr, [
+		['vehiclesLabel', 'hero_dashboard_vehicles_label'], ['vehiclesSub', 'hero_dashboard_vehicles_sub'],
+		['vehiclesSubLive', 'hero_dashboard_vehicles_sub_live'], ['delayLabel', 'hero_dashboard_delay_label'],
+		['delaySub', 'hero_dashboard_delay_sub'], ['routesLabel', 'hero_dashboard_routes_label'],
+		['routesSub', 'hero_dashboard_routes_sub'],
+	]);
 	return {
 		a11y: {
 			animationPause: migrationCopy(tr, 'site_labels_translations', 'a11y_animation_pause'),
@@ -94,6 +100,16 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 				['architectureDiagram', 'a11y_architecture_diagram'],
 				['technologyStackTemplate', 'a11y_technology_stack_template'],
 			]),
+			trainRocket: migrationCopy(tr, 'site_labels_translations', 'a11y_train_rocket'),
+			trainLaunch: migrationCopy(tr, 'site_labels_translations', 'a11y_train_launch'),
+			opensNewTab: migrationCopy(tr, 'site_labels_translations', 'a11y_opens_new_tab'),
+			projectLinkCaseStudy: migrationCopy(tr, 'site_labels_translations', 'a11y_project_link_case_study'),
+			projectLinkWebsite: migrationCopy(tr, 'site_labels_translations', 'a11y_project_link_website'),
+			projectLinkRepo: migrationCopy(tr, 'site_labels_translations', 'a11y_project_link_repo'),
+			carouselPosition: migrationCopy(tr, 'site_labels_translations', 'a11y_carousel_position'),
+			carouselPositionOne: migrationCopy(tr, 'site_labels_translations', 'a11y_carousel_position_one'),
+			quoteDot: migrationCopy(tr, 'site_labels_translations', 'a11y_quote_dot'),
+			phoneView: migrationCopy(tr, 'site_labels_translations', 'a11y_phone_view'),
 		},
 		ui: {
 			topics: {
@@ -121,6 +137,8 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 				['watermarkProfessional', 'ui_watermark_professional'], ['metroCaption', 'ui_metro_caption'],
 				['terminalTitle', 'ui_terminal_title'],
 			]),
+			diagramFailure: migrationCopy(tr, 'site_labels_translations', 'label_diagram_failure'),
+			tableRegionFallback: migrationCopy(tr, 'site_labels_translations', 'ui_table_region_fallback'),
 			resultCount: toLocalizedFields(tr, [
 				['singular', 'ui_result_count_singular'], ['plural', 'ui_result_count_plural'],
 			]),
@@ -136,6 +154,47 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 			['homeSectionTerminus', 'pages_home_section_terminus'],
 		]),
 		email: toLocalizedFields(tr, [['contactSubjectTemplate', 'email_contact_subject_template']]),
+		mediaChrome: {
+			dark: migrationCopy(tr, 'site_labels_translations', 'media_chrome_dark'),
+			light: migrationCopy(tr, 'site_labels_translations', 'media_chrome_light'),
+			images: migrationCopy(tr, 'site_labels_translations', 'media_chrome_images'),
+			previous: migrationCopy(tr, 'site_labels_translations', 'media_chrome_previous'),
+			next: migrationCopy(tr, 'site_labels_translations', 'media_chrome_next'),
+			position: migrationCopy(tr, 'site_labels_translations', 'media_chrome_position'),
+			enlargeDiagram: migrationCopy(tr, 'site_labels_translations', 'media_chrome_enlarge_diagram'),
+			playVideo: migrationCopy(tr, 'site_labels_translations', 'media_chrome_play_video'),
+			closeVideo: migrationCopy(tr, 'site_labels_translations', 'media_chrome_close_video'),
+			youtubeTitle: migrationCopy(tr, 'site_labels_translations', 'media_chrome_youtube_title'),
+			videos: migrationCopy(tr, 'site_labels_translations', 'media_chrome_videos'),
+			imagesAndVideos: migrationCopy(tr, 'site_labels_translations', 'media_chrome_images_and_videos'),
+		},
+		annotation: {
+			clickMe: migrationCopy(tr, 'site_labels_translations', 'annotation_click_me'),
+		},
+		transit: {
+			routesOf: migrationCopy(tr, 'site_labels_translations', 'hero_transit_routes_of'),
+			stateLive: migrationCopy(tr, 'site_labels_translations', 'hero_transit_state_live'),
+			updatedJustNow: migrationCopy(tr, 'site_labels_translations', 'hero_transit_updated_just_now'),
+			updatedAgo: migrationCopy(tr, 'site_labels_translations', 'hero_transit_updated_ago'),
+			stateHeld: migrationCopy(tr, 'site_labels_translations', 'hero_transit_state_held'),
+			refresh: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refresh'),
+			refreshName: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refresh_name'),
+			refreshing: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refreshing'),
+			refreshingName: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refreshing_name'),
+			refreshed: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refreshed'),
+			refreshFailedKept: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refresh_failed_kept'),
+			refreshFailedDemo: migrationCopy(tr, 'site_labels_translations', 'hero_transit_refresh_failed_demo'),
+			seconds: migrationCopy(tr, 'site_labels_translations', 'hero_transit_age_seconds_plural'),
+			second: migrationCopy(tr, 'site_labels_translations', 'hero_transit_age_second_singular'),
+			minutes: migrationCopy(tr, 'site_labels_translations', 'hero_transit_age_minutes_plural'),
+			minute: migrationCopy(tr, 'site_labels_translations', 'hero_transit_age_minute_singular'),
+			shotAlt: migrationCopy(tr, 'site_labels_translations', 'hero_transit_shot_alt'),
+		},
+		projectsCard: {
+			caseStudy: migrationCopy(tr, 'site_labels_translations', 'projects_card_case_study'),
+			website: migrationCopy(tr, 'site_labels_translations', 'projects_card_website'),
+			repo: migrationCopy(tr, 'site_labels_translations', 'projects_card_repo'),
+		},
 		// --- slice-30 t1: code-owned chrome groups ----------------------------
 		// Recompose the flat projects_/blog_/services_/nav_/footer_/hero_ columns
 		// back into the companion-module shapes so a future regen sources them
@@ -217,6 +276,7 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 					['stationLabelTemplate', 'services_chrome_listing_station_label_template'],
 					['deepDiveLabel', 'services_chrome_listing_deep_dive_label'],
 				]),
+				stationsAria: migrationCopy(tr, 'site_labels_translations', 'services_chrome_listing_stations_aria'),
 				stationShortLabels: toLocalizedFields(tr, [
 					['database-engineering', 'services_chrome_listing_station_short_database_engineering'],
 					['data-pipeline', 'services_chrome_listing_station_short_data_pipeline'],
@@ -224,16 +284,20 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 					['web-development', 'services_chrome_listing_station_short_web_development'],
 				]),
 			},
-			detail: toLocalizedFields(tr, [
-				['backToServicesLabel', 'services_chrome_detail_back_to_services_label'],
-				['valuePropositionHeading', 'services_chrome_detail_value_proposition_heading'],
-				['deliverablesHeading', 'services_chrome_detail_deliverables_heading'],
-				['relatedProjectsHeading', 'services_chrome_detail_related_projects_heading'],
-				['relatedProjectsNavAria', 'services_chrome_detail_related_projects_nav_aria'],
-				['serviceNavAria', 'services_chrome_detail_service_nav_aria'], ['stackHeading', 'services_chrome_detail_stack_heading'],
-			]),
+			detail: {
+				...toLocalizedFields(tr, [
+					['backToServicesLabel', 'services_chrome_detail_back_to_services_label'],
+					['valuePropositionHeading', 'services_chrome_detail_value_proposition_heading'],
+					['deliverablesHeading', 'services_chrome_detail_deliverables_heading'],
+					['relatedProjectsHeading', 'services_chrome_detail_related_projects_heading'],
+					['relatedProjectsNavAria', 'services_chrome_detail_related_projects_nav_aria'],
+					['serviceNavAria', 'services_chrome_detail_service_nav_aria'], ['stackHeading', 'services_chrome_detail_stack_heading'],
+				]),
+				otherServicesAria: migrationCopy(tr, 'site_labels_translations', 'services_chrome_detail_other_services_aria'),
+			},
 		},
 		navChrome: {
+			menuGroupWork: migrationCopy(tr, 'site_labels_translations', 'nav_chrome_menu_group_work'),
 			directions: toLocalizedFields(tr, [
 				['previous', 'nav_chrome_directions_previous'], ['next', 'nav_chrome_directions_next'],
 			]),
@@ -255,12 +319,28 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 				['liveLabel', 'footer_chrome_footer_live_label'],
 			]),
 		},
-		heroDashboard: toLocalizedFields(tr, [
-			['vehiclesLabel', 'hero_dashboard_vehicles_label'], ['vehiclesSub', 'hero_dashboard_vehicles_sub'],
-			['vehiclesSubLive', 'hero_dashboard_vehicles_sub_live'], ['delayLabel', 'hero_dashboard_delay_label'],
-			['delaySub', 'hero_dashboard_delay_sub'], ['routesLabel', 'hero_dashboard_routes_label'],
-			['routesSub', 'hero_dashboard_routes_sub'],
-		]),
+		heroDashboard: {
+			...dashboardLabels,
+			// DEV-28 G11: the home Transit card used to draw these three words from code.
+			// Map only the captured all-capitals values to the approved sentence case, so
+			// the render stays identical until the CMS rows are written; any other editor
+			// value wins per locale.
+			vehiclesLabel: migrateLegacyExact(
+				dashboardLabels.vehiclesLabel,
+				{ en: 'VEHICLES TRACKED', fr: 'VÉHICULES SUIVIS', es: 'VEHÍCULOS RASTREADOS' },
+				{ en: 'Vehicles tracked', fr: 'Véhicules suivis', es: 'Vehículos registrados' },
+			),
+			delayLabel: migrateLegacyExact(
+				dashboardLabels.delayLabel,
+				{ en: 'AVG DELAY', fr: 'RETARD MOYEN', es: 'DEMORA MEDIA' },
+				{ en: 'Average delay', fr: 'Retard moyen', es: 'Retraso medio' },
+			),
+			routesLabel: migrateLegacyExact(
+				dashboardLabels.routesLabel,
+				{ en: 'ROUTES LIVE', fr: 'LIGNES EN DIRECT', es: 'RUTAS EN VIVO' },
+				{ en: 'Routes reporting', fr: 'Lignes avec des données', es: 'Rutas con datos' },
+			),
+		},
 	};
 }
 

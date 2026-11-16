@@ -72,7 +72,7 @@ describe('build image publication', () => {
 		const source = createFixtureSource(data);
 		const outcome = await run({ ...opts, mediaOptions: opts, source: 'live', policy: 'fail', dryRun: false,
 			emitDir: resolve(opts.staticRoot, '../content'), contentSource: { ...source, kind: 'live' } });
-		expect(outcome).toEqual({ source: 'live', emitted: 21 });
+		expect(outcome).toEqual({ source: 'live', emitted: 23 });
 		const module = await readFile(resolve(opts.staticRoot, '../content/media-assets.ts'), 'utf8');
 		expect(module).toContain(`/images/cms/${dark}/`);
 		const plan = await prepareBuildMedia(snapshot(), opts);
@@ -118,7 +118,7 @@ describe('build image publication', () => {
 		const data = { ...structuredClone(fixture.data), mediaAssets: buildMirroredMediaAssets(), mediaVariants: {} } as ExportData;
 		data.projects![0]!.image = dark;
 		expect(await run({ ...opts, token: '', mediaOptions: opts, source: 'fixture', dryRun: false,
-			contentSource: createFixtureSource(data), emitDir: resolve(opts.staticRoot, '../content') })).toEqual({ source: 'fixture', emitted: 21 });
+			contentSource: createFixtureSource(data), emitDir: resolve(opts.staticRoot, '../content') })).toEqual({ source: 'fixture', emitted: 23 });
 		expect(await readFile(resolve(opts.staticRoot, '../content/media-assets.ts'), 'utf8')).toContain('cms-fixture-placeholder.png');
 	}, 30_000); // Same budget as the existing full offline export test (includes all pinned variants).
 

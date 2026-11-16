@@ -10,11 +10,7 @@
 	let { code }: { code: string } = $props();
 
 	const locale = getLocale();
-	const failureMessage = {
-		en: 'The diagram could not be displayed. The explanation is available in the text.',
-		fr: "Le diagramme n'a pas pu s'afficher. L'explication reste disponible dans le texte.",
-		es: 'No se pudo mostrar el diagrama. La explicación está disponible en el texto.',
-	};
+	const failureMessage = siteLabels.ui.diagramFailure;
 	const media = getArticleMedia();
 
 	let svg = $state('');
@@ -56,7 +52,7 @@
 				const rendered = await mermaid.render(id, source);
 				if (!cancelled && token === renderToken) svg = rendered.svg;
 			} catch {
-				if (!cancelled && token === renderToken) renderError = failureMessage[locale];
+				if (!cancelled && token === renderToken) renderError = resolveLocale(failureMessage, locale);
 			}
 		}
 

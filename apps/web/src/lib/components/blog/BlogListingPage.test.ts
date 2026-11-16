@@ -102,12 +102,12 @@ describe('BlogListingPage empty states and announcements', () => {
 		expect(screen.queryByText('No posts yet.')).toBeNull();
 	});
 
-	it('uses the approved French "vous" wording for the match message', async () => {
+	it('renders the CMS match message verbatim; the exporter owns the approved wording', async () => {
 		render(BlogListingPage, {
 			props: {
 				...baseProps,
 				posts: [englishPost],
-				emptyState: "Aucun article trouvé. Essaie d'ajuster tes filtres.",
+				emptyState: 'Aucun article trouvé. Essayez d’ajuster vos filtres.',
 			},
 			context: new Map([[Symbol.for('@yesid/ui/locale'), () => 'fr']]),
 		});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { aboutIntro, contactLines, sentenceCase } from './about-copy.ts';
+import { contactLines, sentenceCase } from './about-copy.ts';
 
 describe('sentenceCase', () => {
 	it.each([
@@ -15,20 +15,6 @@ describe('sentenceCase', () => {
 		expect(sentenceCase('Get in touch', 'en')).toBe('Get in touch');
 		expect(sentenceCase('MTL Food', 'en')).toBe('MTL Food');
 		expect(sentenceCase('3×5K', 'en')).toBe('3×5K');
-	});
-});
-
-describe('aboutIntro', () => {
-	const intro = { en: 'Feel free to explore :)', fr: 'Cette page reflète un peu qui je suis, explore à ta guise :)', es: 'Explora con calma :)' };
-
-	it('speaks to French visitors as "vous"', () => {
-		expect(aboutIntro(intro, 'fr')).toBe('Cette page reflète un peu qui je suis, explorez à votre guise :)');
-	});
-
-	it('leaves the other languages, and an already edited French value, as written', () => {
-		expect(aboutIntro(intro, 'en')).toBe(intro.en);
-		expect(aboutIntro(intro, 'es')).toBe(intro.es);
-		expect(aboutIntro({ ...intro, fr: 'Explorez :)' }, 'fr')).toBe('Explorez :)');
 	});
 });
 

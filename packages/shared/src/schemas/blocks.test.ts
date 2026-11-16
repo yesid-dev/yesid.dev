@@ -20,6 +20,7 @@ describe('HeroContentSchema', () => {
 		subtitle: ls('sub2'),
 		ctaWork: ls('Work'),
 		ctaContact: ls('Contact'),
+		opening: { sentence: ls('Offer'), lead: ls('Lead'), ctaProject: ls('Project') },
 		ctaWorkHref: '/projects',
 		scene: { name: ls('scene'), open: ls('open'), close: ls('close') },
 		sqlPanel: {

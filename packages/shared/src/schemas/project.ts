@@ -9,6 +9,8 @@ export const ProjectStatusSchema = z.enum(['public', 'private', 'wip']);
 export const ProjectSectionSchema = z.object({
 	title: LocalizedStringSchema,
 	content: LocalizedBlockEditorDocSchema,
+	/** Optional one-line summary shown under a closed section heading (DEV-28 G24). */
+	summary: LocalizedStringSchema.optional(),
 });
 
 export const ProjectSchema = z.object({
@@ -29,6 +31,8 @@ export const ProjectSchema = z.object({
 		}
 	}),
 	description: LocalizedBlockEditorDocSchema,
+	/** One-line card subtitle for the home Transit card (DEV-28 G11.1). */
+	cardLine: LocalizedStringSchema.optional(),
 	/** Technology names are not localized. */
 	stack: z.array(z.string()),
 	/** Tags are not localized. */

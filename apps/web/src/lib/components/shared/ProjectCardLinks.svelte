@@ -8,7 +8,7 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
 	import { SITE_HOST } from '#lib/utils/seo-defaults.ts';
-	import { homeLabels } from '#lib/components/home/home-labels.ts';
+	import { siteLabels } from '#lib/content/index.ts';
 
 	let {
 		project,
@@ -23,10 +23,11 @@
 	} = $props();
 
 	const locale = getLocale();
-	const l = homeLabels.projects;
+	const l = siteLabels.projectsCard;
 	const name = $derived(resolveLocale(project.title, locale));
-	const newTab = resolveLocale(homeLabels.hero.newTab, locale);
-	const named = (template: typeof l.caseStudyName) => fillTemplate(resolveLocale(template, locale), { project: name });
+	const newTab = ` ${resolveLocale(siteLabels.a11y.opensNewTab, locale)}`;
+	const named = (template: typeof siteLabels.a11y.projectLinkCaseStudy) =>
+		fillTemplate(resolveLocale(template, locale), { project: name });
 
 	// This site's own card has no Website link: the visitor is on it.
 	const isThisSite = (href: string) => href.replace(/\/+$/, '') === SITE_HOST;
@@ -40,7 +41,7 @@
 	<li>
 		<a
 			href={localizeHref(`/projects/${project.slug}`, locale)}
-			aria-label={named(l.caseStudyName)}
+			aria-label={named(siteLabels.a11y.projectLinkCaseStudy)}
 			data-testid="{testIdPrefix}-case-study"
 			tabindex={tabbable ? undefined : -1}
 			>{resolveLocale(l.caseStudy, locale)}</a
@@ -53,7 +54,7 @@
 				{href}
 				target="_blank"
 				rel="noopener noreferrer"
-				aria-label="{named(l.websiteName)}{newTab}"
+				aria-label="{named(siteLabels.a11y.projectLinkWebsite)}{newTab}"
 				data-testid="{testIdPrefix}-website"
 				tabindex={tabbable ? undefined : -1}
 				onclick={(event) => track(event, href, 'live')}
@@ -68,7 +69,7 @@
 				{href}
 				target="_blank"
 				rel="noopener noreferrer"
-				aria-label="{named(l.repoName)}{newTab}"
+				aria-label="{named(siteLabels.a11y.projectLinkRepo)}{newTab}"
 				data-testid="{testIdPrefix}-repo"
 				tabindex={tabbable ? undefined : -1}
 				onclick={(event) => track(event, href, 'repo')}

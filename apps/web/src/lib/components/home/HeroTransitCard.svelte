@@ -13,6 +13,7 @@
 	import { fillTemplate } from '#lib/utils/labels.ts';
 	import ProjectHeroPreview from '#lib/components/projects/ProjectHeroPreview.svelte';
 	import ProjectCardLinks from '#lib/components/shared/ProjectCardLinks.svelte';
+	import { siteLabels } from '#lib/content/index.ts';
 	import { homeLabels } from './home-labels.ts';
 
 	export type ReadingState = 'demo' | 'live' | 'held' | 'failure';
@@ -42,22 +43,30 @@
 	} = $props();
 
 	const locale = getLocale();
-	const t = homeLabels.transit;
+	const t = siteLabels.transit;
+	const dashboard = siteLabels.heroDashboard;
+	const cardLine = $derived(
+		project?.cardLine
+			? resolveLocale(project.cardLine, locale)
+			: project?.slug === 'transit-data-pipeline'
+				? resolveLocale(homeLabels.transit.line, locale)
+				: '',
+	);
 	const titleId = $props.id();
 	const title = $derived(project ? resolveLocale(project.title, locale) : 'Transit');
 
 	function figure(metric: HeroMetric): { label: string; value: string; unit?: string } {
-		if (metric.key === 'vehicles') return { label: resolveLocale(t.vehicles, locale), value: intl.number(locale).format(metric.value) };
+		if (metric.key === 'vehicles') return { label: resolveLocale(dashboard.vehiclesLabel, locale), value: intl.number(locale).format(metric.value) };
 		if (metric.key === 'delay') {
 			const digits = metric.value % 1 ? 1 : 0;
 			return {
-				label: resolveLocale(t.delay, locale),
+				label: resolveLocale(dashboard.delayLabel, locale),
 				value: intl.number(locale, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(metric.value),
 				unit: 's',
 			};
 		}
 		return {
-			label: resolveLocale(t.routes, locale),
+			label: resolveLocale(dashboard.routesLabel, locale),
 			value: intl.number(locale).format(metric.value),
 			unit: metric.total == null ? undefined : fillTemplate(resolveLocale(t.routesOf, locale), { value: '', total: intl.number(locale).format(metric.total) }).trim(),
 		};
@@ -83,7 +92,7 @@
 
 	<div class="hero-transit__body">
 		<h2 id={titleId} class="hero-transit__title">{title}</h2>
-		<p class="hero-transit__line">{resolveLocale(t.line, locale)}</p>
+		<p class="hero-transit__line">{cardLine}</p>
 		{#if project}<p class="hero-transit__text">{resolveLocale(project.oneLiner, locale)}</p>{/if}
 
 		<div class="hero-transit__proof" data-testid="hero-transit-proof" data-state={readingState} aria-busy={refreshing}>

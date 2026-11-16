@@ -11,7 +11,7 @@
 import { readItems } from '@directus/sdk';
 import { mapLocalizedRepeater, str, toLocalizedFields } from '../locale';
 import { AboutContentSchema, type LocalizedString, type AboutContent } from '@repo/shared';
-import { migrationCopy } from './copy-migration';
+import { migrationCopy, migrateLegacyExact } from './copy-migration';
 import { fetchBlockSingleton, type BlockRow } from './singleton';
 import type { FetcherContext } from './types';
 
@@ -155,6 +155,20 @@ export function toAboutContent(raw: BlockRow, normalizedLanguages?: AboutContent
 		headshot: str(raw.headshot),
 		polaroids,
 	};
+	// The rebuilt About speaks to the visitor as vous. Until the approved French
+	// sentence is published, map only the captured legacy sentence; any other CMS
+	// wording wins untouched.
+	identity.valueProp = migrateLegacyExact(
+		identity.valueProp,
+		{
+			en: identity.valueProp.en,
+			fr: "Moi, c'est Yesid : un gars de Montréal qui aime les systèmes clairs et les explications simples. Cette page reflète un peu qui je suis, explore à ta guise :)",
+		},
+		{
+			en: identity.valueProp.en,
+			fr: "Moi, c'est Yesid : un gars de Montréal qui aime les systèmes clairs et les explications simples. Cette page reflète un peu qui je suis, explorez à votre guise :)",
+		},
+	);
 
 	// --- metrics: value (plain), label (LS), icon? (plain) ---
 	const metricsByLocale = new Map<string, Array<Record<string, unknown>>>();
@@ -386,6 +400,10 @@ export function toAboutContent(raw: BlockRow, normalizedLanguages?: AboutContent
 		interests,
 		weather,
 		cta,
+		cardHeadings: {
+			weather: migrationCopy(tr, 'block_about_content_translations', 'weather_heading'),
+			cta: migrationCopy(tr, 'block_about_content_translations', 'cta_heading'),
+		},
 		stopLabels,
 		labels,
 	};

@@ -14,7 +14,7 @@ it('reads the committed fixture through readCache without derived media and is a
 	expect(fixture).not.toHaveProperty('mediaAssets');
 	expect(fixture).not.toHaveProperty('mediaVariants');
 	// The exporter hydrates these derived fields from the asset manifest before emission.
-	expect(buildEmitConfigs({ ...fixture, mediaAssets: {}, mediaVariants: {} }, '/fixture')).toHaveLength(21);
+	expect(buildEmitConfigs({ ...fixture, mediaAssets: {}, mediaVariants: {} }, '/fixture')).toHaveLength(23);
 	expect(trimExportData(fixture)).toEqual(fixture);
 	assertTrimmedExportData(fixture, fixture);
 	expect(JSON.parse(serializeFixture(fixture))).toEqual({ version: '1', directusUrl: 'fixture', data: fixture });

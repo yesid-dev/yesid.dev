@@ -260,14 +260,25 @@ describe('export source checks', () => {
 					emitDir,
 					policy: 'fail',
 				}),
-			).toEqual({ source: 'live', emitted: 21 });
+			).toEqual({ source: 'live', emitted: 23 });
 			expect(
 				JSON.parse(await readFile(join(emitDir, '.cms-cache.json'), 'utf8'))
 					.data,
 			).toEqual(snapshot);
 			expect(
 				(await readdir(emitDir)).filter((file) => file.endsWith('.ts')),
-			).toHaveLength(21);
+			).toHaveLength(23);
+			const { siteLabels } = await import(join(emitDir, 'site-labels.ts'));
+			const { siteNavigationLabels, siteErrorLabels } = await import(join(emitDir, 'site-navigation-labels.ts'));
+			expect(siteLabels).toEqual(snapshot.siteLabels);
+			expect(siteLabels.navChrome).toBe(siteNavigationLabels.navChrome);
+			expect(siteLabels.footerChrome).toBe(siteNavigationLabels.footerChrome);
+			expect(Object.keys(siteNavigationLabels).sort()).toEqual(['footerChrome', 'navChrome']);
+			expect(siteErrorLabels).toEqual({
+				errorSuggestionsLabel: snapshot.siteLabels!.ui.errorSuggestionsLabel,
+				errorStatusNote: snapshot.siteLabels!.ui.errorStatusNote,
+				errorSignLabel: snapshot.siteLabels!.ui.errorSignLabel,
+			});
 		} finally {
 			await rm(emitDir, { recursive: true, force: true });
 		}

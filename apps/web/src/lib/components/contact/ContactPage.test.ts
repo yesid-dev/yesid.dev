@@ -19,17 +19,21 @@ const contactContent: ContactContent = {
 	web3formsKey: 'fixture-key',
 	infoTerminal: {
 		title: 'Fixture info', command: '$ info',
-		location: { en: 'A city' }, responseTime: { en: 'Soon' }, languages: { en: 'EN FR ES' },
+		location: { en: 'A city' }, responseTime: {
+			en: 'I usually reply within one business day.',
+			fr: 'Je réponds habituellement dans un délai d’un jour ouvrable.',
+			es: 'Normalmente respondo en un día hábil.',
+		}, languages: { en: 'EN FR ES' },
 		bestFit: [{ en: 'A supplied need' }],
 		sectionLabels: {
-			location: { en: 'Place' }, connect: { en: 'Channels' },
+			location: { en: 'Place' }, connect: { en: 'Channels', fr: 'ME JOINDRE', es: 'CONECTA' },
 			languages: { en: 'Languages' }, bestFit: { en: 'Needs' },
 		},
 	},
 	formTerminal: {
 		requiredGuidance: { en: 'guidance' },
 		noScript: { en: 'no script' },
-		title: 'Fixture form', command: '$ contact', commandOutput: { en: 'Ready' },
+		title: 'Fixture form', command: '$ contact', heading: { en: 'Send a message' }, commandOutput: { en: 'Ready' },
 		fields: {
 			name: { label: { en: 'name' }, placeholder: { en: 'Your name' } },
 			email: { label: { en: 'email' }, placeholder: { en: 'Your email' } },
@@ -42,7 +46,11 @@ const contactContent: ContactContent = {
 	},
 	success: {
 		command: { en: '~ $ send' }, validating: { en: 'Checking' }, sending: { en: 'Sending' }, sent: { en: 'Delivered' },
-		responseTime: { en: 'Soon' }, meanwhile: { en: 'Visit {work} and {blog}.' },
+		responseTime: {
+			en: 'I usually reply within one business day.',
+			fr: 'Je réponds habituellement dans un délai d’un jour ouvrable.',
+			es: 'Normalmente respondo en un día hábil.',
+		}, meanwhile: { en: 'Visit {work} and {blog}.', fr: 'En attendant, jetez un œil à mes {work} ou à mon {blog}' },
 		resetLabel: { en: 'Send another' }, fieldOk: { en: 'OK' }, workLinkLabel: { en: 'work' }, blogLinkLabel: { en: 'blog' },
 	},
 	socials: [
@@ -624,13 +632,13 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		['fr', fr, 'Je réponds habituellement dans un délai d’un jour ouvrable.'],
 		['es', es, 'Normalmente respondo en un día hábil.'],
 	] as const)
-		it(`states the reply time in ${locale} instead of the ~24h line`, () => {
+		it(`states the reply time in ${locale} from the CMS value`, () => {
 			const { container } = render(ContactPage, {
 				props: { contactPage: contactContent },
 				...(context ? { context: context() } : {}),
 			});
 			expect(screen.getByTestId('contact-reply-time')).toHaveTextContent(reply);
-			expect(container.textContent).not.toContain('Soon');
+			expect(container.textContent).not.toContain('~24h');
 		});
 
 	it('labels Connect "ME JOINDRE" in French', () => {
@@ -766,7 +774,7 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		await fireEvent.click(screen.getByRole('button', { name: 'Send another' }));
 	});
 
-	it('writes the French "Meanwhile" line in vous', async () => {
+	it('writes the French "Meanwhile" line from the CMS value', async () => {
 		persisted('contact-success', false).value = true;
 		render(ContactPage, {
 			props: {
@@ -774,7 +782,7 @@ describe('ContactPage rebuild (DEV-40)', () => {
 					...contactContent,
 					success: {
 						...contactContent.success,
-						meanwhile: { en: 'x', fr: 'jette un œil' },
+						meanwhile: { en: 'x', fr: 'En attendant, jetez un œil à mes {work} ou à mon {blog}' },
 						workLinkLabel: { en: 'work', fr: 'services' },
 						blogLinkLabel: { en: 'blog', fr: 'blogue' },
 					},
@@ -785,7 +793,7 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		await tick();
 		const success = screen.getByTestId('contact-success');
 		expect(success).toHaveTextContent('En attendant, jetez un œil à mes services ou à mon blogue');
-		expect(success).not.toHaveTextContent('jette');
+		expect(success).not.toHaveTextContent('jette un œil');
 		await fireEvent.click(within(success).getByRole('button'));
 	});
 

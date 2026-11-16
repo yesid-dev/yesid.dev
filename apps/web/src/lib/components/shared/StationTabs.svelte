@@ -14,7 +14,6 @@
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { siteLabels } from '#lib/content/index.ts';
 	import { orderServices } from '#lib/utils/station.ts';
-	import { servicesLabels } from '#lib/components/services/services-labels.ts';
 	import { isPrefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { scrollChain } from '@yesid/motion/actions';
 
@@ -35,7 +34,7 @@
 
 	const navAria = $derived(
 		resolveLocale(
-			mode === 'navigate' ? siteLabels.servicesChrome.detail.serviceNavAria : servicesLabels.stationsOnPageAria,
+			mode === 'navigate' ? siteLabels.servicesChrome.detail.serviceNavAria : siteLabels.servicesChrome.listing.stationsAria,
 			locale,
 		),
 	);

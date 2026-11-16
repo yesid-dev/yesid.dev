@@ -17,14 +17,14 @@
 	import { Button } from '@yesid/ui/button';
 	import { Card } from '@yesid/ui/card';
 	import AboutCardHeading from './AboutCardHeading.svelte';
-	import { aboutLabels, contactLines } from './about-copy.ts';
+	import { contactLines } from './about-copy.ts';
 
 	let { cta, heading }: { cta: AboutCta; heading: string } = $props();
 
 	const buttonLabel = $derived(resolveLocale(cta.buttonLabel, locale));
 	const terminalTitle = $derived(resolveLocale(siteLabels.ui.terminalTitle, locale));
 	const lines = $derived(contactLines(cta.lines, locale));
-	const newTab = $derived(resolveLocale(aboutLabels.opensInNewTab, locale));
+	const newTab = $derived(resolveLocale(siteLabels.a11y.opensNewTab, locale));
 </script>
 
 <Card interactive class="relative h-full p-3" data-testid="about-cta">

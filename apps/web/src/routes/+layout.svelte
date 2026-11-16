@@ -26,7 +26,9 @@
 	import { SeoHead } from '@yesid/ui/head';
 	import { startAnalytics, trackAnalyticsEvent } from '#lib/analytics/client.ts';
 	import { navigationEvents, profileClickNetwork, trackLinkActivation } from '#lib/analytics/site-events.ts';
-	import { siteMeta, menuItems as staticMenuItems, siteLabels } from '#lib/content/index.ts';
+	import { siteMeta } from '#lib/content/site-meta.ts';
+	import { menuItems as staticMenuItems } from '#lib/content/nav.ts';
+	import { siteNavigationLabels } from '#lib/content/site-navigation-labels.ts';
 	import { errorPagesById } from '#lib/content/error-pages.ts';
 	import { appendBrandPerLocale } from '#lib/adapters/compose-page-seo.ts';
 	import { errorTitleBody } from '#lib/adapters/error-seo-fallback.ts';
@@ -144,7 +146,7 @@
 		PUBLISHED_LOCALES[(Math.max(0, PUBLISHED_LOCALES.indexOf(locale)) + 1) % PUBLISHED_LOCALES.length],
 	);
 
-	const footer = siteLabels.footerChrome.footer;
+	const footer = siteNavigationLabels.footerChrome.footer;
 	const footerNav = $derived(
 		(footerLinks.length > 0 ? footerLinks : staticMenuItems).map((item) => ({
 			label: resolveLocale(item.label, locale),
@@ -233,7 +235,7 @@
 				groups={[
 					{
 						label: resolveLocale(footer.exploreLabel, locale),
-						navLabel: resolveLocale(siteLabels.navChrome.shared.footerNavAria, locale),
+						navLabel: resolveLocale(siteNavigationLabels.navChrome.shared.footerNavAria, locale),
 						links: footerNav.filter((link) => !link.legal),
 					},
 					{

@@ -15,7 +15,11 @@ const completeExportData = {
 	blogBodies: {},
 	services: [],
 	projects: [],
-	siteLabels: {},
+	siteLabels: { ui: {
+		errorSuggestionsLabel: { en: 'Suggestions' },
+		errorStatusNote: { en: 'Status' },
+		errorSignLabel: { en: 'Error' },
+	} },
 	blogPage: {},
 	projectsPage: {},
 	contactPage: {},
@@ -53,7 +57,8 @@ describe('export module registry', () => {
 			'about-page.ts', 'blog-bodies.ts', 'blog-page.ts', 'blog.ts', 'contact-page.ts',
 			'error-pages.ts', 'legal-pages.ts', 'media-assets.ts', 'media-variants.ts', 'morph-shapes.ts',
 			'nav.ts', 'projects-page.ts', 'projects.ts', 'route-seo.ts', 'services.ts', 'site-content.ts',
-			'site-labels.ts', 'site-meta.ts', 'site-owner-phone.server.ts', 'site-pages.ts', 'site-seo-defaults.ts',
+			'site-labels.ts', 'site-page-labels.ts', 'site-navigation-labels.ts', 'site-meta.ts',
+			'site-owner-phone.server.ts', 'site-pages.ts', 'site-seo-defaults.ts',
 		].sort());
 	});
 

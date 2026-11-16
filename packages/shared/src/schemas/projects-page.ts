@@ -11,6 +11,8 @@ export const ProjectsPageContentSchema = z.object({
 	intro: LocalizedStringSchema,
 	heading: LocalizedStringSchema,
 	emptyState: LocalizedStringSchema,
+	/** Message when nothing is published at all (DEV-28 G26.2); distinct from a filtered zero match. */
+	emptyStateNoPosts: LocalizedStringSchema,
 });
 
 export type ProjectsPageContent = z.infer<typeof ProjectsPageContentSchema>;

@@ -6,7 +6,6 @@
 	import AboutEducation from '#lib/components/about/AboutEducation.svelte';
 	import AboutWeather from '#lib/components/about/AboutWeather.svelte';
 	import AboutInterests from '#lib/components/about/AboutInterests.svelte';
-	import { aboutLabels } from '#lib/components/about/about-copy.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
@@ -28,7 +27,7 @@
 	const headings = $derived({
 		languages: resolveLocale(c.stopLabels.clients, locale),
 		education: resolveLocale(c.stopLabels.stack, locale),
-		weather: resolveLocale(aboutLabels.weatherHeading, locale),
+		weather: resolveLocale(c.cardHeadings.weather, locale),
 		interests: resolveLocale(c.stopLabels.interests, locale),
 	});
 </script>

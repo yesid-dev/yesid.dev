@@ -16,7 +16,6 @@
 	import AboutInterests from './AboutInterests.svelte';
 	import AboutCta from './AboutCta.svelte';
 	import AboutTrain from './AboutTrain.svelte';
-	import { aboutLabels } from './about-copy.ts';
 
 	let {
 		aboutPage,
@@ -36,8 +35,8 @@
 		clients: resolveLocale(c.stopLabels.clients, locale),
 		interests: resolveLocale(c.stopLabels.interests, locale),
 		snapshots: resolveLocale(c.stopLabels.snapshots, locale),
-		weather: resolveLocale(aboutLabels.weatherHeading, locale),
-		cta: resolveLocale(aboutLabels.ctaHeading, locale),
+		weather: resolveLocale(c.cardHeadings.weather, locale),
+		cta: resolveLocale(c.cardHeadings.cta, locale),
 	});
 </script>
 

@@ -13,7 +13,6 @@
 	import { siteLabels } from '#lib/content/index.ts';
 	import { boop } from '@yesid/motion/actions';
 	import { SectionLabel } from '@yesid/ui/brand';
-	import { servicesLabels } from './services-labels.ts';
 
 	let {
 		prev,
@@ -27,7 +26,7 @@
 	let prevTitle = $derived(prev ? resolveLocale(prev.title, locale) : '');
 	let nextTitle = $derived(next ? resolveLocale(next.title, locale) : '');
 	// Its own name, so it never shares one with the station strip's navigation.
-	let navAria = $derived(resolveLocale(servicesLabels.otherServicesAria, locale));
+	let navAria = $derived(resolveLocale(siteLabels.servicesChrome.detail.otherServicesAria, locale));
 	let prevLabel = $derived(resolveLocale(siteLabels.navChrome.directions.previous, locale));
 	let nextLabel = $derived(resolveLocale(siteLabels.navChrome.directions.next, locale));
 </script>

@@ -55,14 +55,7 @@
 	const listingIntro = $derived(resolveLocale(projectsPage.intro, locale));
 	const emptyStateText = $derived(
 		projects.length === 0
-			? resolveLocale(
-					{
-						en: 'No projects are published yet.',
-						fr: "Aucun projet n'est encore publié.",
-						es: 'Todavía no hay proyectos publicados.',
-					},
-					locale
-				)
+			? resolveLocale(projectsPage.emptyStateNoPosts, locale)
 			: resolveLocale(projectsPage.emptyState, locale) ||
 					resolveLocale(
 						{

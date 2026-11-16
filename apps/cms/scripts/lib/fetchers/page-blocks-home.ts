@@ -46,6 +46,11 @@ export function toHeroContent(raw: BlockRow): HeroContent {
 			'subheadline', 'subtitle',
 			['ctaWork', 'cta_work'], ['ctaContact', 'cta_contact'],
 		]),
+		opening: {
+			sentence: migrationCopy(tr, 'block_hero_translations', 'headline_sentence'),
+			lead: migrationCopy(tr, 'block_hero_translations', 'lead'),
+			ctaProject: migrationCopy(tr, 'block_hero_translations', 'cta_project'),
+		},
 		ctaWorkHref: hrefOr(raw.cta_work_href, '/projects'),
 		scene: {
 			name: migrationCopy(tr, 'block_hero_translations', 'scene_name'),

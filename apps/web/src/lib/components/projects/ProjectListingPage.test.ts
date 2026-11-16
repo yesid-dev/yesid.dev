@@ -21,6 +21,7 @@ const projectsPage: ProjectsPageContent = {
 	heading: { en: 'Projects', fr: 'Projets', es: 'Proyectos' },
 	intro: { en: 'Selected work', fr: 'Travaux choisis', es: 'Trabajo elegido' },
 	emptyState: { en: 'No projects.', fr: 'Aucun projet.', es: 'Sin proyectos.' },
+	emptyStateNoPosts: { en: 'No projects are published yet.', fr: "Aucun projet n'est encore publié.", es: 'Todavía no hay proyectos publicados.' },
 };
 
 const renderListing = (projects: readonly ProjectSummary[]) =>

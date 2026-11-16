@@ -1,0 +1,49 @@
+{
+  "collection": "site_labels_translations",
+  "field": "hero_transit_refreshed",
+  "type": "string",
+  "meta": {
+    "collection": "site_labels_translations",
+    "conditions": null,
+    "display": null,
+    "display_options": null,
+    "field": "hero_transit_refreshed",
+    "group": "grp_home_hero",
+    "hidden": false,
+    "interface": "input",
+    "note": "Polite announcement after a successful refresh.",
+    "options": null,
+    "readonly": false,
+    "required": false,
+    "searchable": true,
+    "sort": 123,
+    "special": null,
+    "translations": [
+      {
+        "language": "en-US",
+        "translation": "Home / Transit - refreshed"
+      }
+    ],
+    "validation": null,
+    "validation_message": null,
+    "width": "half"
+  },
+  "schema": {
+    "name": "hero_transit_refreshed",
+    "table": "site_labels_translations",
+    "data_type": "character varying",
+    "default_value": null,
+    "max_length": 255,
+    "numeric_precision": null,
+    "numeric_scale": null,
+    "is_nullable": true,
+    "is_unique": false,
+    "is_indexed": false,
+    "is_primary_key": false,
+    "is_generated": false,
+    "generation_expression": null,
+    "has_auto_increment": false,
+    "foreign_key_table": null,
+    "foreign_key_column": null
+  }
+}

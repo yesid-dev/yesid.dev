@@ -33,7 +33,7 @@
 	import { collectProjectVideos, youtubeLabels } from '#lib/utils/youtube.ts';
 	import ProjectGlancePanel from './ProjectGlancePanel.svelte';
 	import ProjectHeaderCrosshair from './ProjectHeaderCrosshair.svelte';
-	import { forDevelopersSummaries, isForDevelopersSection } from './editorial-copy.ts';
+	import { isForDevelopersSection } from './editorial-copy.ts';
 	import { pillStepsAside } from '#lib/components/shared/pill-steps-aside.svelte.ts';
 	import MediaGallery from '#lib/components/media/MediaGallery.svelte';
 	import MediaLightbox from '#lib/components/media/MediaLightbox.svelte';
@@ -77,6 +77,8 @@
 		isImageGallery: boolean;
 		/** "For developers": optional, so it starts closed on a first visit (Y-12, answer 5A). */
 		forDevelopers: boolean;
+		/** The section's own one-line summary, when the CMS carries one (DEV-28 G24). */
+		summary: string;
 	};
 
 	/*
@@ -153,6 +155,7 @@
 				doc,
 				isImageGallery: isImageGalleryDoc(doc),
 				forDevelopers: isForDevelopersSection(section.title),
+				summary: section.summary ? resolveLocale(section.summary, locale) : '',
 			};
 		})
 	);
@@ -227,10 +230,6 @@
 		);
 	});
 
-	const forDevelopersSummary = $derived(
-		forDevelopersSummaries[project.slug] ? resolveLocale(forDevelopersSummaries[project.slug], locale) : '',
-	);
-
 	const navigation = useSectionJump(afterNavigate);
 
 	// The phone contents pill steps aside once the closing band reaches it, so it never covers
@@ -256,10 +255,6 @@
 			<MediaGallery kind="video" />
 		</CollapsibleSection>
 	{/if}
-{/snippet}
-
-{#snippet developersSummary()}
-	<p data-testid="project-section-summary">{forDevelopersSummary}</p>
 {/snippet}
 
 {#snippet after()}
@@ -360,6 +355,7 @@
 				<ProjectOverviewCard project={project} {codeHighlights} />
 			</div>
 			{#snippet articleSection(section: SectionView, index: number)}
+				{#snippet sectionSummary()}<p data-testid="project-section-summary">{section.summary}</p>{/snippet}
 				<div
 					class="section-block"
 					id={`section-${index}`}
@@ -370,7 +366,7 @@
 						index={index}
 						open={index === 0}
 						firstVisitClosed={section.forDevelopers}
-						summary={section.forDevelopers && forDevelopersSummary ? developersSummary : undefined}
+						summary={section.forDevelopers && section.summary ? sectionSummary : undefined}
 					>
 						<div class="article-body section-body"><BlockRenderer doc={section.doc} codeHighlights={codeHighlights} /></div>
 					</CollapsibleSection>

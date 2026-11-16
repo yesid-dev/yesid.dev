@@ -65,8 +65,12 @@ local files or their deployment target.
 Content moves through one interface:
 
 ```text
-Directus or shared fixture -> export-fallbacks.ts -> 21 ignored typed modules -> SvelteKit
+Directus or shared fixture -> export-fallbacks.ts -> 23 ignored typed modules -> SvelteKit
 ```
+
+Navigation, footer and error recovery labels have a separate generated module,
+so the persistent shell does not load page-only copy. The complete `siteLabels`
+export composes the page and navigation groups for existing page consumers.
 
 Web dev, test, check and build generate ignored content modules from the shared
 fixture by default, without credentials or network. Only Vercel production uses

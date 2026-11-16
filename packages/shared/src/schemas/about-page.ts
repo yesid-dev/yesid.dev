@@ -127,6 +127,11 @@ export const AboutContentSchema = z.object({
 	interests: z.array(AboutInterestSchema).readonly(),
 	weather: AboutWeatherConfigSchema,
 	cta: AboutCtaSchema,
+	/** Plain headings of the two cards whose STOP label was removed (DEV-28 G21). */
+	cardHeadings: z.object({
+		weather: LocalizedStringSchema,
+		cta: LocalizedStringSchema,
+	}),
 	stopLabels: AboutStopLabelsSchema,
 	labels: AboutLabelsSchema,
 });

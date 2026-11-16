@@ -1,0 +1,49 @@
+{
+  "collection": "site_labels_translations",
+  "field": "media_chrome_previous",
+  "type": "string",
+  "meta": {
+    "collection": "site_labels_translations",
+    "conditions": null,
+    "display": null,
+    "display_options": null,
+    "field": "media_chrome_previous",
+    "group": "grp_shared",
+    "hidden": false,
+    "interface": "input",
+    "note": "Media chrome: previous item control.",
+    "options": null,
+    "readonly": false,
+    "required": false,
+    "searchable": true,
+    "sort": 213,
+    "special": null,
+    "translations": [
+      {
+        "language": "en-US",
+        "translation": "Media chrome / previous"
+      }
+    ],
+    "validation": null,
+    "validation_message": null,
+    "width": "half"
+  },
+  "schema": {
+    "name": "media_chrome_previous",
+    "table": "site_labels_translations",
+    "data_type": "character varying",
+    "default_value": null,
+    "max_length": 255,
+    "numeric_precision": null,
+    "numeric_scale": null,
+    "is_nullable": true,
+    "is_unique": false,
+    "is_indexed": false,
+    "is_primary_key": false,
+    "is_generated": false,
+    "generation_expression": null,
+    "has_auto_increment": false,
+    "foreign_key_table": null,
+    "foreign_key_column": null
+  }
+}

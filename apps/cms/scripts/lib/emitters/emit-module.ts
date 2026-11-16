@@ -1,6 +1,6 @@
 /**
  * Top-level module-emitter: wraps the value serializer with a generated-file
- * header + type imports per the per-module config in `configs.ts`.
+ * header + imports per the per-module config in `configs.ts`.
  *
  * Output structure:
  *
@@ -16,11 +16,13 @@
 
 import { emitExport } from './format';
 
-export interface ExportDecl {
+export type ExportDecl = {
 	name: string;
 	typeName: string;
-	value: unknown;
-}
+} & (
+	| { value: unknown; spread?: never }
+	| { spread: readonly [string, ...string[]]; value?: never }
+);
 
 export interface ImportDecl {
 	/** Symbols to import from `from`. */
@@ -58,7 +60,15 @@ export function emitModule(config: ModuleEmitConfig): string {
 		return `${kw} { ${list} } from '${imp.from}';`;
 	});
 
-	const exportLines = config.exports.map((exp) => emitExport(exp.name, exp.typeName, exp.value));
+	const exportLines = config.exports.map((exp) => {
+		if (exp.spread === undefined) return emitExport(exp.name, exp.typeName, exp.value);
+		// References come from module configuration, never CMS text. Permit only
+		// identifiers so this composition cannot become an arbitrary expression.
+		if (exp.spread.length === 0 || exp.spread.some((name) => !/^[A-Za-z_$][A-Za-z0-9_$]*$/.test(name))) {
+			throw new Error('Invalid export spread reference');
+		}
+		return `export const ${exp.name}: ${exp.typeName} = { ${exp.spread.map((name) => `...${name}`).join(', ')} };`;
+	});
 
 	const blocks: string[] = [headerLines.join('\n')];
 	if (importLines.length > 0) blocks.push(importLines.join('\n'));
