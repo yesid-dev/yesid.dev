@@ -51,13 +51,6 @@
 	};
 	const clearLabel = resolveLocale(siteLabels.navChrome.shared.clearFiltersLabel, locale);
 
-	// The CMS still carries the earlier "tu" form of the French match message; the owner approved
-	// "vous". This bridge goes when blog_page_content.empty_state holds it (CMS follow-up).
-	const FR_MATCH_VOUS = 'Aucun article trouvé. Essayez d’ajuster vos filtres.';
-	const matchEmptyText = $derived(
-		locale === 'fr' && emptyState.includes('Essaie') ? FR_MATCH_VOUS : emptyState
-	);
-
 	// Prerendering cannot read query parameters, so the tag filter applies after hydration.
 	let activeTag = $derived(browser ? page.url.searchParams.get('tag') : null);
 	const searchQuery = persisted('blog-q', '');
@@ -224,7 +217,7 @@
 			     no posts at all" (blaming filters that don't exist reads as a bug). -->
 			<StateNotice
 				role="status"
-				title={posts.length === 0 ? emptyStateNoPosts : matchEmptyText}
+				title={posts.length === 0 ? emptyStateNoPosts : emptyState}
 				data-testid="blog-empty-state"
 			/>
 		{:else}

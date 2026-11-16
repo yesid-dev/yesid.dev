@@ -90,7 +90,7 @@ describe('site-labels transform', () => {
 			fr: '// infrastructure numérique',
 		});
 		// Live dashboard labels with runtime-templated supporting text.
-		expect(out.heroDashboard.vehiclesLabel).toEqual({ en: 'VEHICLES TRACKED', fr: 'VÉHICULES SUIVIS' });
+		expect(out.heroDashboard.vehiclesLabel).toEqual({ en: 'Vehicles tracked', fr: 'Véhicules suivis' });
 		expect(out.heroDashboard.delaySub).toEqual({ en: '{coverage}% COVERAGE', fr: '{coverage}% DE COUVERTURE' });
 		expect(() => SiteLabelsSchema.parse(out)).not.toThrow();
 	});

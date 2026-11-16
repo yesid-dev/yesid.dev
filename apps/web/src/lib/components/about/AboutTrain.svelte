@@ -8,6 +8,7 @@
 	import { Card } from '@yesid/ui/card';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { siteLabels } from '#lib/content/index.ts';
 	import {
 		TRAIN_ROCKET_SHAPES,
 		TRAIN_ROCKET_VIEWBOX,
@@ -15,20 +16,9 @@
 
 	const locale = getLocale();
 
-	// Accessible name for the morph toy. No localized CMS source feeds it
-	// (about-page.ts is CMS-generated), so the QC/EN copy lives inline here.
-	const TRAIN_ARIA = {
-		rocket: {
-			en: 'Rocket · tap to land it back into a train',
-			fr: 'Fusée · clique pour la reposer en train',
-			es: 'Cohete · toca para aterrizarlo de vuelta en tren',
-		},
-		train: {
-			en: 'Train · tap to launch it into a rocket',
-			fr: 'Train · clique pour le lancer en fusée',
-			es: 'Tren · toca para lanzarlo como cohete',
-		},
-	} as const;
+	// Accessible name for the morph toy, CMS-primary (DEV-28 G2). The approved
+	// strings stay as the build-time fallback until the columns are published.
+	const trainAria = siteLabels.a11y;
 
 	// ── Pre-parse each shape into a number-stripped skeleton + the train and
 	//    rocket number vectors. Structural parity (verified at authoring time)
@@ -138,8 +128,8 @@
 		data-testid="about-train-button"
 		aria-pressed={tapped}
 		aria-label={launched
-			? resolveLocale(TRAIN_ARIA.rocket, locale)
-			: resolveLocale(TRAIN_ARIA.train, locale)}
+			? resolveLocale(trainAria.trainRocket, locale)
+			: resolveLocale(trainAria.trainLaunch, locale)}
 		use:pointerHover={(hovering) => (hovered = hovering)}
 		onclick={onClick}
 	>

@@ -21,7 +21,7 @@
 	import ServiceNav from './ServiceNav.svelte';
 	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
 	import HeroDotAnnotation from '#lib/components/home/HeroDotAnnotation.svelte';
-	import { CLICK_ME, getLettering } from '#lib/components/home/annotation-lettering.ts';
+	import { getLettering } from '#lib/components/home/annotation-lettering.ts';
 	import ServiceStackPanel from './ServiceStackPanel.svelte';
 	import {
 		CollapsibleSection,
@@ -69,7 +69,7 @@
 	let stackLabel = $derived(resolveLocale(siteLabels.servicesChrome.detail.stackHeading, locale));
 	let hasStack = $derived((service.stack?.length ?? 0) > 0);
 	// The hand-lettered "click me", left of the drawing, its arrow ending at the drawing's edge.
-	const clickMe = getLettering(CLICK_ME[locale]);
+	const clickMe = getLettering(resolveLocale(siteLabels.annotation.clickMe, locale));
 	const clickBaseline = 26;
 	const clickStart = { x: 4 + clickMe.end.x + 2, y: clickBaseline + clickMe.end.y };
 	const clickWidth = Math.ceil(clickStart.x + 30);

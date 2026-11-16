@@ -2,21 +2,6 @@ import type { AboutCta, Locale, LocalizedString } from '#lib/types.ts';
 import { resolveLocale } from '#lib/utils/locale.ts';
 
 /**
- * Words the About page needs that have no CMS field yet (D-M6, DEV-42). Code fallbacks until
- * the About block gains them; listed as CMS follow-ups in the PR.
- */
-export const aboutLabels = {
-	/** The weather card's heading on About (owner answer 3A), where the stop label read "LOCATION". */
-	weatherHeading: { en: 'Weather', fr: 'Météo', es: 'Clima' },
-	/** The closing card's heading, where the stop label read "NEXT" after "STOP 09". */
-	ctaHeading: { en: 'Get in touch', fr: 'Me joindre', es: 'Ponte en contacto' },
-	/** Accessible name of each quote dot. Placeholders: {index} and {total}. */
-	quoteDotAria: { en: 'Quote {index} of {total}', fr: 'Citation {index} sur {total}', es: 'Cita {index} de {total}' },
-	/** Read after a link that opens in a new tab. */
-	opensInNewTab: { en: '(opens in a new tab)', fr: '(nouvel onglet)', es: '(se abre en una pestaña nueva)' },
-} satisfies Record<string, LocalizedString>;
-
-/**
  * Headings are stored in capitals in the CMS ("FUN FACTS", "CURIOSITY"). Shows an all-capitals
  * value in sentence case; a value already in mixed case is kept as written.
  */
@@ -25,15 +10,6 @@ export function sentenceCase(value: string, locale: Locale): string {
 	if (value !== value.toLocaleUpperCase(locale) || !/\p{Lu}{2,}/u.test(value)) return value;
 	const lower = value.toLocaleLowerCase(locale);
 	return lower.charAt(0).toLocaleUpperCase(locale) + lower.slice(1);
-}
-
-/**
- * The French introduction speaks to the visitor as "vous" (owner answer 6A), as on Contact and
- * Services. A bridge until the CMS value is edited: only the captured "tu" phrase changes.
- */
-export function aboutIntro(valueProp: LocalizedString, locale: Locale): string {
-	const text = resolveLocale(valueProp, locale);
-	return locale === 'fr' ? text.replace('explore à ta guise', 'explorez à votre guise') : text;
 }
 
 /** Terminal lines the owner removed (filler, with "AI" as a selling word), matched on their English text. */

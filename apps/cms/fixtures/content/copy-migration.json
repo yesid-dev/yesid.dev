@@ -9,6 +9,11 @@
 			"en": "This form needs JavaScript. You can also email",
 			"fr": "Ce formulaire nécessite JavaScript. Vous pouvez aussi écrire à",
 			"es": "Este formulario necesita JavaScript. También puedes escribir a"
+		},
+		"form_heading": {
+			"en": "Send a message",
+			"fr": "Envoyer un message",
+			"es": "Enviar un mensaje"
 		}
 	},
 	"block_hero_translations": {
@@ -36,6 +41,21 @@
 			"en": "Close Montréal metro scene",
 			"fr": "Fermer la scène du métro de Montréal",
 			"es": "Cerrar la escena del metro de Montreal"
+		},
+		"headline_sentence": {
+			"en": "Websites and data tools for your business",
+			"fr": "Des sites web et des outils de données pour votre entreprise",
+			"es": "Sitios web y herramientas de datos para empresas"
+		},
+		"lead": {
+			"en": "I build websites, automate repetitive work and make data easier to use.",
+			"fr": "Je crée des sites web, j'automatise les tâches répétitives et je rends les données plus faciles à utiliser.",
+			"es": "Creo sitios web, automatizo tareas repetitivas y hago que los datos sean más fáciles de usar."
+		},
+		"cta_project": {
+			"en": "Tell me about your project",
+			"fr": "Parlez-moi de votre projet",
+			"es": "Hablar de un proyecto"
 		}
 	},
 	"site_labels_translations": {
@@ -113,6 +133,246 @@
 			"en": "Photo credit",
 			"fr": "Crédit photo",
 			"es": "Crédito de la foto"
+		},
+		"media_chrome_dark": {
+			"en": "Dark",
+			"fr": "Sombre",
+			"es": "Oscuro"
+		},
+		"media_chrome_light": {
+			"en": "Light",
+			"fr": "Clair",
+			"es": "Claro"
+		},
+		"media_chrome_images": {
+			"en": "Images",
+			"fr": "Images",
+			"es": "Imágenes"
+		},
+		"media_chrome_previous": {
+			"en": "Previous",
+			"fr": "Précédent",
+			"es": "Anterior"
+		},
+		"media_chrome_next": {
+			"en": "Next",
+			"fr": "Suivant",
+			"es": "Siguiente"
+		},
+		"media_chrome_position": {
+			"en": "Position",
+			"fr": "Position",
+			"es": "Posición"
+		},
+		"media_chrome_enlarge_diagram": {
+			"en": "Enlarge diagram",
+			"fr": "Agrandir le diagramme",
+			"es": "Ampliar diagrama"
+		},
+		"media_chrome_play_video": {
+			"en": "Play video",
+			"fr": "Lire la vidéo",
+			"es": "Reproducir video"
+		},
+		"media_chrome_close_video": {
+			"en": "Close video",
+			"fr": "Fermer la vidéo",
+			"es": "Cerrar video"
+		},
+		"media_chrome_youtube_title": {
+			"en": "YouTube video",
+			"fr": "Vidéo YouTube",
+			"es": "Video de YouTube"
+		},
+		"media_chrome_videos": {
+			"en": "Videos",
+			"fr": "Vidéos",
+			"es": "Videos"
+		},
+		"media_chrome_images_and_videos": {
+			"en": "Images and videos",
+			"fr": "Images et vidéos",
+			"es": "Imágenes y videos"
+		},
+		"a11y_train_rocket": {
+			"en": "Rocket · tap to land it back into a train",
+			"fr": "Fusée · clique pour la reposer en train",
+			"es": "Cohete · toca para aterrizarlo de vuelta en tren"
+		},
+		"a11y_train_launch": {
+			"en": "Train · tap to launch it into a rocket",
+			"fr": "Train · clique pour le lancer en fusée",
+			"es": "Tren · toca para lanzarlo como cohete"
+		},
+		"label_diagram_failure": {
+			"en": "The diagram could not be displayed. The explanation is available in the text.",
+			"fr": "Le diagramme n'a pas pu s'afficher. L'explication reste disponible dans le texte.",
+			"es": "No se pudo mostrar el diagrama. La explicación está disponible en el texto."
+		},
+		"annotation_click_me": {
+			"en": "click me",
+			"fr": "clique ici",
+			"es": "haz clic"
+		},
+		"ui_table_region_fallback": {
+			"en": "Table",
+			"fr": "Tableau",
+			"es": "Tabla"
+		},
+		"a11y_opens_new_tab": {
+			"en": "(opens in a new tab)",
+			"fr": "(s'ouvre dans un nouvel onglet)",
+			"es": "(se abre en una pestaña nueva)"
+		},
+		"hero_transit_routes_of": {
+			"en": "{value} of {total}",
+			"fr": "{value} sur {total}",
+			"es": "{value} de {total}"
+		},
+		"hero_transit_state_live": {
+			"en": "Live",
+			"fr": "En direct",
+			"es": "En vivo"
+		},
+		"hero_transit_updated_just_now": {
+			"en": "updated just now",
+			"fr": "mis à jour à l'instant",
+			"es": "actualizado hace un momento"
+		},
+		"hero_transit_updated_ago": {
+			"en": "updated {age} ago",
+			"fr": "mis à jour il y a {age}",
+			"es": "actualizado hace {age}"
+		},
+		"hero_transit_state_held": {
+			"en": "Last received {age} ago. New readings are not arriving.",
+			"fr": "Dernières données reçues il y a {age}. Les nouvelles lectures n'arrivent pas.",
+			"es": "Últimos datos recibidos hace {age}. No llegan lecturas nuevas."
+		},
+		"hero_transit_refresh": {
+			"en": "Refresh",
+			"fr": "Actualiser",
+			"es": "Actualizar"
+		},
+		"hero_transit_refresh_name": {
+			"en": "Refresh Transit data",
+			"fr": "Actualiser les données de Transit",
+			"es": "Actualizar los datos de Transit"
+		},
+		"hero_transit_refreshing": {
+			"en": "Refreshing",
+			"fr": "Actualisation",
+			"es": "Actualizando"
+		},
+		"hero_transit_refreshing_name": {
+			"en": "Refreshing Transit data",
+			"fr": "Actualisation des données de Transit",
+			"es": "Actualizando los datos de Transit"
+		},
+		"hero_transit_refreshed": {
+			"en": "Transit data refreshed, updated just now.",
+			"fr": "Données de Transit actualisées à l'instant.",
+			"es": "Datos de Transit actualizados hace un momento."
+		},
+		"hero_transit_refresh_failed_kept": {
+			"en": "Could not refresh. Still showing the reading from {age} ago. Try again.",
+			"fr": "Actualisation impossible. La lecture d'il y a {age} reste affichée. Réessayez.",
+			"es": "No se pudo actualizar. Sigue la lectura de hace {age}. Inténtalo de nuevo."
+		},
+		"hero_transit_refresh_failed_demo": {
+			"en": "Could not refresh. Live data is still unavailable; the demonstration stays. Try again.",
+			"fr": "Actualisation impossible. Les données en direct sont toujours indisponibles; la démonstration reste affichée. Réessayez.",
+			"es": "No se pudo actualizar. Los datos en vivo siguen sin estar disponibles; se mantiene la demostración. Inténtalo de nuevo."
+		},
+		"hero_transit_age_seconds_plural": {
+			"en": "{n} seconds",
+			"fr": "{n} secondes",
+			"es": "{n} segundos"
+		},
+		"hero_transit_age_second_singular": {
+			"en": "1 second",
+			"fr": "1 seconde",
+			"es": "1 segundo"
+		},
+		"hero_transit_age_minutes_plural": {
+			"en": "{n} minutes",
+			"fr": "{n} minutes",
+			"es": "{n} minutos"
+		},
+		"hero_transit_age_minute_singular": {
+			"en": "1 minute",
+			"fr": "1 minute",
+			"es": "1 minuto"
+		},
+		"hero_transit_shot_alt": {
+			"en": "Transit's live map of Montréal",
+			"fr": "La carte en direct de Transit pour Montréal",
+			"es": "El mapa en vivo de Transit para Montreal"
+		},
+		"projects_card_case_study": {
+			"en": "Case study",
+			"fr": "Étude de cas",
+			"es": "Caso de estudio"
+		},
+		"projects_card_website": {
+			"en": "Website",
+			"fr": "Site web",
+			"es": "Sitio web"
+		},
+		"projects_card_repo": {
+			"en": "Repo",
+			"fr": "Dépôt",
+			"es": "Repositorio"
+		},
+		"a11y_project_link_case_study": {
+			"en": "{project} case study",
+			"fr": "Étude de cas de {project}",
+			"es": "Caso de estudio de {project}"
+		},
+		"a11y_project_link_website": {
+			"en": "{project} website",
+			"fr": "Site web de {project}",
+			"es": "Sitio web de {project}"
+		},
+		"a11y_project_link_repo": {
+			"en": "{project} repo",
+			"fr": "Dépôt de {project}",
+			"es": "Repositorio de {project}"
+		},
+		"a11y_carousel_position": {
+			"en": "{from} to {to} of {total}",
+			"fr": "{from} à {to} sur {total}",
+			"es": "{from} a {to} de {total}"
+		},
+		"a11y_carousel_position_one": {
+			"en": "{from} of {total}",
+			"fr": "{from} sur {total}",
+			"es": "{from} de {total}"
+		},
+		"services_chrome_listing_stations_aria": {
+			"en": "Services on this page",
+			"fr": "Services sur cette page",
+			"es": "Servicios en esta página"
+		},
+		"services_chrome_detail_other_services_aria": {
+			"en": "Other services",
+			"fr": "Autres services",
+			"es": "Otros servicios"
+		},
+		"a11y_quote_dot": {
+			"en": "Quote {index} of {total}",
+			"fr": "Citation {index} sur {total}",
+			"es": "Cita {index} de {total}"
+		},
+		"a11y_phone_view": {
+			"en": "phone view",
+			"fr": "vue sur téléphone",
+			"es": "vista en el teléfono"
+		},
+		"nav_chrome_menu_group_work": {
+			"en": "WORK",
+			"fr": "TRAVAIL",
+			"es": "TRABAJO"
 		}
 	},
 	"block_about_content_translations": {
@@ -195,6 +455,23 @@
 			"en": "Sleet",
 			"fr": "Grésil",
 			"es": "Aguanieve"
+		},
+		"weather_heading": {
+			"en": "Weather",
+			"fr": "Météo",
+			"es": "Clima"
+		},
+		"cta_heading": {
+			"en": "Get in touch",
+			"fr": "Me joindre",
+			"es": "Ponte en contacto"
+		}
+	},
+	"block_projects_page_content_translations": {
+		"empty_state_no_posts": {
+			"en": "No projects are published yet.",
+			"fr": "Aucun projet n'est encore publié.",
+			"es": "Todavía no hay proyectos publicados."
 		}
 	}
 }

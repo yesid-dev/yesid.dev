@@ -6,7 +6,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import HeroDotAnnotation from './HeroDotAnnotation.svelte';
-	import { CLICK_ME, getLettering } from './annotation-lettering';
+	import { getLettering } from './annotation-lettering';
+	import { siteLabels } from '#lib/content/index.ts';
+	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { Button } from '@yesid/ui/button';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
@@ -45,7 +47,7 @@
 		onReplay?: () => void;
 	} = $props();
 
-	const lettering = getLettering(CLICK_ME[locale]);
+	const lettering = getLettering(resolveLocale(siteLabels.annotation.clickMe, locale));
 	// The dot is glued to the last letter only, so a long last word can still wrap at 200% text.
 	const head = $derived(heading.slice(0, -1));
 	const lastLetter = $derived(heading.slice(-1));

@@ -1,11 +1,25 @@
 import type { BlockEditorDoc } from '@repo/shared';
+import type { Locale } from '#lib/types.ts';
+import { resolveLocale } from '#lib/utils/locale.ts';
+import { siteLabels } from '#lib/content/index.ts';
 
 export type YouTubeVideo = { id: string; caption: string };
 
-export const youtubeLabels = {
-	en: { play: 'Play video', close: 'Close video', title: 'YouTube video', gallery: 'Videos', media: 'Images and videos' },
-	fr: { play: 'Lire la vidéo', close: 'Fermer la vidéo', title: 'Vidéo YouTube', gallery: 'Vidéos', media: 'Images et vidéos' },
-	es: { play: 'Reproducir video', close: 'Cerrar video', title: 'Video de YouTube', gallery: 'Videos', media: 'Imágenes y videos' },
+type YouTubeLabels = { play: string; close: string; title: string; gallery: string; media: string };
+
+const youtubeCopy = (locale: Locale): YouTubeLabels => ({
+	play: resolveLocale(siteLabels.mediaChrome.playVideo, locale),
+	close: resolveLocale(siteLabels.mediaChrome.closeVideo, locale),
+	title: resolveLocale(siteLabels.mediaChrome.youtubeTitle, locale),
+	gallery: resolveLocale(siteLabels.mediaChrome.videos, locale),
+	media: resolveLocale(siteLabels.mediaChrome.imagesAndVideos, locale),
+});
+
+/** Video chrome, resolved from CMS labels (DEV-28 G1). */
+export const youtubeLabels: Record<Locale, YouTubeLabels> = {
+	en: youtubeCopy('en'),
+	fr: youtubeCopy('fr'),
+	es: youtubeCopy('es'),
 };
 
 const NAMED_ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: '\u00a0' };

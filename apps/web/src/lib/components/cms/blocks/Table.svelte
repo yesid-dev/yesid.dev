@@ -1,6 +1,11 @@
 <script lang="ts">
 	import { sanitizeTableCell, stripHtml, type TableBlock } from '@repo/shared';
 	import { parseDocument } from 'htmlparser2';
+	import { siteLabels } from '#lib/content/index.ts';
+	import { resolveLocale } from '#lib/utils/locale.ts';
+	import { getLocale } from '#lib/utils/locale-context.ts';
+
+	const locale = getLocale();
 
 	let { data }: { data: TableBlock['data'] } = $props();
 
@@ -21,7 +26,10 @@
 		return { html, standalone: isStandaloneLink(html) };
 	})));
 	// Name the focusable scroll region from authored copy, in the post's language.
-	const label = $derived(rows[0]?.map(cell => stripHtml(cell.html)).filter(Boolean).join(' · ') || 'Table');
+	const label = $derived(
+		rows[0]?.map(cell => stripHtml(cell.html)).filter(Boolean).join(' · ') ||
+			resolveLocale(siteLabels.ui.tableRegionFallback, locale),
+	);
 </script>
 
 <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to focus this overflow region to scroll it.) -->

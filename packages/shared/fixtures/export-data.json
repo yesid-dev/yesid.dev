@@ -90,7 +90,7 @@
 			"identity": {
 				"name": {"en":"Yesid","fr":"Yesid","es":"Yesid"},
 				"title": {"en":"Curious builder, lifelong tinkerer","fr":"Bâtisseur curieux, bricoleur depuis toujours","es":"Constructor curioso, cacharreador eterno"},
-				"valueProp": {"en":"I'm Yesid, a Montreal builder who likes clear systems and plain explanations. This page reflects a bit of me, feel free to explore :)","fr":"Moi, c'est Yesid : un gars de Montréal qui aime les systèmes clairs et les explications simples. Cette page reflète un peu qui je suis, explore à ta guise :)","es":"Soy Yesid, una persona de Montreal a la que le gustan los sistemas claros y las explicaciones sencillas. Esta página refleja un poco de mí, explora con calma :)"},
+				"valueProp": {"en":"I'm Yesid, a Montreal builder who likes clear systems and plain explanations. This page reflects a bit of me, feel free to explore :)","fr":"Moi, c'est Yesid : un gars de Montréal qui aime les systèmes clairs et les explications simples. Cette page reflète un peu qui je suis, explorez à votre guise :)","es":"Soy Yesid, una persona de Montreal a la que le gustan los sistemas claros y las explicaciones sencillas. Esta página refleja un poco de mí, explora con calma :)"},
 				"headshot": "/images/about/headshot.webp",
 				"polaroids": [
 					{
@@ -296,6 +296,10 @@
 				"buttonLabel": {"en":"Send message →","fr":"Envoyer un message →","es":"Enviar mensaje →"},
 				"buttonHref": "/contact"
 			},
+			"cardHeadings": {
+				"weather": {"en":"Weather","fr":"Météo","es":"Clima"},
+				"cta": {"en":"Get in touch","fr":"Me joindre","es":"Ponte en contacto"}
+			},
 			"stopLabels": {
 				"identity": {"en":"IDENTITY","fr":"IDENTITÉ","es":"IDENTIDAD"},
 				"metrics": {"en":"FUN FACTS","fr":"ANECDOTES","es":"DATOS CURIOSOS"},
@@ -327,7 +331,7 @@
 				"title": "yesid@mtl ~ /info",
 				"command": "$ yesid --info",
 				"location": {"en":"Montreal, QC, Canada","fr":"Montréal, QC, Canada","es":"Montreal, QC, Canadá"},
-				"responseTime": {"en":"~24h response time","fr":"réponse en ~24h","es":"respuesta en ~24h"},
+				"responseTime": {"en":"I usually reply within one business day.","fr":"Je réponds habituellement dans un délai d’un jour ouvrable.","es":"Normalmente respondo en un día hábil."},
 				"languages": {"en":"EN · FR · ES","fr":"EN · FR · ES","es":"EN · FR · ES"},
 				"bestFit": [
 					{"en":"Slow reports that need to be fast","fr":"Des rapports lents qui doivent aller vite","es":"Reportes lentos que deben ser rápidos"},
@@ -336,12 +340,13 @@
 				],
 				"sectionLabels": {
 					"location": {"en":"LOCATION","fr":"EMPLACEMENT","es":"UBICACIÓN"},
-					"connect": {"en":"CONNECT","fr":"CONNEXION","es":"CONECTA"},
+					"connect": {"en":"CONNECT","fr":"ME JOINDRE","es":"CONECTA"},
 					"languages": {"en":"LANGUAGES","fr":"LANGUES","es":"IDIOMAS"},
 					"bestFit": {"en":"BEST FIT","fr":"PROJETS IDÉAUX","es":"PROYECTOS IDEALES"}
 				}
 			},
 			"formTerminal": {
+				"heading": {"en":"Send a message","fr":"Envoyer un message","es":"Enviar un mensaje"},
 				"title": "yesid@mtl ~ /contact",
 				"command": "$ yesid --contact",
 				"commandOutput": {"en":"Opening contact form...","fr":"Ouverture du formulaire de contact...","es":"Abriendo formulario de contacto..."},
@@ -375,8 +380,8 @@
 				"validating": {"en":"Validating fields...","fr":"Validation des champs...","es":"Validando campos..."},
 				"sending": {"en":"Sending your message…","fr":"Envoi du message…","es":"Enviando el mensaje…"},
 				"sent": {"en":"Message sent. Thank you for getting in touch.","fr":"Message envoyé. Merci de m'avoir écrit.","es":"Mensaje enviado. Gracias por escribir."},
-				"responseTime": {"en":"I'll get back to you within 24h","fr":"Je te reviens d'ici 24h","es":"Te respondo en menos de 24h"},
-				"meanwhile": {"en":"Meanwhile, check out my {work} or {blog}","fr":"En attendant, jette un œil à mes {work} ou mon {blog}","es":"Mientras tanto, échale un ojo a mis {work} o a mi {blog}"},
+				"responseTime": {"en":"I usually reply within one business day.","fr":"Je réponds habituellement dans un délai d’un jour ouvrable.","es":"Normalmente respondo en un día hábil."},
+				"meanwhile": {"en":"Meanwhile, check out my {work} or {blog}","fr":"En attendant, jetez un œil à mes {work} ou à mon {blog}","es":"Mientras tanto, échale un ojo a mis {work} o a mi {blog}"},
 				"resetLabel": {"en":"Send another message","fr":"Envoyer un autre message","es":"Enviar otro mensaje"},
 				"fieldOk": {"en":"OK","fr":"OK","es":"OK"},
 				"workLinkLabel": {"en":"work","fr":"services","es":"servicios"},
@@ -417,6 +422,11 @@
 			"ctaWork": {"en":"See how I build","fr":"Vois comment je bâtis","es":"Mira cómo construyo"},
 			"ctaContact": {"en":"Book a call","fr":"Réserver un appel","es":"Agenda una llamada"},
 			"ctaWorkHref": "/projects",
+			"opening": {
+				"sentence": {"en":"Websites and data tools for your business","fr":"Des sites web et des outils de données pour votre entreprise","es":"Sitios web y herramientas de datos para empresas"},
+				"lead": {"en":"I build websites, automate repetitive work and make data easier to use.","fr":"Je crée des sites web, j'automatise les tâches répétitives et je rends les données plus faciles à utiliser.","es":"Creo sitios web, automatizo tareas repetitivas y hago que los datos sean más fáciles de usar."},
+				"ctaProject": {"en":"Tell me about your project","fr":"Parlez-moi de votre projet","es":"Hablar de un proyecto"}
+			},
 			"scene": {
 				"name": {"en":"Montréal metro scene","fr":"Scène du métro de Montréal","es":"Escena del metro de Montreal"},
 				"open": {"en":"Open Montréal metro scene","fr":"Ouvrir la scène du métro de Montréal","es":"Abrir la escena del metro de Montreal"},
@@ -7410,6 +7420,7 @@
 		"projects": [
 			{
 				"slug": "transit-data-pipeline",
+				"cardLine": {"en":"My public dashboard · Montréal and Ottawa","fr":"Mon tableau de bord public · Montréal et Ottawa","es":"Mi panel público · Montreal y Ottawa"},
 				"title": {"en":"Transit","fr":"Transit","es":"Transit"},
 				"oneLiner": {"en":"Is my bus line reliable? A citizen dashboard built on open data.","fr":"Ma ligne d'autobus est-elle fiable? Un tableau de bord citoyen bâti sur des données ouvertes.","es":"¿Mi ruta de bus es confiable? Un tablero ciudadano hecho con datos abiertos."},
 				"description": {
@@ -9479,6 +9490,7 @@
 					},
 					{
 						"title": {"en":"For developers","fr":"Pour les développeurs","es":"Para desarrolladores"},
+						"summary": {"en":"The tools behind each part of Transit, then the tests and the size of the code, dated.","fr":"Les outils derrière chaque partie de Transit, puis les tests et la taille du code, datés.","es":"Las herramientas detrás de cada parte de Transit, y luego las pruebas y el tamaño del código, con fecha."},
 						"content": {
 							"en": {
 								"time": 1794225600000,
@@ -11178,6 +11190,7 @@
 					},
 					{
 						"title": {"en":"For developers","fr":"Pour les développeurs","es":"Para desarrolladores"},
+						"summary": {"en":"How the theme, content, languages, analytics and delivery are built, with the rule that decides whether a product can be bought.","fr":"Comment le thème, le contenu, les langues, l’analytique et la mise en ligne sont construits, avec la règle qui décide si un produit peut être acheté.","es":"Cómo están hechos el tema, el contenido, los idiomas, la analítica y la publicación, con la regla que decide si un producto se puede comprar."},
 						"content": {
 							"en": {
 								"time": 1794312000000,
@@ -20296,6 +20309,16 @@
 		],
 		"siteLabels": {
 			"a11y": {
+				"trainRocket": {"en":"Rocket · tap to land it back into a train","fr":"Fusée · clique pour la reposer en train","es":"Cohete · toca para aterrizarlo de vuelta en tren"},
+				"trainLaunch": {"en":"Train · tap to launch it into a rocket","fr":"Train · clique pour le lancer en fusée","es":"Tren · toca para lanzarlo como cohete"},
+				"opensNewTab": {"en":"(opens in a new tab)","fr":"(s'ouvre dans un nouvel onglet)","es":"(se abre en una pestaña nueva)"},
+				"projectLinkCaseStudy": {"en":"{project} case study","fr":"Étude de cas de {project}","es":"Caso de estudio de {project}"},
+				"projectLinkWebsite": {"en":"{project} website","fr":"Site web de {project}","es":"Sitio web de {project}"},
+				"projectLinkRepo": {"en":"{project} repo","fr":"Dépôt de {project}","es":"Repositorio de {project}"},
+				"carouselPosition": {"en":"{from} to {to} of {total}","fr":"{from} à {to} sur {total}","es":"{from} a {to} de {total}"},
+				"carouselPositionOne": {"en":"{from} of {total}","fr":"{from} sur {total}","es":"{from} de {total}"},
+				"quoteDot": {"en":"Quote {index} of {total}","fr":"Citation {index} sur {total}","es":"Cita {index} de {total}"},
+				"phoneView": {"en":"phone view","fr":"vue sur téléphone","es":"vista en el teléfono"},
 				"animationPause": {"en":"Pause animation","fr":"Mettre l'animation en pause","es":"Pausar la animación"},
 				"animationPlay": {"en":"Play animation","fr":"Relancer l'animation","es":"Reanudar la animación"},
 				"navCapabilities": {"en":"Capabilities","fr":"Capacités","es":"Capacidades"},
@@ -20309,6 +20332,8 @@
 				"technologyStackTemplate": {"en":"Technology stack: {stack}","fr":"Stack technique : {stack}","es":"Stack tecnológico: {stack}"}
 			},
 			"ui": {
+				"diagramFailure": {"en":"The diagram could not be displayed. The explanation is available in the text.","fr":"Le diagramme n'a pas pu s'afficher. L'explication reste disponible dans le texte.","es":"No se pudo mostrar el diagrama. La explicación está disponible en el texto."},
+				"tableRegionFallback": {"en":"Table","fr":"Tableau","es":"Tabla"},
 				"topics": {
 					"ai": {"en":"AI","fr":"IA","es":"IA"},
 					"ai-assisted-development": {"en":"AI-assisted development","fr":"Développement assisté par l’IA","es":"Desarrollo asistido por IA"},
@@ -20355,6 +20380,47 @@
 			},
 			"email": {
 				"contactSubjectTemplate": {"en":"New contact from {name} via yesid.dev","fr":"Nouveau message de {name} via yesid.dev","es":"Nuevo mensaje de {name} vía yesid.dev"}
+			},
+			"mediaChrome": {
+				"dark": {"en":"Dark","fr":"Sombre","es":"Oscuro"},
+				"light": {"en":"Light","fr":"Clair","es":"Claro"},
+				"images": {"en":"Images","fr":"Images","es":"Imágenes"},
+				"previous": {"en":"Previous","fr":"Précédent","es":"Anterior"},
+				"next": {"en":"Next","fr":"Suivant","es":"Siguiente"},
+				"position": {"en":"Position","fr":"Position","es":"Posición"},
+				"enlargeDiagram": {"en":"Enlarge diagram","fr":"Agrandir le diagramme","es":"Ampliar diagrama"},
+				"playVideo": {"en":"Play video","fr":"Lire la vidéo","es":"Reproducir video"},
+				"closeVideo": {"en":"Close video","fr":"Fermer la vidéo","es":"Cerrar video"},
+				"youtubeTitle": {"en":"YouTube video","fr":"Vidéo YouTube","es":"Video de YouTube"},
+				"videos": {"en":"Videos","fr":"Vidéos","es":"Videos"},
+				"imagesAndVideos": {"en":"Images and videos","fr":"Images et vidéos","es":"Imágenes y videos"}
+			},
+			"annotation": {
+				"clickMe": {"en":"click me","fr":"clique ici","es":"haz clic"}
+			},
+			"transit": {
+				"routesOf": {"en":"{value} of {total}","fr":"{value} sur {total}","es":"{value} de {total}"},
+				"stateLive": {"en":"Live","fr":"En direct","es":"En vivo"},
+				"updatedJustNow": {"en":"updated just now","fr":"mis à jour à l'instant","es":"actualizado hace un momento"},
+				"updatedAgo": {"en":"updated {age} ago","fr":"mis à jour il y a {age}","es":"actualizado hace {age}"},
+				"stateHeld": {"en":"Last received {age} ago. New readings are not arriving.","fr":"Dernières données reçues il y a {age}. Les nouvelles lectures n'arrivent pas.","es":"Últimos datos recibidos hace {age}. No llegan lecturas nuevas."},
+				"refresh": {"en":"Refresh","fr":"Actualiser","es":"Actualizar"},
+				"refreshName": {"en":"Refresh Transit data","fr":"Actualiser les données de Transit","es":"Actualizar los datos de Transit"},
+				"refreshing": {"en":"Refreshing","fr":"Actualisation","es":"Actualizando"},
+				"refreshingName": {"en":"Refreshing Transit data","fr":"Actualisation des données de Transit","es":"Actualizando los datos de Transit"},
+				"refreshed": {"en":"Transit data refreshed, updated just now.","fr":"Données de Transit actualisées à l'instant.","es":"Datos de Transit actualizados hace un momento."},
+				"refreshFailedKept": {"en":"Could not refresh. Still showing the reading from {age} ago. Try again.","fr":"Actualisation impossible. La lecture d'il y a {age} reste affichée. Réessayez.","es":"No se pudo actualizar. Sigue la lectura de hace {age}. Inténtalo de nuevo."},
+				"refreshFailedDemo": {"en":"Could not refresh. Live data is still unavailable; the demonstration stays. Try again.","fr":"Actualisation impossible. Les données en direct sont toujours indisponibles; la démonstration reste affichée. Réessayez.","es":"No se pudo actualizar. Los datos en vivo siguen sin estar disponibles; se mantiene la demostración. Inténtalo de nuevo."},
+				"seconds": {"en":"{n} seconds","fr":"{n} secondes","es":"{n} segundos"},
+				"second": {"en":"1 second","fr":"1 seconde","es":"1 segundo"},
+				"minutes": {"en":"{n} minutes","fr":"{n} minutes","es":"{n} minutos"},
+				"minute": {"en":"1 minute","fr":"1 minute","es":"1 minuto"},
+				"shotAlt": {"en":"Transit's live map of Montréal","fr":"La carte en direct de Transit pour Montréal","es":"El mapa en vivo de Transit para Montreal"}
+			},
+			"projectsCard": {
+				"caseStudy": {"en":"Case study","fr":"Étude de cas","es":"Caso de estudio"},
+				"website": {"en":"Website","fr":"Site web","es":"Sitio web"},
+				"repo": {"en":"Repo","fr":"Dépôt","es":"Repositorio"}
 			},
 			"projectsChrome": {
 				"listing": {
@@ -20464,6 +20530,7 @@
 				"listing": {
 					"heading": {"en":"Services","fr":"Services","es":"Servicios"},
 					"stationLabelTemplate": {"en":"Service {stationNum} / {totalStr}","fr":"Service {stationNum} / {totalStr}","es":"Servicio {stationNum} / {totalStr}"},
+					"stationsAria": {"en":"Services on this page","fr":"Services sur cette page","es":"Servicios en esta página"},
 					"deepDiveLabel": {"en":"Deep dive →","fr":"Voir en détail →","es":"Ver a fondo →"},
 					"stationShortLabels": {
 						"database-engineering": {"en":"Software","fr":"Logiciels","es":"Software"},
@@ -20478,11 +20545,13 @@
 					"deliverablesHeading": {"en":"Typical Deliverables","fr":"Livrables typiques","es":"Entregables típicos"},
 					"relatedProjectsHeading": {"en":"Related Projects","fr":"Projets liés","es":"Proyectos relacionados"},
 					"relatedProjectsNavAria": {"en":"Related projects","fr":"Projets liés","es":"Proyectos relacionados"},
+					"otherServicesAria": {"en":"Other services","fr":"Autres services","es":"Otros servicios"},
 					"serviceNavAria": {"en":"Service navigation","fr":"Navigation des services","es":"Navegación de servicios"},
 					"stackHeading": {"en":"Stack","fr":"Stack","es":"Stack"}
 				}
 			},
 			"navChrome": {
+				"menuGroupWork": {"en":"WORK","fr":"TRAVAIL","es":"TRABAJO"},
 				"directions": {
 					"previous": {"en":"Previous","fr":"Précédent","es":"Anterior"},
 					"next": {"en":"Next","fr":"Suivant","es":"Siguiente"}
@@ -20508,12 +20577,12 @@
 				}
 			},
 			"heroDashboard": {
-				"vehiclesLabel": {"en":"VEHICLES TRACKED","fr":"VÉHICULES SUIVIS","es":"VEHÍCULOS RASTREADOS"},
+				"vehiclesLabel": {"en":"Vehicles tracked","fr":"Véhicules suivis","es":"Vehículos registrados"},
 				"vehiclesSub": {"en":"DEMO · STM-STYLE","fr":"DÉMO · STYLE STM","es":"DEMO · ESTILO STM"},
 				"vehiclesSubLive": {"en":"STM · LIVE","fr":"STM · EN DIRECT","es":"STM · EN VIVO"},
-				"delayLabel": {"en":"AVG DELAY","fr":"RETARD MOYEN","es":"DEMORA MEDIA"},
+				"delayLabel": {"en":"Average delay","fr":"Retard moyen","es":"Retraso medio"},
 				"delaySub": {"en":"{coverage}% COVERAGE","fr":"{coverage}% DE COUVERTURE","es":"{coverage}% DE COBERTURA"},
-				"routesLabel": {"en":"ROUTES LIVE","fr":"LIGNES EN DIRECT","es":"RUTAS EN VIVO"},
+				"routesLabel": {"en":"Routes reporting","fr":"Lignes avec des données","es":"Rutas con datos"},
 				"routesSub": {"en":"OF {total} TOTAL","fr":"SUR {total} AU TOTAL","es":"DE {total} EN TOTAL"}
 			}
 		},
@@ -20522,10 +20591,11 @@
 			"intro": {"en":"Notes on digital infrastructure, databases, and building reliable systems.","fr":"Des notes sur l'infrastructure numérique, les bases de données et la construction de systèmes fiables.","es":"Notas sobre infraestructura digital, bases de datos y cómo construir sistemas confiables."},
 			"personalHeading": {"en":"Personal Corner","fr":"Coin perso","es":"Rincón personal"},
 			"personalIntro": {"en":"Trains, space, tools, and the off-work notes that still shape how I build.","fr":"Trains, espace, outils, et les notes hors mandat qui influencent encore ma façon de bâtir.","es":"Trenes, espacio, herramientas y esas notas por fuera del trabajo que todavía moldean mi manera de construir."},
-			"emptyState": {"en":"No posts found. Try adjusting your filters.","fr":"Aucun article trouvé. Essaie d'ajuster tes filtres.","es":"No se encontraron artículos. Intenta ajustar tus filtros."},
+			"emptyState": {"en":"No posts found. Try adjusting your filters.","fr":"Aucun article trouvé. Essayez d’ajuster vos filtres.","es":"No se encontraron artículos. Intenta ajustar tus filtros."},
 			"emptyStateNoPosts": {"en":"Nothing here yet. New posts are in transit.","fr":"Rien ici pour le moment. Les prochains articles sont en transit.","es":"Nada por aquí todavía. Los nuevos artículos están en tránsito."}
 		},
 		"projectsPage": {
+			"emptyStateNoPosts": {"en":"No projects are published yet.","fr":"Aucun projet n'est encore publié.","es":"Todavía no hay proyectos publicados."},
 			"intro": {"en":"Projects, pipelines, and systems I have built.","fr":"Des projets, des pipelines et des systèmes que j'ai bâtis.","es":"Proyectos, pipelines y sistemas que he construido."},
 			"heading": {"en":"Projects","fr":"Projets","es":"Proyectos"},
 			"emptyState": {"en":"No projects match the selected filters.","fr":"Aucun projet ne correspond aux filtres sélectionnés.","es":"Ningún proyecto coincide con los filtros elegidos."}

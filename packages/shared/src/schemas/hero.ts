@@ -13,6 +13,12 @@ export const HeroContentSchema = z.object({
 	subtitle: LocalizedStringSchema,
 	ctaWork: LocalizedStringSchema,
 	ctaContact: LocalizedStringSchema,
+	/** The offer sentence, the lead and the project CTA (DEV-28 G9). */
+	opening: z.object({
+		sentence: LocalizedStringSchema,
+		lead: LocalizedStringSchema,
+		ctaProject: LocalizedStringSchema,
+	}),
 	ctaWorkHref: z.string(),
 	scene: z.object({ name: LocalizedStringSchema, open: LocalizedStringSchema, close: LocalizedStringSchema }),
 	sqlPanel: z.object({

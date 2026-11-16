@@ -94,13 +94,6 @@
 	} as const;
 	const mediaSizes = $derived(MEDIA_SIZES[placement]);
 
-	// The phone screenshot's description. Proposed copy until the CMS or site labels own it.
-	const PHONE_VIEW = {
-		en: 'phone view',
-		fr: 'vue sur téléphone',
-		es: 'vista en el teléfono',
-	};
-
 	let cardHovered = $state(false);
 
 	let projectServices = $derived(
@@ -113,7 +106,7 @@
 	const servicesLabel = listingChrome.filters.services;
 	const progressLabel = localeCopy[locale].projects.workInProgress;
 	const title = $derived(resolveLocale(project.title, locale));
-	const secondaryAlt = $derived(`${title} ${resolveLocale(PHONE_VIEW, locale)}`);
+	const secondaryAlt = $derived(`${title} ${resolveLocale(siteLabels.a11y.phoneView, locale)}`);
 </script>
 
 <article

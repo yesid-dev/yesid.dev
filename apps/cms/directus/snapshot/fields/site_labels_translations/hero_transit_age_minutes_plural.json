@@ -1,0 +1,49 @@
+{
+  "collection": "site_labels_translations",
+  "field": "hero_transit_age_minutes_plural",
+  "type": "string",
+  "meta": {
+    "collection": "site_labels_translations",
+    "conditions": null,
+    "display": null,
+    "display_options": null,
+    "field": "hero_transit_age_minutes_plural",
+    "group": "grp_home_hero",
+    "hidden": false,
+    "interface": "input",
+    "note": "Age in minutes; {n} placeholder.",
+    "options": null,
+    "readonly": false,
+    "required": false,
+    "searchable": true,
+    "sort": 128,
+    "special": null,
+    "translations": [
+      {
+        "language": "en-US",
+        "translation": "Home / Transit - minutes"
+      }
+    ],
+    "validation": null,
+    "validation_message": null,
+    "width": "half"
+  },
+  "schema": {
+    "name": "hero_transit_age_minutes_plural",
+    "table": "site_labels_translations",
+    "data_type": "character varying",
+    "default_value": null,
+    "max_length": 255,
+    "numeric_precision": null,
+    "numeric_scale": null,
+    "is_nullable": true,
+    "is_unique": false,
+    "is_indexed": false,
+    "is_primary_key": false,
+    "is_generated": false,
+    "generation_expression": null,
+    "has_auto_increment": false,
+    "foreign_key_table": null,
+    "foreign_key_column": null
+  }
+}

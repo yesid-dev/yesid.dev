@@ -1,4 +1,4 @@
-import { migrationCopy } from './copy-migration';
+import { migrationCopy, migrateLegacyExact } from './copy-migration';
 /**
  * Contact-page block fetcher: flat terminal chrome and translated fields
  * recompose the build-time page projection.
@@ -10,6 +10,7 @@ import { fetchBlockSingleton, type BlockRow } from './singleton';
 import {
 	ContactContentSchema,
 	type ContactContent,
+	type LocalizedString,
 } from '@repo/shared';
 import type { FetcherContext } from './types';
 
@@ -82,7 +83,7 @@ export function toContactContent(
 	const bestFit = (['info_best_fit_1', 'info_best_fit_2', 'info_best_fit_3'] as const)
 		.map((field) => toLocalizedString(tr, field))
 		.filter((line) => line.en.trim());
-	return {
+	const content: ContactContent = {
 		...toLocalizedFields(tr, [
 			['pageTitle', 'page_title'], ['stationLabel', 'station_label'],
 			['sendErrorMessage', 'send_error_message'],
@@ -108,6 +109,7 @@ export function toContactContent(
 			noScript: migrationCopy(tr, 'block_contact_content_translations', 'form_no_script'),
 			title: str(raw.form_terminal_title),
 			command: str(raw.form_terminal_command),
+			heading: migrationCopy(tr, 'block_contact_content_translations', 'form_heading'),
 			...toLocalizedFields(tr, [['commandOutput', 'form_command_output']]),
 			fields: {
 				name: {
@@ -144,6 +146,45 @@ export function toContactContent(
 		socials,
 		web3formsKey: str(raw.web3forms_key),
 	};
+
+	// DEV-28 G14-G16: the rebuilt pages used to override these CMS columns in the
+	// frontend. Publish the approved words at the data boundary and keep the
+	// captured legacy values working until the CMS rows are written; any other
+	// editor value wins per locale.
+	const replyTimeApproved: LocalizedString = {
+		en: 'I usually reply within one business day.',
+		fr: 'Je réponds habituellement dans un délai d’un jour ouvrable.',
+		es: 'Normalmente respondo en un día hábil.',
+	};
+	content.infoTerminal.responseTime = migrateLegacyExact(
+		content.infoTerminal.responseTime,
+		{ en: '~24h response time', fr: 'réponse en ~24h', es: 'respuesta en ~24h' },
+		replyTimeApproved,
+	);
+	content.success.responseTime = migrateLegacyExact(
+		content.success.responseTime,
+		{ en: "I'll get back to you within 24h", fr: "Je te reviens d'ici 24h", es: 'Te respondo en menos de 24h' },
+		replyTimeApproved,
+	);
+	content.infoTerminal.sectionLabels.connect = migrateLegacyExact(
+		content.infoTerminal.sectionLabels.connect,
+		{ en: 'CONNECT', fr: 'CONNEXION', es: 'CONECTA' },
+		{ en: 'CONNECT', fr: 'ME JOINDRE', es: 'CONECTA' },
+	);
+	content.success.meanwhile = migrateLegacyExact(
+		content.success.meanwhile,
+		{
+			en: 'Meanwhile, check out my {work} or {blog}',
+			fr: 'En attendant, jette un œil à mes {work} ou mon {blog}',
+			es: 'Mientras tanto, échale un ojo a mis {work} o a mi {blog}',
+		},
+		{
+			en: 'Meanwhile, check out my {work} or {blog}',
+			fr: 'En attendant, jetez un œil à mes {work} ou à mon {blog}',
+			es: 'Mientras tanto, échale un ojo a mis {work} o a mi {blog}',
+		},
+	);
+	return content;
 }
 
 export async function fetchContactContent({ client }: FetcherContext): Promise<ContactContent> {

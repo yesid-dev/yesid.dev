@@ -29,19 +29,16 @@ const WORK_HREFS: readonly string[] = ['/services', '/projects'];
 /** Opening a channel, including the client workspace. */
 const CONNECT_HREFS: readonly string[] = [CLIENT_LOGIN_URL, '/contact'];
 
-/**
- * Only the Work group has no copy in the CMS yet: this code fallback carries it, in the existing
- * label pattern, until a menu group label field exists (CMS follow-up, no invented facts).
- */
-const WORK_LABEL = { en: 'WORK', fr: 'TRAVAIL', es: 'TRABAJO' } as const;
-
 const hrefKey = (href: string): string => href.trim().replace(/\/+$/, '').toLowerCase();
 
-/** The group headings: the footer's own localized group names where they exist, plus Work. */
+/**
+ * The group headings: Work from site_labels (CMS-primary, DEV-28 G28), Explore and Connect from
+ * the footer's own localized group names.
+ */
 export function menuGroupLabels(locale: Locale): Record<MenuGroupKey, string> {
 	const footer = siteLabels.footerChrome.footer;
 	return {
-		work: resolveLocale(WORK_LABEL, locale),
+		work: resolveLocale(siteLabels.navChrome.menuGroupWork, locale),
 		explore: resolveLocale(footer.exploreLabel, locale),
 		connect: resolveLocale(footer.connectLabel, locale),
 	};

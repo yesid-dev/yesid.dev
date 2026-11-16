@@ -2,7 +2,6 @@
 // /about, with the same headings, no STOP badges and no glow, so both surfaces look alike.
 import { test, expect } from '@playwright/test';
 import { aboutPageContent } from '../src/lib/content/about-page';
-import { aboutLabels } from '../src/lib/components/about/about-copy';
 import { sentenceCase } from '../src/lib/components/about/about-copy';
 import { resolveLocale } from '../src/lib/utils/locale';
 
@@ -29,7 +28,7 @@ for (const locale of locales) {
 		expect(headings).toEqual([
 			sentenceCase(resolveLocale(aboutPageContent.stopLabels.clients, locale), locale),
 			sentenceCase(resolveLocale(aboutPageContent.stopLabels.stack, locale), locale),
-			sentenceCase(resolveLocale(aboutLabels.weatherHeading, locale), locale),
+			sentenceCase(resolveLocale(aboutPageContent.cardHeadings.weather, locale), locale),
 			sentenceCase(resolveLocale(aboutPageContent.stopLabels.interests, locale), locale),
 		]);
 
@@ -53,7 +52,7 @@ for (const locale of locales) {
 
 		// Weather stays empty on the home (`weather={null}`) and reads its own heading.
 		const weather = teaser.getByTestId('about-weather');
-		await expect(weather.getByRole('heading', { level: 2 })).toHaveText(sentenceCase(resolveLocale(aboutLabels.weatherHeading, locale), locale));
+		await expect(weather.getByRole('heading', { level: 2 })).toHaveText(sentenceCase(resolveLocale(aboutPageContent.cardHeadings.weather, locale), locale));
 		await expect(weather).not.toContainText('°C');
 
 		// The biography and the more link stay as they are.

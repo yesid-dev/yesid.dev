@@ -1,7 +1,6 @@
 <!-- Shared conversion band with localized content and per-surface test IDs. -->
 <script lang="ts">
-	import { ctaContent, heroContent, siteMeta } from '#lib/content/index.ts';
-	import { homeLabels } from '#lib/components/home/home-labels.ts';
+	import { ctaContent, heroContent, siteMeta, siteLabels } from '#lib/content/index.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
 	import { Button } from '@yesid/ui/button';
 	import { Separator } from '@yesid/ui/separator';
@@ -32,9 +31,9 @@
 	const subtitle = $derived(resolveLocale(ctaContent.subtitle, locale));
 	const contactLabel = $derived(resolveLocale(ctaContent.ctaContact, locale));
 	const githubLabel = $derived(resolveLocale(ctaContent.ctaGithub, locale));
-	const projectLabel = $derived(resolveLocale(homeLabels.hero.ctaProject, locale));
+	const projectLabel = $derived(resolveLocale(heroContent.opening.ctaProject, locale));
 	const bookingLabel = $derived(resolveLocale(heroContent.ctaContact, locale));
-	const newTabLabel = $derived(resolveLocale(homeLabels.hero.newTab, locale));
+	const newTabLabel = $derived(` ${resolveLocale(siteLabels.a11y.opensNewTab, locale)}`);
 </script>
 
 <!-- Registered sections suppress this edge rule; legacy callers retain their own divider. -->

@@ -14,8 +14,11 @@ import {
 	switchedOffLocales,
 	toLocalizedBlockEditorDoc,
 	toLocalizedFields,
+	toLocalizedStringOrUndef,
 	withoutLocales,
 } from '../locale';
+import { migrationCopyFor } from './copy-migration';
+import { projectCardLineFallback, projectSectionSummaryFallback } from './row-copy';
 import type { BlockEditorDoc } from '@repo/shared';
 import { ProjectSchema } from '@repo/shared/schemas';
 import type { ImpactMetric, Project, ProjectSection, ProjectStatus } from '@repo/shared';
@@ -26,6 +29,7 @@ export interface DirectusProjectTranslation {
 	show_on_site?: boolean | null;
 	title?: string | null;
 	one_liner?: string | null;
+	card_line?: string | null;
 	description?: BlockEditorDoc | null;
 }
 
@@ -33,6 +37,7 @@ export interface DirectusProjectSectionTranslation {
 	languages_code: string;
 	title?: string | null;
 	content?: BlockEditorDoc | null;
+	summary?: string | null;
 }
 
 export interface DirectusProjectSectionRow {
@@ -122,10 +127,18 @@ export function toProject(row: DirectusProject): Project {
 	const hidden = switchedOffLocales(row.translations);
 	const translations = withoutLocales(row.translations, hidden);
 
-	const sections: ProjectSection[] = mapLocalizedRepeater(row.sections, (s) => ({
-		...toLocalizedFields(withoutLocales(s.translations, hidden), ['title']),
-		content: toLocalizedBlockEditorDoc(withoutLocales(s.translations, hidden), 'content'),
-	}));
+	const sections: ProjectSection[] = mapLocalizedRepeater(row.sections, (s) => {
+		const sectionTranslations = withoutLocales(s.translations, hidden);
+		const summaryFallback = projectSectionSummaryFallback[String(s.id)];
+		const summary = summaryFallback
+			? migrationCopyFor(sectionTranslations, 'summary', summaryFallback)
+			: toLocalizedStringOrUndef(sectionTranslations, 'summary');
+		return {
+			...toLocalizedFields(sectionTranslations, ['title']),
+			content: toLocalizedBlockEditorDoc(sectionTranslations, 'content'),
+			...(summary ? { summary } : {}),
+		};
+	});
 
 	const impactMetrics: ImpactMetric[] = mapLocalizedRepeater(row.impact_metrics, (m) => {
 		const metric: ImpactMetric = {
@@ -148,6 +161,15 @@ export function toProject(row: DirectusProject): Project {
 		relatedServices: (row.services ?? []).map((j) => j.service_id),
 		sections,
 	};
+
+	// DEV-28 G11.1: the card line belongs to the project's own translation rows.
+	// Transit's approved sentence is its fallback; other projects only carry what
+	// the CMS actually stores.
+	const cardLineFallback = projectCardLineFallback[row.id];
+	const cardLine = cardLineFallback
+		? migrationCopyFor(translations, 'card_line', cardLineFallback)
+		: toLocalizedStringOrUndef(translations, 'card_line');
+	if (cardLine) project.cardLine = cardLine;
 
 	if (row.repo_url) project.repoUrl = row.repo_url;
 	if (row.repo_private) project.repoPrivate = true;

@@ -6,7 +6,7 @@
 	import { Card } from '@yesid/ui/card';
 	import { SliderButton } from '@yesid/ui/brand';
 	import AboutCardHeading from './AboutCardHeading.svelte';
-	import { aboutLabels } from './about-copy.ts';
+	import { siteLabels } from '#lib/content/index.ts';
 
 	const locale = getLocale();
 
@@ -49,7 +49,7 @@
 
 	// Each dot names its slide ("Quote 2 of 3"); the shown one is current (D-M6).
 	function showSlideAria(index: number): string {
-		return fillTemplate(resolveLocale(aboutLabels.quoteDotAria, locale), {
+		return fillTemplate(resolveLocale(siteLabels.a11y.quoteDot, locale), {
 			index: String(index + 1),
 			total: String(testimonials.length),
 		});

@@ -21,7 +21,6 @@
 	import { SliderButton } from '@yesid/ui/brand';
 	import { equalizeRows } from '#lib/utils/equalize-rows.ts';
 	import HomeProjectCard from './HomeProjectCard.svelte';
-	import { homeLabels } from './home-labels.ts';
 	import { cardsPerView, stepStart } from './carousel-position.ts';
 
 	const locale = getLocale();
@@ -56,8 +55,8 @@
 	const last = $derived(Math.min(total, first + perView));
 	const position = $derived(
 		perView > 1 && last - first > 1
-			? fillTemplate(resolveLocale(homeLabels.projects.positionRange, locale), { from: String(first + 1), to: String(last), total: String(total) })
-			: fillTemplate(resolveLocale(homeLabels.projects.positionOne, locale), { from: String(first + 1), total: String(total) }),
+			? fillTemplate(resolveLocale(siteLabels.a11y.carouselPosition, locale), { from: String(first + 1), to: String(last), total: String(total) })
+			: fillTemplate(resolveLocale(siteLabels.a11y.carouselPositionOne, locale), { from: String(first + 1), total: String(total) }),
 	);
 
 	function cards(): HTMLElement[] {

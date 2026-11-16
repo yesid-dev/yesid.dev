@@ -11,13 +11,12 @@
 	const locale = getLocale();
 	import { Card } from '@yesid/ui/card';
 	import { variantImage } from '#lib/utils/variant-image.ts';
-	import { aboutIntro } from './about-copy.ts';
 
 	let { identity }: { identity: AboutIdentity } = $props();
 
 	const name = $derived(resolveLocale(identity.name, locale));
 	const title = $derived(resolveLocale(identity.title, locale));
-	const valueProp = $derived(aboutIntro(identity.valueProp, locale));
+	const valueProp = $derived(resolveLocale(identity.valueProp, locale));
 	const headshotMedia = $derived(variantImage(identity.headshot));
 </script>
 

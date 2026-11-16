@@ -24,6 +24,8 @@ export const ContactInfoTerminalSchema = z.object({
 export const ContactFormTerminalSchema = z.object({
 	title: z.string(),
 	command: z.string(),
+	/** Screen-reader-only form heading (DEV-28 G17). */
+	heading: LocalizedStringSchema,
 	commandOutput: LocalizedStringSchema,
 	requiredGuidance: LocalizedStringSchema,
 	noScript: LocalizedStringSchema,

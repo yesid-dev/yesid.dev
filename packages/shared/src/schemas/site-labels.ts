@@ -41,6 +41,22 @@ export const SiteLabelsSchema = z.object({
 		architectureDiagram: LocalizedStringSchema,
 		photoCredit: LocalizedStringSchema.optional(),
 		technologyStackTemplate: LocalizedStringSchema,
+		/** Train/rocket toy accessible names on About (DEV-28 G2). */
+		trainRocket: LocalizedStringSchema,
+		trainLaunch: LocalizedStringSchema,
+		/** Suffix announced after a link that opens a new tab (DEV-28 G10). */
+		opensNewTab: LocalizedStringSchema,
+		/** Accessible names of a project card's own links (DEV-28 G12). */
+		projectLinkCaseStudy: LocalizedStringSchema,
+		projectLinkWebsite: LocalizedStringSchema,
+		projectLinkRepo: LocalizedStringSchema,
+		/** Home carousel position, plural view and single view (DEV-28 G12). */
+		carouselPosition: LocalizedStringSchema,
+		carouselPositionOne: LocalizedStringSchema,
+		/** Accessible name of an About quote dot; placeholders {index} and {total}. */
+		quoteDot: LocalizedStringSchema,
+		/** Project card phone-screenshot description appended after the title. */
+		phoneView: LocalizedStringSchema,
 	}),
 	ui: z.object({
 		topics: z.object({
@@ -72,6 +88,10 @@ export const SiteLabelsSchema = z.object({
 		 *  (go2/w5 taste-2; replaces the two-row in-frame legend). */
 		metroCaption: LocalizedStringSchema,
 		terminalTitle: LocalizedStringSchema,
+		/** Accessible fallback of a diagram that could not render (DEV-28 G4). */
+		diagramFailure: LocalizedStringSchema,
+		/** Accessible name of a table's scroll region when it has no text cells (DEV-28 G6). */
+		tableRegionFallback: LocalizedStringSchema,
 		/** Listing result-count, per-locale singular/plural ({count} placeholder). */
 		resultCount: z.object({
 			singular: LocalizedStringSchema,
@@ -94,6 +114,51 @@ export const SiteLabelsSchema = z.object({
 	}),
 	email: z.object({
 		contactSubjectTemplate: LocalizedStringSchema,
+	}),
+	/** Article and project media chrome, shared by galleries and the lightbox (DEV-28 G1). */
+	mediaChrome: z.object({
+		dark: LocalizedStringSchema,
+		light: LocalizedStringSchema,
+		images: LocalizedStringSchema,
+		previous: LocalizedStringSchema,
+		next: LocalizedStringSchema,
+		position: LocalizedStringSchema,
+		enlargeDiagram: LocalizedStringSchema,
+		playVideo: LocalizedStringSchema,
+		closeVideo: LocalizedStringSchema,
+		youtubeTitle: LocalizedStringSchema,
+		videos: LocalizedStringSchema,
+		imagesAndVideos: LocalizedStringSchema,
+	}),
+	/** Hand-drawn annotation caption (DEV-28 G5). The glyph set stays in code. */
+	annotation: z.object({
+		clickMe: LocalizedStringSchema,
+	}),
+	/** Home Transit card words (DEV-28 G11); figures stay runtime-owned. */
+	transit: z.object({
+		routesOf: LocalizedStringSchema,
+		stateLive: LocalizedStringSchema,
+		updatedJustNow: LocalizedStringSchema,
+		updatedAgo: LocalizedStringSchema,
+		stateHeld: LocalizedStringSchema,
+		refresh: LocalizedStringSchema,
+		refreshName: LocalizedStringSchema,
+		refreshing: LocalizedStringSchema,
+		refreshingName: LocalizedStringSchema,
+		refreshed: LocalizedStringSchema,
+		refreshFailedKept: LocalizedStringSchema,
+		refreshFailedDemo: LocalizedStringSchema,
+		seconds: LocalizedStringSchema,
+		second: LocalizedStringSchema,
+		minutes: LocalizedStringSchema,
+		minute: LocalizedStringSchema,
+		shotAlt: LocalizedStringSchema,
+	}),
+	/** Project card action labels, shared by Home and the listing (DEV-28 G12). */
+	projectsCard: z.object({
+		caseStudy: LocalizedStringSchema,
+		website: LocalizedStringSchema,
+		repo: LocalizedStringSchema,
 	}),
 	// --- slice-30 t1: CMS chrome groups --------------------------------------
 	// Recompose flat CMS columns into stable chrome groups consumed from
@@ -180,6 +245,8 @@ export const SiteLabelsSchema = z.object({
 			heading: LocalizedStringSchema,
 			stationLabelTemplate: LocalizedStringSchema,
 			deepDiveLabel: LocalizedStringSchema,
+			/** Accessible name of the station strip (DEV-28 G18). */
+			stationsAria: LocalizedStringSchema,
 			/** Compact station-tab labels keyed by service id — short forms for the
 			 *  horizontal tab rail (the full titles are too long). */
 			stationShortLabels: z.object({
@@ -198,9 +265,13 @@ export const SiteLabelsSchema = z.object({
 			relatedProjectsNavAria: LocalizedStringSchema,
 			serviceNavAria: LocalizedStringSchema,
 			stackHeading: LocalizedStringSchema,
+			/** Accessible name of the previous/next links at the end of a service page (DEV-28 G18). */
+			otherServicesAria: LocalizedStringSchema,
 		}),
 	}),
 	navChrome: z.object({
+		/** Grouped-menu "Work" heading; Explore and Connect reuse the footer labels (DEV-28 G28). */
+		menuGroupWork: LocalizedStringSchema,
 		// Former navDirections shape.
 		directions: z.object({
 			previous: LocalizedStringSchema,

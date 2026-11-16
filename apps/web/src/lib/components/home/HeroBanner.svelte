@@ -23,12 +23,11 @@
 		type HeroData,
 		type LiveHeroSnapshot,
 	} from '#lib/live/index.ts';
-	import type { HeroContent, HeroAnimContent, ProjectSummary } from '#lib/types.ts';
+	import type { HeroContent, HeroAnimContent, LocalizedString, ProjectSummary } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
-	import { homeLabels } from './home-labels.ts';
 
 	const locale = getLocale();
 	import MetroNetwork from '#lib/motion/svg/MetroNetwork.svelte';
@@ -59,19 +58,19 @@
 		const size = (90 / len + 0.5) / 0.6;
 		return Math.min(8, Math.max(4, size)).toFixed(2);
 	});
-	const heading = resolveLocale(homeLabels.hero.heading, locale);
-	const lead = resolveLocale(homeLabels.hero.lead, locale);
-	const ctaProjectLabel = resolveLocale(homeLabels.hero.ctaProject, locale);
+	const heading = $derived(resolveLocale(heroContent.opening.sentence, locale));
+	const lead = $derived(resolveLocale(heroContent.opening.lead, locale));
+	const ctaProjectLabel = $derived(resolveLocale(heroContent.opening.ctaProject, locale));
 	const bookingLabel = $derived(resolveLocale(heroContent.ctaContact, locale));
-	const newTabLabel = resolveLocale(homeLabels.hero.newTab, locale);
+	const newTabLabel = ` ${resolveLocale(siteLabels.a11y.opensNewTab, locale)}`;
 	// Seed once from the prop, then let refreshes own the local data.
 	let heroData: HeroData = $state(untrack(() => INITIAL_HERO_DATA));
 	// LIVE labels require real transit data; simulated values must retain DEMO labels.
 	let live = $state(false);
 	let readingState = $state<ReadingState>('demo');
 	const regenerateLabel = $derived(resolveLocale(heroContent.refreshButton.label, locale));
-	const t = homeLabels.transit;
-	const words = (value: { en: string; fr: string; es: string }) => resolveLocale(value, locale);
+	const t = siteLabels.transit;
+	const words = (value: LocalizedString) => resolveLocale(value, locale);
 
 	const sceneWords = $derived({
 		name: resolveLocale(heroContent.scene.name, locale),
@@ -123,11 +122,11 @@
 		if (refreshFailed && readingState === 'failure') return { text: words(t.refreshFailedDemo) };
 		if (readingState === 'live') {
 			return {
-				word: words(t.live),
+				word: words(t.stateLive),
 				text: ageSeconds < 10 ? words(t.updatedJustNow) : fillTemplate(words(t.updatedAgo), { age }),
 			};
 		}
-		if (readingState === 'held') return { text: fillTemplate(words(t.held), { age }) };
+		if (readingState === 'held') return { text: fillTemplate(words(t.stateHeld), { age }) };
 		if (readingState === 'failure') return { text: resolveLocale(heroContent.sqlPanel.failure, locale) };
 		return {
 			text: `${resolveLocale(heroContent.sqlPanel.liveLabel, locale)}. ${resolveLocale(heroContent.refreshButton.helper, locale)}`,

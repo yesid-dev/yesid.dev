@@ -10,6 +10,7 @@
  */
 
 import { toLocalizedFields } from '../locale';
+import { migrationCopy, migrateLegacyExact } from './copy-migration';
 import { fetchBlockSingleton } from './singleton';
 import {
 	BlogPageContentSchema,
@@ -35,11 +36,28 @@ interface BlogPageRow {
 }
 
 export function toBlogPageContent(row: BlogPageRow): BlogPageContent {
-	return toLocalizedFields(row.translations ?? [], [
+	const content: BlogPageContent = toLocalizedFields(row.translations ?? [], [
 		'heading', 'intro', ['personalHeading', 'personal_heading'],
 		['personalIntro', 'personal_intro'], ['emptyState', 'empty_state'],
 		['emptyStateNoPosts', 'empty_state_no_posts'],
 	]);
+	// DEV-28 G26.1: the listing used to rewrite the French match message in the
+	// component. Move the approved vous wording to the data boundary, matching
+	// only the captured legacy sentence; any other CMS wording wins.
+	content.emptyState = migrateLegacyExact(
+		content.emptyState,
+		{
+			en: 'No posts found. Try adjusting your filters.',
+			fr: "Aucun article trouvé. Essaie d'ajuster tes filtres.",
+			es: 'No se encontraron artículos. Intenta ajustar tus filtros.',
+		},
+		{
+			en: 'No posts found. Try adjusting your filters.',
+			fr: 'Aucun article trouvé. Essayez d’ajuster vos filtres.',
+			es: 'No se encontraron artículos. Intenta ajustar tus filtros.',
+		},
+	);
+	return content;
 }
 
 export async function fetchBlogPageContent({ client }: FetcherContext): Promise<BlogPageContent> {
@@ -65,9 +83,17 @@ interface ProjectsPageRow {
 }
 
 export function toProjectsPageContent(row: ProjectsPageRow): ProjectsPageContent {
-	return toLocalizedFields(row.translations ?? [], [
-		'intro', 'heading', ['emptyState', 'empty_state'],
-	]);
+	const translations = row.translations ?? [];
+	return {
+		...toLocalizedFields(translations, [
+			'intro', 'heading', ['emptyState', 'empty_state'],
+		]),
+		emptyStateNoPosts: migrationCopy(
+			translations,
+			'block_projects_page_content_translations',
+			'empty_state_no_posts',
+		),
+	};
 }
 
 export async function fetchProjectsPageContent({
