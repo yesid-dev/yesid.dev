@@ -120,7 +120,7 @@ describe('Home page', () => {
 		expect(screen.getByTestId('app-root').textContent).not.toMatch(/SELECT|avg_delay_s/);
 	});
 
-	it('ends every section but the last with the kit dimension line, none before the footer', () => {
+	it('ends every section but the last with the kit drawn line, none before the footer', () => {
 		renderPage();
 		const sections = screen.getByTestId('home-sections');
 		const registered = sections.querySelectorAll('[data-slot="page-section"]');
@@ -128,8 +128,8 @@ describe('Home page', () => {
 		expect(registered).toHaveLength(7);
 		expect(boundaries).toHaveLength(registered.length - 1);
 		expect(sections.lastElementChild).toBe(screen.getByTestId('home-section-terminus'));
-		// Every boundary is the dimension line, and nothing else sits between two sections.
-		for (const boundary of boundaries) expect(boundary).toHaveAttribute('data-variant', 'dimension');
+		// Every boundary is the drawn line, and nothing else sits between two sections.
+		for (const boundary of boundaries) expect(boundary).toHaveAttribute('data-variant', 'hand-drawn');
 		for (const child of sections.children) {
 			expect(child.matches('[data-slot="page-section"], [data-slot="page-section-boundary"]')).toBe(true);
 		}

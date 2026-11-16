@@ -160,7 +160,7 @@
 	class="w-full"
 	style={accentColor !== 'var(--accent)' ? `--accent: ${accentColor};` : ''}
 >
-	<ListingFrame
+	<ListingFrame clipAtHeader={false} rule="hazard"
 		resultCountText={filterCountText(filteredPosts.length, countLabel, locale)}
 		{heading}
 		edgeTitle={resolveLocale(siteLabels.pages.blogEdgeTitle, locale)}

@@ -1,7 +1,8 @@
 // The contact page rebuilt from the owner-reviewed preview D-M4 (DEV-40): the kit's RailTitle,
-// dimension line and street edge, the phone order, the hover without halo, and CSP.
+// solid yellow rule and hazard edge, the phone order, the hover without halo, and CSP.
 import { test, expect } from '@playwright/test';
 import { visibleContactTerminal } from './_support/helpers';
+import { tokenColor } from './_support/token-color';
 
 const blockExternal = async (page: import('@playwright/test').Page) =>
 	page.route('https://**/*', (route) => route.abort());
@@ -106,22 +107,29 @@ for (const path of ['/contact', '/fr/contact', '/es/contact']) {
 }
 
 for (const width of [390, 1440]) {
-	test(`the dimension line sits under both title bars, and no divider before the footer at ${width}`, async ({ page }) => {
+	test(`the solid yellow rule sits under both title bars, and no divider before the footer at ${width}`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await blockExternal(page);
 		await page.goto('/contact');
 		for (const id of ['contact-info-terminal', 'contact-form-terminal']) {
 			const panel = page.getByTestId(id);
-			const rule = panel.locator('[data-variant="dimension"]');
-			await expect(rule).toHaveCount(1);
-			const bar = (await panel.locator('.terminal-titlebar').boundingBox())!;
-			const line = (await rule.boundingBox())!;
-			expect(Math.abs(line.y - (bar.y + bar.height))).toBeLessThanOrEqual(1);
-			expect(line.width).toBeGreaterThan(bar.width - 2);
+			await expect(panel).toHaveClass(/terminal-rule-line/);
+			await expect(panel.locator(':scope > .terminal-rule')).toHaveCount(0);
+			const bar = panel.locator(':scope > .terminal-titlebar');
+			await expect(bar).toHaveCSS('border-bottom-width', '1px');
+			await expect(bar).toHaveCSS('border-bottom-style', 'solid');
+			await expect(bar).toHaveCSS('border-bottom-color', await tokenColor(page, 'var(--accent)'));
+			const barBox = (await bar.boundingBox())!;
+			const panelBox = (await panel.boundingBox())!;
+			const borders = await panel.evaluate(el => {
+				const style = getComputedStyle(el);
+				return parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+			});
+			expect(barBox.width, 'the yellow border spans the complete inner panel width').toBeCloseTo(panelBox.width - borders, 1);
 		}
 		await expect(page.locator('main [data-slot="page-section-boundary"]')).toHaveCount(0);
 		await expect(page.locator('main [data-variant="hazard"], main .hazard-tape')).toHaveCount(0);
-		await expect(page.locator('[data-slot="footer-street-edge"]')).toHaveCount(1);
+		await expect(page.locator('[data-slot="footer-hazard-edge"]')).toHaveCount(1);
 	});
 }
 

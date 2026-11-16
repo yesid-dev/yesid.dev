@@ -2,13 +2,13 @@ import { test, expect } from '@playwright/test';
 import { fixturePostPath } from './_support/content-fixtures';
 
 for (const theme of ['light', 'dark']) {
- test(`footer street edge and terminus fit in ${theme}`, async ({ page }) => {
+ test(`footer hazard edge and terminus fit in ${theme}`, async ({ page }) => {
   await page.addInitScript(theme => localStorage.setItem('theme', theme), theme);
   for (const width of [320, 390, 768, 1024, 1440, 1920]) {
    await page.setViewportSize({ width, height: 900 });
    await page.goto('/');
    await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
-   const edge = page.locator('[data-slot="footer-street-edge"]');
+   const edge = page.locator('[data-slot="footer-hazard-edge"]');
    await edge.scrollIntoViewIfNeeded();
    await expect(edge).toBeVisible();
    const geometry = await edge.evaluate(el => {
@@ -20,7 +20,7 @@ for (const theme of ['light', 'dark']) {
    });
    expect(geometry.left).toBe(0);
    expect(geometry.right).toBe(width);
-   expect(geometry.height).toBe(4);
+   expect(geometry.height).toBe(3);
    expect(geometry.sceneAbove).toBe(true);
    expect(geometry.background).not.toBe('none');
    expect(geometry.overflow).toBe(false);

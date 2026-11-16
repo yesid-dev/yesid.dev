@@ -31,7 +31,7 @@
 	<div class="relative flex flex-col">
 		<AboutCardHeading text={heading} />
 
-		<TerminalPanel title={terminalTitle} rule="dimension" class="mt-3">
+		<TerminalPanel title={terminalTitle} rule="line" class="mt-3">
 			<ul class="contact-lines font-mono text-reading-code leading-[1.6] lg:text-reading-code-desktop" data-testid="about-contact-lines">
 				{#each lines as line}
 					{#if line.kind === 'link'}

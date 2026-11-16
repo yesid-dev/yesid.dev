@@ -207,10 +207,10 @@ test.describe('dividers and the closing band', () => {
 			const last = page.locator('main [data-slot="page-section"]').last();
 			await expect(last.getByTestId(/cta-band$/)).toBeVisible();
 			await expect(last.getByRole('link', { name: /./ }).first()).toBeVisible();
-			// Nothing drawn between the band and the footer's street edge.
+			// Nothing drawn between the band and the footer's hazard edge.
 			const gap = await page.evaluate(() => {
 				const band = [...document.querySelectorAll('main [data-slot="page-section"]')].at(-1)!.getBoundingClientRect();
-				const edge = document.querySelector('[data-slot="footer-street-edge"]')!.getBoundingClientRect();
+				const edge = document.querySelector('[data-slot="footer-hazard-edge"]')!.getBoundingClientRect();
 				const visible = [...document.querySelectorAll('[data-slot="separator"], [data-slot="page-section-boundary"]')].filter((el) => {
 					const box = el.getBoundingClientRect();
 					return box.height > 0 && getComputedStyle(el).display !== 'none' && box.top >= band.top - 1 && box.bottom <= edge.top + 1;

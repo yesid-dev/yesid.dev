@@ -227,7 +227,7 @@
 		<!-- Footer wrapper: z-footer paints over the fixed rail (z-rail) -->
 		<div class="relative z-footer">
 
-			<SiteFooter
+			<SiteFooter edge="hazard"
 				brand={footerBrand}
 				tagline={resolveLocale(footer.tagline, locale).replace(/^\/\/\s*/, '')}
 				groups={[

@@ -1,6 +1,7 @@
 // DEV-41: the editorial pages rebuilt from the reviewed previews D-M2 (case study) and D-M3 (article).
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { fixturePostPath } from './_support/content-fixtures';
+import { tokenColor } from './_support/token-color';
 
 const transit = '/projects/transit-data-pipeline';
 const cafe = '/projects/cafe-arona';
@@ -25,19 +26,9 @@ const box = (locator: Locator) => locator.evaluate(el => {
 	return { left: r.left, right: r.right, width: r.width, top: r.top, bottom: r.bottom };
 });
 
-/** The computed colour of a CSS colour expression, through a probe element. */
-const tokenColor = (page: Page, value: string) => page.evaluate(value => {
-	const probe = document.createElement('span');
-	probe.style.color = value;
-	document.body.append(probe);
-	const color = getComputedStyle(probe).color;
-	probe.remove();
-	return color;
-}, value);
-
-/** Visible hazard-tape separators inside the page (the dimension line is the only divider). */
+/** Visible tape or ruler backgrounds inside the page; drawn pen strokes are allowed. */
 const visibleHazards = (page: Page) => page.locator('main').evaluate(main =>
-	[...main.querySelectorAll<HTMLElement>('[data-slot="separator"]:not(.dimension-line)')].filter(el => {
+	[...main.querySelectorAll<HTMLElement>('[data-slot="separator"]:not(.hand-drawn-line)')].filter(el => {
 		const style = getComputedStyle(el);
 		return el.getClientRects().length > 0 && style.display !== 'none' && style.backgroundImage.includes('repeating-linear-gradient');
 	}).length);
@@ -129,16 +120,17 @@ test.describe('header, counters and dividers', () => {
 	});
 
 	for (const [name, path, boundaries] of [['case study', transit, 1], ['article', article, 0]] as const) {
-		test(`the ${name} uses the dimension line and draws none before the footer`, async ({ page }) => {
+		test(`the ${name} uses the drawn line and draws none before the footer`, async ({ page }) => {
 			await open(page, path, 1440);
-			await expect(page.locator('[data-slot="detail-shell"] > .detail-shell-dimension')).toBeVisible();
+			await expect(page.getByTestId('detail-header-rule')).toBeVisible();
+			await expect(page.getByTestId('detail-header-rule')).toHaveClass(/hand-drawn-line/);
 			expect(await visibleHazards(page)).toBe(0);
 			const boundary = page.locator('[data-slot="page-section-boundary"]');
 			await expect(boundary).toHaveCount(boundaries);
 			const geometry = await page.evaluate(() => {
 				const sections = [...document.querySelectorAll('[data-slot="page-section"]')];
 				const last = sections.at(-1)!.getBoundingClientRect();
-				const lines = [...document.querySelectorAll('.dimension-line')].filter(el => el.getClientRects().length > 0);
+				const lines = [...document.querySelectorAll('.hand-drawn-line')].filter(el => el.getClientRects().length > 0);
 				return {
 					linesBelowLast: lines.filter(el => el.getBoundingClientRect().top >= last.bottom - 1).length,
 					lastIsTheEnd: sections.at(-1)!.nextElementSibling === null,
@@ -154,13 +146,14 @@ test.describe('header, counters and dividers', () => {
 		});
 	}
 
-	test('Café Arona’s code panel uses the dimension line under its title', async ({ page }) => {
+	test('Café Arona’s code panel uses a solid yellow title rule without tape or ticks', async ({ page }) => {
 		await page.addInitScript(() => localStorage.setItem('sections-choice', 'expanded'));
 		await open(page, cafe, 1440);
-		const rule = page.locator('[data-slot="terminal-panel"] .terminal-rule').first();
-		await rule.scrollIntoViewIfNeeded();
-		await expect(rule).toBeVisible();
-		await expect(rule).toHaveClass(/dimension-line/);
+		const terminal = page.locator('[data-slot="terminal-panel"]').first();
+		await terminal.scrollIntoViewIfNeeded();
+		await expect(terminal).toHaveClass(/terminal-rule-line/);
+		await expect(terminal.locator(':scope > .terminal-rule')).toHaveCount(0);
+		await expect(terminal.locator(':scope > .terminal-titlebar')).toHaveCSS('border-bottom-color', await tokenColor(page, 'var(--accent)'));
 		expect(await visibleHazards(page)).toBe(0);
 	});
 });

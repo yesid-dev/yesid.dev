@@ -98,7 +98,7 @@ for (const width of [390, 1440]) {
 		});
 		const last = layout.children.at(-1)!;
 		expect(last.slot).toBe('page-section');
-		// Nothing drawn between Terminus and the footer: the footer's street edge closes the page.
+		// Nothing drawn between Terminus and the footer: the footer's hazard edge closes the page.
 		expect(layout.footer.top - last.box.bottom).toBeLessThanOrEqual(1);
 		await expect(page.locator('main [data-slot="separator"]:not([data-variant="dimension"])').filter({ visible: true })).toHaveCount(0);
 	});

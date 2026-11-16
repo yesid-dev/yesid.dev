@@ -228,7 +228,7 @@
 		<StationTabs {services} activeId={service.id} mode="navigate" />
 	</div>
 
-	<PageSections>
+	<PageSections divider="hand-drawn">
 		<PageSection class="service-hero-section" aria-labelledby="service-detail-title">
 			<div class="hero-area">
 				<a

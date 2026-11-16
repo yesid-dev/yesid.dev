@@ -110,9 +110,9 @@
 		<StationTabs services={sorted} {activeId} mode="scroll" onSelect={handleStationSelect} />
 	</div>
 
-	<PageSections>
+	<PageSections divider="hand-drawn">
 		<PageSection class="services-list-section" aria-labelledby="services-heading">
-			<RailTitle
+			<RailTitle clipAtHeader={false}
 				{heading}
 				level={1}
 				titleId="services-heading"

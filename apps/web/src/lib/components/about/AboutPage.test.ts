@@ -223,11 +223,10 @@ describe('AboutPage', () => {
 		expect(container.textContent).not.toMatch(/\b(STOP|ARRÊT|PARADA)\s*\d/);
 		const headings = [...container.querySelectorAll('h2')].map((el) => el.textContent?.trim());
 		expect(headings).toEqual(['Fun facts', 'Quotes', 'Core beliefs', 'Education', 'Languages', 'Interests', 'Snapshots', 'Weather', 'Get in touch']);
-		// No hazard tape: the only rule on the page is the dimension line under the terminal title bar.
+		// The terminal's own yellow border replaces its separate ruler element.
 		const rules = [...container.querySelectorAll('[data-slot="separator"]')];
-		expect(rules).toHaveLength(1);
-		expect(rules[0]).toHaveAttribute('data-variant', 'dimension');
-		expect(rules[0].closest('[data-testid="about-cta"]')).not.toBeNull();
+		expect(rules).toHaveLength(0);
+		expect(container.querySelector('[data-testid="about-cta"] [data-slot="terminal-panel"]')).toHaveClass('terminal-rule-line');
 		expect(container.querySelectorAll('[data-slot="page-section-boundary"]')).toHaveLength(0);
 	});
 

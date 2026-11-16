@@ -26,22 +26,22 @@ async function open(page: Page, locale: Locale) {
 const runningWeather = (page: Page) =>
 	page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running' && /weather-/.test((a as CSSAnimation).animationName)).length);
 
-test('the page is one section with no divider, no hazard tape and no stop labels', async ({ page }) => {
+test('the page is one section without extra rulers or stop labels', async ({ page }) => {
 	await open(page, 'en');
 	const about = page.getByTestId('page-about');
 	await expect(about).toHaveAttribute('data-slot', 'page-section');
 	await expect(page.locator('main [data-slot="page-section-boundary"]')).toHaveCount(0);
-	// The only rule in main is the dimension line under the terminal title bar.
+	// The terminal's own yellow border replaces its separate ruler element.
 	const rules = page.locator('main [data-slot="separator"]');
-	await expect(rules).toHaveCount(1);
-	await expect(rules).toHaveAttribute('data-variant', 'dimension');
+	await expect(rules).toHaveCount(0);
+	await expect(page.locator('main [data-slot="terminal-panel"]')).toHaveClass(/terminal-rule-line/);
 	await expect(page.locator('main [data-slot="stop-label"]')).toHaveCount(0);
 	await expect(page.locator('main')).not.toContainText(/\bSTOP\s+\d/);
 	// The h1 reads in sentence case in the reading ink.
 	const h1 = page.locator('h1');
 	await expect(h1).toHaveText(resolveLocale(aboutPageContent.identity.title, 'en'));
 	expect(await h1.evaluate((el) => getComputedStyle(el).textTransform)).toBe('none');
-	await expect(page.locator('[data-slot="footer-street-edge"]')).toHaveCount(1);
+	await expect(page.locator('[data-slot="footer-hazard-edge"]')).toHaveCount(1);
 });
 
 for (const locale of LOCALES)
