@@ -54,7 +54,16 @@ for (const [width, locale, theme, text] of cases) {
       await page.screenshot({ path: process.env.HOME_EVIDENCE_DIR + `/booking-${theme}.png` });
      }
     }
-   } else await expect(page.locator('.service-card h2')).toHaveCount(4);
+   } else {
+    await expect(page.locator('.service-card h2')).toHaveCount(4);
+    if (text === 100) {
+     const padding = await page.locator('[data-testid^="service-deep-dive-"]').evaluateAll(buttons => buttons.map(button => {
+      const style = getComputedStyle(button);
+      return [style.paddingTop, style.paddingBottom];
+     }));
+     expect(padding, 'listing actions retain their original CTA padding while labels can wrap').toEqual(Array.from({ length: 4 }, () => ['12px', '12px']));
+    }
+   }
    if (process.env.HOME_EVIDENCE_DIR && text === 100 && [390,1440].includes(width)) {
     await cards.first().scrollIntoViewIfNeeded();
     await page.screenshot({ path: process.env.HOME_EVIDENCE_DIR + `/${route ? 'services' : 'home'}-${width}-${theme}.png` });
