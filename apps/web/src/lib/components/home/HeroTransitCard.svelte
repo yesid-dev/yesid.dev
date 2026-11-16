@@ -12,7 +12,7 @@
 	import { getLocale, intl } from '#lib/utils/locale-context.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
 	import ProjectHeroPreview from '#lib/components/projects/ProjectHeroPreview.svelte';
-	import HomeProjectLinks from './HomeProjectLinks.svelte';
+	import ProjectCardLinks from '#lib/components/shared/ProjectCardLinks.svelte';
 	import { homeLabels } from './home-labels.ts';
 
 	export type ReadingState = 'demo' | 'live' | 'held' | 'failure';
@@ -128,7 +128,7 @@
 
 	{#if project}
 		<div class="hero-transit__foot">
-			<HomeProjectLinks {project} />
+			<ProjectCardLinks {project} />
 		</div>
 	{/if}
 </Card>

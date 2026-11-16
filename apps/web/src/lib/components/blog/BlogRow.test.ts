@@ -1,10 +1,9 @@
-import { siteLabels } from '#lib/content/site-labels.ts';
 import { describe, it, expect } from 'vitest';
 import { render } from '@testing-library/svelte';
 import BlogRow from './BlogRow.svelte';
 import type { BlogPost } from '#lib/types.ts';
 
-// Minimal BlogPost fixture for testing — only required fields populated
+// Minimal BlogPost fixture for testing: only required fields populated
 const makePost = (overrides?: Partial<BlogPost>): BlogPost => ({
 	translationKey: 'test-post',
 	slug: 'test-post',
@@ -53,20 +52,26 @@ describe('BlogRow', () => {
 		expect(getByText('2025-01-15')).toBeTruthy();
 	});
 
-	it('renders the language chip beside the date, not inside the topic tags', () => {
-		const en = render(BlogRow, { props: { post: makePost({ lang: 'en' }) } });
-		const metaRow = en.getByTestId('blog-meta-row');
-		expect(metaRow.textContent).toContain('2025-01-15');
-		expect(en.getByTestId('blog-lang-chip').textContent?.trim()).toBe(siteLabels.ui.languageNames.en.en);
-		expect(metaRow.querySelector('[data-testid="blog-lang-chip"]')).toBeTruthy();
-		expect(en.container.querySelector('[data-testid="blog-topic-tags"] [data-testid="blog-lang-chip"]')).toBeNull();
-		en.unmount();
-
-		const fr = render(BlogRow, {
-			props: { post: makePost({ lang: 'en' }) },
-			context: new Map([[Symbol.for('@yesid/ui/locale'), () => 'fr']]),
+	it('shows no language chip and includes all visible row text in its accessible name', () => {
+		const { getByRole, queryByTestId } = render(BlogRow, {
+			props: { post: makePost({ lang: 'en' }) }
 		});
-		expect(fr.getByTestId('blog-lang-chip').textContent?.trim()).toBe(siteLabels.ui.languageNames.en.fr);
+
+		expect(queryByTestId('blog-lang-chip')).toBeNull();
+
+		const row = getByRole('link');
+		expect(row).toHaveAccessibleName(
+			'Test Post Title 2025-01-15 A short excerpt for testing purposes. sql postgres',
+		);
+	});
+
+	it('keeps long tags allowed to wrap on a narrow screen', () => {
+		const { container } = render(BlogRow, {
+			props: { post: makePost({ tags: ['donnees-de-transport-collectif'] }) }
+		});
+		const tag = container.querySelector('.blog-topic-tag');
+		expect(tag?.className).toContain('whitespace-normal');
+		expect(tag?.className).toContain('max-w-full');
 	});
 
 	it('localizes internal post urls from the post language, independent of the listing context', () => {

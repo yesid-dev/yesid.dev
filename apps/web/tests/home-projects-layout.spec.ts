@@ -36,12 +36,16 @@ async function expectWholeCards(reel: Locator) {
 
 async function expectMediaAboveInfo(card: Locator) {
 	const split = await card.evaluate(element => {
-		const listingInfo = element.querySelector('[data-testid="project-card-info"]');
+		const listingBody = element.querySelector('[data-testid="project-card-body"]');
 		// A home card's information runs from its title to its links.
 		const head = element.querySelector('[data-testid="proof-card-head"]');
 		const links = element.querySelector('[data-testid="proof-card-links"]');
-		const info = listingInfo
-			? listingInfo.getBoundingClientRect().toJSON()
+		const info = listingBody
+			? (() => {
+					const body = listingBody.getBoundingClientRect();
+					const foot = element.querySelector('[data-testid="project-card-links"]')!.getBoundingClientRect();
+					return { top: body.top, bottom: foot.bottom, height: foot.bottom - body.top };
+				})()
 			: (() => {
 				const top = head!.getBoundingClientRect().top, bottom = links!.getBoundingClientRect().bottom;
 				return { top, bottom, height: bottom - top };
@@ -50,9 +54,12 @@ async function expectMediaAboveInfo(card: Locator) {
 			card: element.getBoundingClientRect().toJSON(),
 			media: element.querySelector('[data-testid$="card-image"]')!.getBoundingClientRect().toJSON(),
 			info,
+			listing: Boolean(listingBody),
 		};
 	});
-	expect(split.media.height, `the media never takes more room than the info: ${JSON.stringify(split)}`).toBeLessThanOrEqual(split.info.height + 2);
+	if (!split.listing) {
+		expect(split.media.height, `the media never takes more room than the info: ${JSON.stringify(split)}`).toBeLessThanOrEqual(split.info.height + 2);
+	}
 	expect(split.media.top).toBeGreaterThanOrEqual(split.card.top - 1);
 	expect(split.media.bottom).toBeLessThanOrEqual(split.info.top + 1);
 	expect(split.info.bottom).toBeLessThanOrEqual(split.card.bottom + 1);
@@ -214,7 +221,10 @@ test('the shared project listing stays readable', async ({ page }) => {
 	const cards = page.getByTestId('project-card');
 	await expect(cards.first()).toBeVisible();
 	for (const card of await cards.all()) {
-		await expect(card.getByRole('link', { name: (await card.getByRole('heading').innerText()).trim(), exact: true })).toHaveAttribute('href', /^\/projects\/[^/]+$/);
+		const title = (await card.getByRole('heading').innerText()).trim();
+		await expect(card.getByTestId('project-card-case-study')).toHaveAttribute('href', /^\/projects\/[^/]+$/);
+		await expect(card.getByTestId('project-card-case-study')).toHaveAccessibleName(`${title} case study`);
+		expect(await card.evaluate(element => element.closest('a') === null), 'the card itself is not one stretched link').toBe(true);
 		await expectImagesFitPanes(card);
 		await expectMediaAboveInfo(card);
 		await expectPanesSideBySide(card);
@@ -249,17 +259,18 @@ test('a test-owned single-visual project stays whole and readable in the listing
 	await expectImagesFitPanes(card);
 });
 
-test('a project card opens from its link and its service labels', async ({ page }) => {
+test('a project card opens from its Case study link and keeps every link keyboard reachable', async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/projects');
 	const card = page.getByTestId('project-card').filter({ has: page.getByTestId('project-card-service') }).first();
-	const link = card.getByRole('link', { name: (await card.getByRole('heading').innerText()).trim(), exact: true });
+	const link = card.getByTestId('project-card-case-study');
 	const href = await link.getAttribute('href');
-	await card.getByTestId('project-card-service').first().click({ force: true });
+	await link.click();
 	await expect(page.getByTestId('project-detail-page')).toBeVisible();
 	expect(new URL(page.url()).pathname).toBe(href);
 	await page.goto('/projects');
 	await link.focus();
+	await expect(link).toBeFocused();
 	await page.keyboard.press('Enter');
 	await expect(page.getByTestId('project-detail-page')).toBeVisible();
 });

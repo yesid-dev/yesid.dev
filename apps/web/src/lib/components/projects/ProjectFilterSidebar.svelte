@@ -50,6 +50,7 @@
 			{allLabel}
 			allowDeselect={true}
 			collapsible={true}
+			selectedStyle="consistent"
 			onSelect={(key) => onServiceSelect(key)}
 			testIdPrefix="service-filter"
 		/>
@@ -66,6 +67,7 @@
 				allowDeselect={true}
 				collapsible={true}
 				startOpen={false}
+				selectedStyle="consistent"
 				onSelect={(key) => onStackSelect(key)}
 				testIdPrefix="stack-filter"
 			/>

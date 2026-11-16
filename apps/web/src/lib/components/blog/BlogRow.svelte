@@ -4,16 +4,14 @@
 <script lang="ts">
 	import { topicLabel } from "#lib/utils/blog-topics.ts";
 	import type { BlogPost } from '#lib/types.ts';
-	import { boop, cursorGlow, magnetic } from '@yesid/motion/actions';
+	import { boop, magnetic } from '@yesid/motion/actions';
 	import { pointerHover } from '#lib/motion/actions/pointerHover.ts';
 	import { Badge } from '@yesid/ui/badge';
 	import SvgIcon from '#lib/components/brand/SvgIcon.svelte';
 	import { Card } from '@yesid/ui/card';
 	import { cn } from '@yesid/ui/cn';
-	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
-	import { siteLabels } from '#lib/content/index.ts';
 
 	const locale = getLocale();
 
@@ -38,9 +36,6 @@
 
 	let cardHovered = $state(false);
 
-	let languageName = $derived(resolveLocale(siteLabels.ui.languageNames[post.lang], locale) || post.lang);
-	let languageAria = $derived(`${resolveLocale(siteLabels.blogChrome.listing.filters.language, locale)}: ${languageName}`);
-
 	let iconSize = 64;
 </script>
 
@@ -55,56 +50,44 @@
 	use:pointerHover={(hovering) => (cardHovered = hovering)}
 	{...rest}
 >
-	<div use:cursorGlow>
-		<Card interactive class="blog-row p-5 md:p-6" style="--blog-row-accent: {accentColor};">
-			<!-- SVG icon -->
-			{#if svgContent}
-				<div class="blog-row-icon relative z-10">
-					<SvgIcon
-						{svgContent}
-						animation={post.animation}
-						size={iconSize}
-						trigger="load"
-						hovered={cardHovered}
-					/>
-				</div>
-			{/if}
+	<Card interactive class="blog-row p-5 md:p-6" style="--blog-row-accent: {accentColor};">
+		<!-- SVG icon -->
+		{#if svgContent}
+			<div class="blog-row-icon relative z-10">
+				<SvgIcon
+					{svgContent}
+					animation={post.animation}
+					size={iconSize}
+					trigger="load"
+					hovered={cardHovered}
+				/>
+			</div>
+		{/if}
 
-			<!-- Content -->
-			<div class="blog-row-body relative z-10 min-w-0">
-				<div class="blog-row-head">
-					<h2 class="blog-row-title font-semibold text-[var(--foreground)] transition-colors duration-300 group-hover:text-[var(--accent-text)]">
-						{post.title}
-					</h2>
-					<div class="blog-meta-row" data-testid="blog-meta-row">
-
-						<time datetime={post.date} class="blog-date">
-							{post.date}
-						</time>
-						<Badge
-							variant="outline"
-							size="xs"
-							data-testid="blog-lang-chip"
-							class="blog-language-chip"
-							aria-label={languageAria}
-						>
-							{languageName}
-						</Badge>
-					</div>
-				</div>
-				<p class="blog-excerpt mt-2 leading-relaxed text-[var(--secondary-foreground)]">
-					{post.excerpt}
-				</p>
-				<div class="blog-topic-tags mt-3 flex flex-wrap items-center gap-2" data-testid="blog-topic-tags">
-					{#each post.tags as tag}
-						<span use:magnetic={{ strength: 2, radius: 30 }}>
-							<Badge class="blog-topic-tag" variant="tag-active" size="xs" style="border-color: color-mix(in srgb, {accentColor} 30%, transparent); background: color-mix(in srgb, {accentColor} 15%, transparent); color: {accentColor}">{topicLabel(tag, locale)}</Badge>
-						</span>
-					{/each}
+		<!-- Content -->
+		<div class="blog-row-body relative z-10 min-w-0">
+			<div class="blog-row-head">
+				<h2 class="blog-row-title font-semibold text-[var(--foreground)] transition-colors duration-300 group-hover:text-[var(--primary)]">
+					{post.title}
+				</h2>
+				<div class="blog-meta-row" data-testid="blog-meta-row">
+					<time datetime={post.date} class="blog-date">
+						{post.date}
+					</time>
 				</div>
 			</div>
-		</Card>
-	</div>
+			<p class="blog-excerpt mt-2 leading-relaxed text-[var(--secondary-foreground)]">
+				{post.excerpt}
+			</p>
+			<div class="blog-topic-tags mt-3 flex flex-wrap items-center gap-2" data-testid="blog-topic-tags">
+				{#each post.tags as tag}
+					<span use:magnetic={{ strength: 2, radius: 30 }} class="max-w-full min-w-0">
+						<Badge class="blog-topic-tag max-w-full min-w-0 whitespace-normal" variant="tag-active" size="xs" style="border-color: color-mix(in srgb, {accentColor} 30%, transparent); background: color-mix(in srgb, {accentColor} 15%, transparent); color: {accentColor}">{topicLabel(tag, locale)}</Badge>
+					</span>
+				{/each}
+			</div>
+		</div>
+	</Card>
 </a>
 
 <style>
@@ -164,26 +147,19 @@
 		margin-top: 0.75rem;
 	}
 
+	/* Publication dates read as metadata, not as a highlight (owner, 15 November). */
 	.blog-date {
 		font-family: var(--font-mono);
 		font-size: var(--text-card-meta);
 		line-height: 1;
-		color: var(--accent-text);
+		color: var(--secondary-foreground);
 	}
 
 	:global(.blog-topic-tag) {
 		font-size: var(--text-tag);
 		letter-spacing: 0;
-	}
-
-	:global(.blog-language-chip) {
-		border-color: var(--accent-text);
-		background: var(--accent-surface);
-		color: var(--accent-text);
-		font-size: var(--text-micro);
-		font-weight: 800;
-		letter-spacing: 0;
-		text-transform: uppercase;
+		text-align: left;
+		overflow-wrap: anywhere;
 	}
 
 	@media (--tablet-min) {

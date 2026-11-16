@@ -63,19 +63,22 @@ test('rail text has no scroll mask and retains the supported layout', async ({ p
 	}
 });
 
-test('a product-owned project link keeps its ring and raises its enclosing card @theme', async ({ page }) => {
-	await open(page, '/');
-	const card = page.getByTestId('proof-card').first();
-	const link = card.getByRole('link').first();
-	await card.scrollIntoViewIfNeeded();
-	const shadow = await card.evaluate(el => getComputedStyle(el).boxShadow);
-	for (const motion of ['no-preference', 'reduce'] as const) {
-		await page.emulateMedia({ reducedMotion: motion });
-		await page.keyboard.press('Tab');
-		await link.focus();
-		await expect(link).toBeFocused();
-		await expect(link).toHaveCSS('outline-width', '2px');
-		await expect(card).toHaveCSS('transform', motion === 'reduce' ? 'none' : 'matrix(1, 0, 0, 1, 0, -1)');
-		await expect(card).toHaveCSS('box-shadow', shadow);
-	}
-});
+for (const [path, testId] of [['/', 'proof-card'], ['/projects', 'project-card']] as const) {
+	test(`${path}: a product-owned project link keeps its ring and raises its enclosing card @theme`, async ({ page }) => {
+		await open(page, path);
+		const wrapper = page.getByTestId(testId).first();
+		const card = path === '/projects' ? wrapper.locator('[data-slot="card"]') : wrapper;
+		const link = card.getByRole('link').first();
+		await card.scrollIntoViewIfNeeded();
+		const shadow = await card.evaluate(el => getComputedStyle(el).boxShadow);
+		for (const motion of ['no-preference', 'reduce'] as const) {
+			await page.emulateMedia({ reducedMotion: motion });
+			await page.keyboard.press('Tab');
+			await link.focus();
+			await expect(link).toBeFocused();
+			await expect(link).toHaveCSS('outline-width', '2px');
+			await expect(card).toHaveCSS('transform', motion === 'reduce' ? 'none' : 'matrix(1, 0, 0, 1, 0, -1)');
+			await expect(card).toHaveCSS('box-shadow', shadow);
+		}
+	});
+}

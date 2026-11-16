@@ -19,8 +19,8 @@ test.skip(({ viewport }) => viewport!.width < 1024, 'Desktop composition or view
 //   - Filter changes call goto({replaceState:true}) asynchronously; networkidle does
 //     NOT wait for the client history update, so we assert with toHaveURL (auto-retry).
 //   - Clear control = FilterSummary button labelled "clear filters" (lowercase).
-//   - Blog sidebar: language group renders only "All" + "English" (no FR posts exist,
-//     so languagesFromPosts === ['en']); tag items have NO testIdPrefix and use
+//   - Blog sidebar: date range and tags only (the redundant one-choice language
+//     group was removed for DEV-15); tag items have NO testIdPrefix and use
 //     role="radio" (bits-ui ToggleGroup), so they're targeted via button.filter-btn.
 //   - ListingFrame renders each sidebar once, inside .listing-filter-column (always
 //     shown from 1024px, behind a toggle below it). Every sidebar/item locator below

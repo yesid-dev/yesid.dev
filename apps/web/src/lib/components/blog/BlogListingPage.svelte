@@ -1,16 +1,17 @@
 <script lang="ts">
-	import { isEntityAvailable } from '#lib/catalog/availability.ts';
 	import { browser } from '$app/env';
 	import { page } from '$app/state';
 	import { gotoPreservingScroll } from '#lib/utils/navigation-focus.ts';
-	import type { BlogPost, Locale } from '#lib/types.ts';
+	import type { BlogPost } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { localizeHref } from '#lib/utils/locale-routing.ts';
 
 	const locale = getLocale();
 	import { siteLabels } from '#lib/content/index.ts';
 	import { captureFlipState, animateFlipTransition } from '#lib/motion/utils/flip.ts';
 	import { blueprintScrub } from '@yesid/motion/utils/blueprintScrub';
+	import { tick } from 'svelte';
 	import BlogRow from './BlogRow.svelte';
 	import BlogFilterSidebar from './BlogFilterSidebar.svelte';
 	import BlogBlueprint from './BlogBlueprint.svelte';
@@ -22,7 +23,6 @@
 	let {
 		posts,
 		allTags,
-		languages = [],
 		heading,
 		subtitle,
 		emptyState,
@@ -33,7 +33,6 @@
 	}: {
 		posts: readonly BlogPost[];
 		allTags: readonly string[];
-		languages?: readonly Locale[];
 		heading: string;
 		subtitle: string;
 		emptyState: string;
@@ -52,30 +51,22 @@
 	};
 	const clearLabel = resolveLocale(siteLabels.navChrome.shared.clearFiltersLabel, locale);
 
-	// Prerendering cannot read query parameters, so URL filters apply after hydration.
+	// The CMS still carries the earlier "tu" form of the French match message; the owner approved
+	// "vous". This bridge goes when blog_page_content.empty_state holds it (CMS follow-up).
+	const FR_MATCH_VOUS = 'Aucun article trouvé. Essayez d’ajuster vos filtres.';
+	const matchEmptyText = $derived(
+		locale === 'fr' && emptyState.includes('Essaie') ? FR_MATCH_VOUS : emptyState
+	);
+
+	// Prerendering cannot read query parameters, so the tag filter applies after hydration.
 	let activeTag = $derived(browser ? page.url.searchParams.get('tag') : null);
-	const activeLang = persisted<Locale | null>('blog-lang', null); // null = show all languages
 	const searchQuery = persisted('blog-q', '');
 	const dateFrom = persisted('blog-from', '');
 	const dateTo = persisted('blog-to', '');
-	const compatibleLang = $derived(
-		activeLang.value && languages.includes(activeLang.value) ? activeLang.value : null,
-	);
 
-	$effect(() => {
-		if (activeLang.value && !languages.includes(activeLang.value)) {
-			activeLang.value = null;
-		}
-	});
-
-	// Apply all filters
+	// Apply all filters. The route loader already hands the list only its own locale's posts.
 	let filteredPosts = $derived.by(() => {
 		let result = [...posts];
-
-		// Language filter
-		if (compatibleLang) {
-			result = result.filter((post) => isEntityAvailable({ kind: 'post', entity: post }, compatibleLang));
-		}
 
 		// Tag filter
 		if (activeTag) {
@@ -112,26 +103,24 @@
 		} else {
 			url.searchParams.delete('tag');
 		}
-		gotoPreservingScroll(url.toString(), { replaceState: true });
+		return gotoPreservingScroll(url.toString(), { replaceState: true });
 	}
 
-	function handleLangSelect(lang: Locale | null) {
-		flipState = captureFlipState();
-		activeLang.value = lang;
-	}
-
-	function clearFilters() {
+	async function clearFilters() {
 		flipState = captureFlipState();
 		searchQuery.value = '';
 		dateFrom.value = '';
 		dateTo.value = '';
-		activeLang.value = null;
-		handleTagSelect(null);
+		await handleTagSelect(null);
+		// The search field is where "clear filters" returns the visitor (DEV-15).
+		await tick();
+		searchRef?.focus();
 	}
+
+	let searchRef = $state<HTMLInputElement | null>(null);
 
 	let hasActiveFilters = $derived(
 		!!activeTag ||
-			!!compatibleLang ||
 			searchQuery.value.trim() !== '' ||
 			dateFrom.value !== '' ||
 			dateTo.value !== ''
@@ -151,7 +140,7 @@
 
 <!--
   Shared blog listing layout used by BOTH /blog (professional) and /blog/personal.
-  Parameterized by category — no category logic inside, just renders what it's given.
+  Parameterized by category: no category logic inside, just renders what it's given.
   ListingFrame owns the header, search, collapsible filter panel and results column.
 -->
 
@@ -160,13 +149,14 @@
 	class="w-full"
 	style={accentColor !== 'var(--accent)' ? `--accent: ${accentColor};` : ''}
 >
-	<ListingFrame clipAtHeader={false} rule="hazard"
+	<ListingFrame clipAtHeader={false}
 		resultCountText={filterCountText(filteredPosts.length, countLabel, locale)}
 		{heading}
-		edgeTitle={resolveLocale(siteLabels.pages.blogEdgeTitle, locale)}
+		edgeTitle={heading}
 		{subtitle}
 		onHeaderMount={blueprintScrub}
 		filterLabel={mobileFiltersLabel}
+		rule="hazard"
 	>
 		{#snippet blueprint()}
 			<BlogBlueprint />
@@ -177,22 +167,46 @@
 				label={searchPlaceholder}
 				placeholder={searchPlaceholder}
 				bind:value={searchQuery.value}
+				bind:ref={searchRef}
+				textSize="body"
 				testId="blog-search-sidebar"
 			/>
+			{#if cornerLink}
+				<!-- Phones show the corner link under the search, clear of the closed panel. -->
+				<div class="blog-corner blog-corner--phone">
+					<a
+						href={localizeHref(cornerLink.href, locale)}
+						class="blog-corner__link"
+						style="border-color: {cornerLink.href.includes('personal') ? 'var(--accent)' : 'var(--primary)'}; color: {cornerLink.href.includes('personal') ? 'var(--accent)' : 'var(--primary)'};"
+					>
+						{cornerLink.label}
+					</a>
+					<p class="blog-corner__sub">{cornerLink.subtitle}</p>
+				</div>
+			{/if}
 		{/snippet}
 
 		{#snippet filters()}
 			<BlogFilterSidebar
 				tags={allTags}
-				languages={languages}
 				activeTag={activeTag}
-				activeLang={compatibleLang}
-				cornerLink={cornerLink}
 				onTagSelect={handleTagSelect}
-				onLangSelect={handleLangSelect}
 				bind:dateFrom={dateFrom.value}
 				bind:dateTo={dateTo.value}
 			/>
+			{#if cornerLink}
+				<!-- Desktop keeps the corner link at the foot of the filter column, as today. -->
+				<div class="blog-corner blog-corner--sidebar mt-5 divider-dashed pt-3">
+					<a
+						href={localizeHref(cornerLink.href, locale)}
+						class="blog-corner__link"
+						style="border-color: {cornerLink.href.includes('personal') ? 'var(--accent)' : 'var(--primary)'}; color: {cornerLink.href.includes('personal') ? 'var(--accent)' : 'var(--primary)'};"
+					>
+						{cornerLink.label}
+					</a>
+					<p class="blog-corner__sub">{cornerLink.subtitle}</p>
+				</div>
+			{/if}
 		{/snippet}
 
 		{#if hasActiveFilters}
@@ -208,7 +222,11 @@
 		{#if filteredPosts.length === 0}
 			<!-- Two empty states: "your filters matched nothing" vs "this section has
 			     no posts at all" (blaming filters that don't exist reads as a bug). -->
-			<StateNotice role="status" title={hasActiveFilters ? emptyState : emptyStateNoPosts} data-testid="blog-empty-state" />
+			<StateNotice
+				role="status"
+				title={posts.length === 0 ? emptyStateNoPosts : matchEmptyText}
+				data-testid="blog-empty-state"
+			/>
 		{:else}
 			<div class="flex flex-col gap-4" data-ripple-exempt>
 				{#each filteredPosts as post (post.slug)}
@@ -225,5 +243,40 @@
 </div>
 
 <style>
+	.blog-corner--phone {
+		display: none;
+		margin-top: 0.75rem;
+	}
 
+	.blog-corner__link {
+		display: flex;
+		width: 100%;
+		min-height: 44px;
+		align-items: center;
+		gap: 0.375rem;
+		border: 1px solid;
+		border-radius: var(--radius-sm);
+		padding: 0.375rem 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-decoration: none;
+	}
+
+	.blog-corner__sub {
+		margin-top: 0.25rem;
+		padding-left: 0.5rem;
+		font-size: 0.875rem;
+		font-style: italic;
+		color: var(--muted-foreground);
+	}
+
+	@media (max-width: 1023.98px) {
+		.blog-corner--phone {
+			display: block;
+		}
+
+		.blog-corner--sidebar {
+			display: none;
+		}
+	}
 </style>

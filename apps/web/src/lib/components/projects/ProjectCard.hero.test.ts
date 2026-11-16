@@ -40,7 +40,8 @@ describe('ProjectCard hero media', () => {
 		expect(images).toHaveLength(2);
 		expect(images[0]?.getAttribute('src')).toBe('/test-assets/desktop-light-uuid?key=card-600');
 		expect(images[1]?.getAttribute('src')).toBe('/test-assets/mobile-light-uuid?key=card-600');
-		expect(images[0]).toHaveClass('group-hover:scale-105');
+		expect(images[0]).not.toHaveClass('group-hover:scale-105');
+		expect(images[1]?.getAttribute('alt')).toMatch(/phone view$/);
 	});
 
 	it('keeps a single package visual unzoomed when the secondary hero is empty, even with an orphan light secondary', () => {
@@ -123,7 +124,10 @@ describe('ProjectCard hero media', () => {
 		expect(card.textContent).not.toContain('42%');
 		expect(card.textContent).toContain('Fixture service');
 		expect(card.textContent).not.toContain('Postgres');
-		expect(screen.getByTestId('proof-card-links').querySelector('a')?.getAttribute('href')).toBe('https://example.test');
+		expect(screen.getByTestId('proof-card-case-study').getAttribute('href')).toBe(
+			`/projects/${project.slug}`,
+		);
+		expect(screen.getByTestId('proof-card-website').getAttribute('href')).toBe('https://example.test');
 
 		const images = container.querySelectorAll('[data-testid="project-hero-preview-image"]');
 		expect(images[0]?.getAttribute('src')).toBe('/test-assets/desktop-dark-uuid?key=hero-1200');
