@@ -16,7 +16,6 @@
   const locale = getLocale();
   const title = resolveLocale(siteLabels.projectsChrome.detail.glance.impact, locale);
   const metrics = $derived(project.impactMetrics ?? []);
-  const metricColors = ['var(--primary)', 'var(--accent)'] as const;
 </script>
 
 {#if metrics.length > 0}
@@ -33,7 +32,8 @@
             label={resolveLocale(metric.label, locale)}
             size="md"
             labelBelow
-            style="--metric-color: {metricColors[i % 2]};"
+            tone="reading"
+            labelRole="reading"
           />
           </div>
         {/each}

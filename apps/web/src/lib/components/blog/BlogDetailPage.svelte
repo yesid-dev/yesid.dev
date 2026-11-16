@@ -17,14 +17,13 @@
     useSectionJump,
     type TocEntry,
   } from '@yesid/ui/brand';
-  import { ArticleHeader, DetailFrame } from '@yesid/ui/layout';
+  import { ArticleHeader, DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
 
   import BlogEntryRail from './BlogEntryRail.svelte';
   import { registerDetailReadingPosition } from '#lib/state/detail-reading-position.ts';
   import { resolveLocale } from '#lib/utils/locale.ts';
   import { getLocale, intl } from '#lib/utils/locale-context.ts';
   import { localizeHref } from '#lib/utils/locale-routing.ts';
-  import { fillTemplate } from '#lib/utils/labels.ts';
   import { sectionizeBlogBody } from '#lib/blog/sections.ts';
 
   const locale = getLocale();
@@ -39,7 +38,6 @@
   const tocHeading = resolveLocale(siteLabels.navChrome.shared.tocHeading, locale);
   const tocOpenAria = resolveLocale(siteLabels.navChrome.shared.tocMobileButton, locale);
   const tocCloseAria = resolveLocale(siteLabels.navChrome.shared.tocCloseAria, locale);
-  const tocCounterPrefix = resolveLocale(siteLabels.navChrome.shared.tocCounterPrefix, locale);
 
   let {
     post,
@@ -48,7 +46,6 @@
     readingTime = 0,
     wordCount = 0,
     headings = [],
-    postIndex = 1,
     codeHighlights,
   }: {
     post: BlogPost;
@@ -57,6 +54,7 @@
     readingTime?: number;
     wordCount?: number;
     headings?: readonly TocHeading[];
+    /** The post's issue number; the header no longer shows it (D-M3: no edge readouts). */
     postIndex?: number;
     /** block.id → server-highlighted HTML ($lib/server/code-highlights). */
     codeHighlights?: Readonly<Record<string, string>>;
@@ -101,8 +99,6 @@
       locale
     )
   );
-  const editionTemplate =
-    resolveLocale(siteLabels.ui.blogEditionTemplate, locale) || 'VOL. 01 // ISS. {issue}';
   const formattedDate = $derived(
     intl.dateTime(locale, { month: 'short', year: 'numeric' }).format(new Date(`${post.date}T00:00:00`))
   );
@@ -204,7 +200,7 @@
               activeId={activeHeadingId}
               {navigation}
               heading={tocHeading}
-              counterPrefix={tocCounterPrefix}
+              counter={false}
             />
           </div>
         {/if}
@@ -252,6 +248,8 @@
     </div>
   {/snippet}
 
+  <PageSections>
+  <PageSection>
   <DetailFrame
     {left}
     {right}
@@ -259,6 +257,7 @@
     data-testid="blog-detail-page"
     class="reading-detail"
     style="--blog-accent: {accentColor};"
+    rule="dimension"
     measure="46rem"
     railScroll
     leftMobile
@@ -267,6 +266,7 @@
       entries: tocEntries,
       openAria: tocOpenAria,
       closeAria: tocCloseAria,
+      counter: false,
       navigation,
       selector: '[data-testid="blog-section-body"] h3[id], [data-testid="blog-section-body"] h4[id]',
       landFragments: true,
@@ -277,8 +277,6 @@
         title={post.title}
         category={categoryName}
         {watermark}
-        edgeLeft={fillTemplate(editionTemplate, { issue: String(postIndex).padStart(2, '0') })}
-        edgeRight={`${post.date.replace(/-/g, '.')} // ${readingTimeText.toUpperCase()}`}
         meta={headerMeta}
         {backHref}
         {backLabel}
@@ -286,7 +284,7 @@
         testId="blog-detail-header"
       >
         {#snippet controls()}
-          <SectionsToggle />
+          <SectionsToggle activeEffect="none" />
         {/snippet}
       </ArticleHeader>
     {/snippet}
@@ -327,6 +325,8 @@
       {/if}
     </div>
   </DetailFrame>
+  </PageSection>
+  </PageSections>
 </div>
 
 <MediaLightbox {media} />
@@ -339,13 +339,17 @@
     width: 100%;
   }
 
+  /* Full-bleed (owner, 15 November): the article stays centred at its measure and the side panels
+     take the extra width out to the viewport's edges, each held at its own outer edge. Up to 1440px
+     the rails are at most 18rem wide, so the panels are today's. */
   @media (--desktop-min) {
     .context-column,
     .entry-column {
-      width: min(18rem, 100%);
+      width: 100%;
+      max-width: 36rem;
     }
 
-    .context-column {
+    .entry-column {
       margin-inline-start: auto;
     }
   }

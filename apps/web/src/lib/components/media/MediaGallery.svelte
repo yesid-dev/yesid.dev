@@ -146,6 +146,21 @@
 		object-fit: contain;
 	}
 
+	/* An image tile is interactive (it opens the lightbox): it lifts 1px and lights its edge on
+	   hover, the same in light and dark, with no glow and no shadow (D21). */
+	.project-image-gallery__trigger {
+		transition: border-color var(--duration-normal) var(--ease-default), transform var(--duration-normal) var(--ease-default);
+	}
+	.project-image-gallery__trigger:not(:disabled):is(:hover, :focus-visible) {
+		border-color: var(--border-brand-active);
+		transform: translateY(-1px);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.project-image-gallery__trigger:not(:disabled):is(:hover, :focus-visible) {
+			transform: none;
+		}
+	}
+
 	.project-image-gallery__trigger:focus-visible {
 		outline: 3px solid var(--ring);
 		outline-offset: 3px;

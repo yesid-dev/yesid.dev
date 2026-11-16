@@ -20324,7 +20324,7 @@
 					"web-development": {"en":"Web development","fr":"Développement Web","es":"Desarrollo web"}
 				},
 				"markerService": {"en":"{num} / SERVICE","fr":"{num} / SERVICE","es":"{num} / SERVICIO"},
-				"backToProjects": {"en":"← All Projects","fr":"← Tous les projets","es":"← Todos los proyectos"},
+				"backToProjects": {"en":"← All projects","fr":"← Tous les projets","es":"← Todos los proyectos"},
 				"errorStatusNote": {"en":"// requested path not in service","fr":"// chemin demandé hors service","es":"// ruta solicitada fuera de servicio"},
 				"errorSignLabel": {"en":"STATION","fr":"STATION","es":"STATION"},
 				"errorSuggestionsLabel": {"en":"Suggested pages","fr":"Pages suggérées","es":"Páginas sugeridas"},
@@ -20369,7 +20369,7 @@
 					}
 				},
 				"detail": {
-					"backToListingLabel": {"en":"← All Projects","fr":"← Tous les projets","es":"← Todos los proyectos"},
+					"backToListingLabel": {"en":"← All projects","fr":"← Tous les projets","es":"← Todos los proyectos"},
 					"readmeSectionTitle": {"en":"README","fr":"README","es":"README"},
 					"glance": {
 						"overview": {"en":"Overview","fr":"Aperçu","es":"Resumen"},
@@ -20377,7 +20377,7 @@
 						"stack": {"en":"Stack","fr":"Stack","es":"Stack"},
 						"services": {"en":"Services","fr":"Services","es":"Servicios"},
 						"links": {"en":"Links","fr":"Liens","es":"Enlaces"},
-						"liveSiteLabel": {"en":"Live Site","fr":"Site en ligne","es":"Sitio en vivo"},
+						"liveSiteLabel": {"en":"Live site","fr":"Site en ligne","es":"Sitio en vivo"},
 						"githubLabel": {"en":"GitHub","fr":"GitHub","es":"GitHub"},
 						"docsLabel": {"en":"Documentation","fr":"Documentation","es":"Documentación"},
 						"repoPrivateLabel": {"en":"Private repo","fr":"Dépôt privé","es":"Repo privado"}

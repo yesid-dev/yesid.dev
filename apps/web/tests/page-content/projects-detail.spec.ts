@@ -84,9 +84,10 @@ test.describe('/projects/[slug] detail page content', () => {
 
 		await gotoFirstProject(page);
 
-		// The floating pill only mounts ({#if visible}) once the header scrolls out of view.
-		// Scroll well past the header to trigger the hero IntersectionObserver.
-		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+		await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+		// The pill serves the story and steps aside at the closing band. Exercise it
+		// beside a real story section, clear of both the header and the closing band.
+		await page.locator('.sections-column [data-section-index]').nth(2).scrollIntoViewIfNeeded();
 
 		const tocPill = page.getByTestId('toc-pill');
 		await expect(tocPill).toBeVisible();
