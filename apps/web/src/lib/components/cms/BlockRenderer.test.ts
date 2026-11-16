@@ -361,7 +361,8 @@ describe('BlockRenderer.svelte (Editor.js block dispatch)', () => {
 			{ id: 'd1', type: 'delimiter', data: {} },
 		]);
 		const { container } = render(BlockRenderer, { doc });
-		expect(container.querySelector('hr')).toBeTruthy();
+		expect(screen.getAllByRole('separator')).toHaveLength(1);
+		expect(container.querySelector('[data-variant="hand-drawn"] svg')).toBeTruthy();
 	});
 
 	it('renders image with alt + asset URL', () => {

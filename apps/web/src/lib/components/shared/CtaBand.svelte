@@ -54,6 +54,7 @@
 				</Button>
 				<Button
 					variant="outline"
+					class="bg-background hover:bg-background focus:bg-background"
 					size="cta-lg"
 					href={bookingHref}
 					target="_blank"

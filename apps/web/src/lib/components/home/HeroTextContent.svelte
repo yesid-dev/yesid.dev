@@ -150,6 +150,7 @@
 		</Button>
 		<Button
 			variant="outline"
+			class="bg-background hover:bg-background focus:bg-background"
 			size="cta-lg"
 			wrap
 			href={bookingHref}

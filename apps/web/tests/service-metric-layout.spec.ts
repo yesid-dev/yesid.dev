@@ -9,20 +9,20 @@ for (const locale of ['en', 'fr', 'es']) {
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		const assertFixture = await installMetricProofFixture(page);
 		await navigateWithMetricFixture(page, `${prefix}/`);
-		const cards = page.locator('.services-card');
+		const cards = page.locator('.service-card');
 		await expect(cards).toHaveCount(4);
 		assertFixture();
-		await expect(cards.nth(0).getByTestId('services-metric')).toHaveCount(0);
-		await expect(cards.nth(1).getByTestId('services-metric')).toHaveCount(0);
-		await expect(cards.nth(2).getByTestId('services-metric')).toBeVisible();
-		await expect(cards.nth(3).getByTestId('services-metric')).toBeVisible();
+		await expect(cards.nth(0).getByTestId('service-metric')).toHaveCount(0);
+		await expect(cards.nth(1).getByTestId('service-metric')).toHaveCount(0);
+		await expect(cards.nth(2).getByTestId('service-metric')).toBeVisible();
+		await expect(cards.nth(3).getByTestId('service-metric')).toBeVisible();
 		await expectNoMetricProof(page);
 		for (const card of await cards.all()) {
 			await card.scrollIntoViewIfNeeded();
 			const geometry = await card.evaluate(el => {
-				const content = el.querySelector('.services-content')!;
-				const last = content.lastElementChild!;
-				const metric = el.querySelector('[data-testid="services-metric"]');
+				const content = el.querySelector('.service-text')!;
+				const last = content.querySelector('.service-description')!;
+				const metric = el.querySelector('.service-foot');
 				const bounds = el.getBoundingClientRect();
 				return {
 					blank: (metric?.getBoundingClientRect().top ?? bounds.bottom) - last.getBoundingClientRect().bottom,
@@ -37,15 +37,15 @@ for (const locale of ['en', 'fr', 'es']) {
 			expect(Math.abs(heights[2] - heights[3])).toBeLessThan(1);
 		}
 		if (page.viewportSize()!.width <= 412) {
-			const longMetric = cards.nth(3).getByTestId('services-metric');
-			const value = await longMetric.locator('.services-metric-value').boundingBox();
-			const label = await longMetric.locator('.services-metric-label').boundingBox();
+			const longMetric = cards.nth(3).getByTestId('service-metric');
+			const value = await longMetric.locator('.metric-value').boundingBox();
+			const label = await longMetric.locator('.metric-label').boundingBox();
 			expect(label!.y, 'long labels use a full line below the value').toBeGreaterThanOrEqual(value!.y + value!.height - 1);
-			const lineHeight = await longMetric.locator('.services-metric-value').evaluate(el => parseFloat(getComputedStyle(el).lineHeight));
+			const lineHeight = await longMetric.locator('.metric-value').evaluate(el => parseFloat(getComputedStyle(el).lineHeight));
 			expect(value!.height, 'the long value fits on one phone line').toBeLessThanOrEqual(lineHeight + 1);
 		}
 		await expectNoMetricProof(page);
-		await expectNoHorizontalOverflow(page, ['.services-card', '.services-footer', '[data-testid="metric-proof"]']);
+		await expectNoHorizontalOverflow(page, ['.service-card', '.service-foot', '[data-testid="metric-proof"]']);
 		await cards.nth(3).scrollIntoViewIfNeeded();
 		await testInfo.attach(`${locale}-home-metric`, { body: await page.screenshot(), contentType: 'image/png' });
 	});
@@ -78,8 +78,8 @@ for (const forcedColors of ['none', 'active'] as const) {
 			await page.emulateMedia({ reducedMotion: 'reduce', forcedColors });
 			await installMetricProofFixture(page);
 			await navigateWithMetricFixture(page, '/');
-			const card = page.locator('.services-card').nth(index);
-			const link = card.getByTestId('services-card');
+			const card = page.locator('.service-card').nth(index);
+			const link = card.getByRole('link');
 			await link.scrollIntoViewIfNeeded();
 			await link.focus();
 			await page.keyboard.press('Shift+Tab');
@@ -91,7 +91,7 @@ for (const forcedColors of ['none', 'active'] as const) {
 				const width = parseFloat(style.outlineWidth);
 				const outset = width + parseFloat(style.outlineOffset);
 				const box = el.getBoundingClientRect();
-				const card = el.parentElement!;
+				const card = el.closest('[data-slot="card"]')!;
 				const clip = card.getBoundingClientRect();
 				const probe = document.createElement('span');
 				probe.style.color = forcedColors === 'active' ? 'CanvasText' : 'var(--primary)';

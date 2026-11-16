@@ -171,14 +171,15 @@ describe('Home page', () => {
 
 	it('renders one card per service', () => {
 		renderPage();
-		const cards = screen.getAllByTestId('services-card');
+		const cards = screen.getAllByRole('heading', { level: 3 }).filter(heading => heading.id.startsWith('svc-title-'));
 		expect(cards).toHaveLength(stubData.services.length);
 	});
 
 	it('renders service benefit headlines', () => {
 		renderPage();
-		const benefits = screen.getAllByTestId('services-benefit');
-		expect(benefits).toHaveLength(stubData.services.filter((service) => service.benefitHeadline).length);
+		for (const service of stubData.services.filter(service => service.benefitHeadline)) {
+			expect(screen.getByText(service.benefitHeadline!.en!)).toBeInTheDocument();
+		}
 	});
 
 	it('renders the closer section', () => {

@@ -9,6 +9,8 @@
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { servicesGridContent } from '#lib/content/site-content.ts';
+	import { prefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { siteLabels } from '#lib/content/index.ts';
 	import { Card } from '@yesid/ui/card';
 	import { Button } from '@yesid/ui/button';
@@ -21,11 +23,14 @@
 		service: Service;
 		/** Raw SVG content for the service illustration */
 		svgContent: string;
+		headingLevel?: 2 | 3;
+		/** Adapt the shared card to a narrower grid column. Listing defaults stay unchanged. */
+		responsive?: boolean;
 		class?: string;
 		[key: string]: unknown;
 	}
 
-	let { service, svgContent, class: className = '', ...rest }: ServiceCardProps = $props();
+	let { service, svgContent, headingLevel = 2, responsive = false, class: className = '', ...rest }: ServiceCardProps = $props();
 
 	let deepDiveLabel = $derived(resolveLocale(siteLabels.servicesChrome.listing.deepDiveLabel, locale));
 	let href = $derived(localizeHref(`/services/${service.id}`, locale));
@@ -41,6 +46,13 @@
 		service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : null
 	);
 
+	const drawingAttributes = $derived(responsive ? {
+		'aria-hidden': false,
+		disabled: $prefersReducedMotion,
+		tabindex: 0,
+		'aria-label': resolveLocale(servicesGridContent.viewIllustrationAria, locale).replace('{title}', title),
+	} : {});
+
 	let deepDive = $state<HTMLAnchorElement | null>(null);
 
 	// A click anywhere on the card that is not on its link or its drawing follows "Deep dive";
@@ -55,22 +67,22 @@
 </script>
 
 <li
-	class="service-item {className}"
+	class="service-item {className}" class:responsive
 	id="service-{service.id}"
 	data-testid="service-card-{service.id}"
 	{...rest}
 >
 	<!-- The whole card, padding and edge included, follows "Deep dive"; keyboards use the link. -->
-	<Card interactive class="service-card" data-ripple-exempt onclick={openFromCard}>
+	<Card interactive class={responsive ? "service-card h-full" : "service-card"} data-ripple-exempt onclick={openFromCard}>
 		<div class="service-card-inner">
 			<div class="service-text">
 				<div class="title-row">
-					<h2 class="service-title" id="svc-title-{service.id}" tabindex="-1">
+					<svelte:element this={`h${headingLevel}`} class="service-title" id="svc-title-{service.id}" tabindex="-1">
 						{title}<span class="title-dot">.</span>
-					</h2>
+					</svelte:element>
 					{#if svgContent}
 						<div class="svg-mobile-banner">
-							<ServiceSvgPanel {svgContent} variant="banner" />
+							<ServiceSvgPanel {svgContent} variant="banner" {...drawingAttributes} />
 						</div>
 					{/if}
 				</div>
@@ -94,7 +106,8 @@
 						bind:ref={deepDive}
 						{href}
 						size="cta"
-						class="deep-dive-cta"
+						wrap
+						class="deep-dive-cta min-h-11 max-w-full min-w-0 {responsive ? '' : 'py-3'}"
 						data-testid="service-deep-dive-{service.id}"
 					>
 						{deepDiveLabel}<span class="sr-only">: {title}</span>
@@ -104,7 +117,7 @@
 
 			{#if svgContent}
 				<div class="card-art">
-					<ServiceSvgPanel {svgContent} class="svg-panel-responsive" />
+					<ServiceSvgPanel {svgContent} class="svg-panel-responsive" {...drawingAttributes} />
 				</div>
 			{/if}
 		</div>
@@ -112,6 +125,8 @@
 </li>
 
 <style>
+	.responsive { container: home-service-card / inline-size; min-width: 0; }
+
 	.service-item {
 		list-style: none;
 		/* A station jump lands the card below the header pill and the sticky strip. */
@@ -127,6 +142,7 @@
 	}
 
 	.service-text {
+		overflow-wrap: anywhere;
 		flex: 1;
 		min-width: 0;
 		cursor: auto;
@@ -265,5 +281,58 @@
 			flex: 1 1 100%;
 			min-height: 44px;
 		}
+	}
+
+	@container home-service-card (max-width: 38rem) {
+		.service-card-inner {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0;
+		}
+
+		.card-art {
+			display: none;
+		}
+
+		.title-row {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.75rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.service-title {
+			margin: 0;
+			min-width: 0;
+			overflow-wrap: break-word;
+		}
+
+		.svg-mobile-banner {
+			flex: none;
+		}
+
+		.svg-mobile-banner :global(.svg-panel--banner) {
+			padding: 0.5rem;
+		}
+
+		/* !important outranks SvgIcon's inline size, as in ServiceSvgPanel. */
+		.svg-mobile-banner :global([data-slot='svg-icon']) {
+			width: 56px !important;
+			height: 56px !important;
+		}
+
+		.service-description {
+			margin-bottom: 1rem;
+		}
+
+		.service-foot :global(.deep-dive-cta) {
+			flex: 1 1 100%;
+			min-height: 44px;
+		}
+		.svg-mobile-banner { display: block; }
+	}
+	@container home-service-card (min-width: 38.001rem) {
+		.svg-mobile-banner { display: none; }
 	}
 </style>
