@@ -84,16 +84,17 @@
 		const card = cards()[Math.max(0, Math.min(index, total - 1))];
 		if (!track || !card) return;
 		const left = card.offsetLeft - (cards()[0]?.offsetLeft ?? 0);
-		track.scrollTo({ left, behavior: smooth && !reducedMotion() ? 'smooth' : 'auto' });
+		track.scrollTo({ left, behavior: smooth && !reducedMotion() ? 'smooth' : 'instant' });
 	}
 
 	/** A control moves one card and wraps past either end, so the loop continues both ways. */
-	function move(direction: -1 | 1): void {
+	function move(direction: -1 | 1, fromCard = false): number | null {
 		measure();
-		if (!looping) return;
+		if (!looping) return null;
 		moved = true;
 		const target = stepStart(first, direction, total, perView, looping);
-		scrollToCard(target, target === first + direction);
+		scrollToCard(target, !fromCard && target === first + direction);
+		return target;
 	}
 
 	let moved = false;
@@ -146,7 +147,12 @@
 		if (!target || !(track?.contains(target) || controls?.contains(target))) return;
 		if ((target as HTMLElement).closest('input, textarea, select, [contenteditable="true"]')) return;
 		event.preventDefault();
-		move(event.key === 'ArrowRight' ? 1 : -1);
+		const fromCard = Boolean(track?.contains(target));
+		const focusedIndex = cards().findIndex(card => card.contains(target));
+		const destination = move(event.key === 'ArrowRight' ? 1 : -1, fromCard);
+		if (fromCard && destination !== null && (focusedIndex < destination || focusedIndex >= destination + perView)) {
+			cards()[destination]?.querySelector<HTMLAnchorElement>('a[href]')?.focus({ preventScroll: true });
+		}
 	}
 
 	/** Binds the reel's own gestures to its section: arrows over the cards and their buttons, and

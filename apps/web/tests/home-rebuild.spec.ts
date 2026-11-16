@@ -264,6 +264,13 @@ test.describe('projects carousel', () => {
 		const before = (await position.textContent())!;
 		await page.keyboard.press('ArrowRight');
 		await expect(position).not.toHaveText(before);
+		expect(await reel.getByTestId('proof-track').evaluate(track => {
+			const active = document.activeElement;
+			if (!(active instanceof HTMLElement) || !track.contains(active)) return false;
+			const frame = track.getBoundingClientRect();
+			const action = active.getBoundingClientRect();
+			return action.left >= frame.left - 1 && action.right <= frame.right + 1;
+		}), 'card-originated arrows keep the focused action inside the carousel view').toBe(true);
 		await page.keyboard.press('ArrowLeft');
 		await expect(position).toHaveText(before);
 
