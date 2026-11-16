@@ -257,28 +257,22 @@ const TOLERANCE = 200; // loose: Lenis settle + FR/EN height drift, anti-flake
 		);
 	});
 
-test('route /fr/blog language filter contains only the active locale', async ({ page }) => {
+test('route /fr/blog lists only the active locale with no one-choice language filter', async ({ page }) => {
     await page.goto('/fr/blog');
 
-    // (networkidle removed: the very next assertion is a web-first toBeVisible()
-    // that auto-waits for the filter sidebar — the wait was redundant.)
-    // The sidebar lives in the listing grid's filter column (.listing-filter-column),
-    // which ListingFrame always shows at desktop width.
     const langFilter = page
       .getByTestId('blog-filter-sidebar').filter({ visible: true })
       .first();
     await expect(langFilter).toBeVisible();
 
-    // The Language FilterGroup renders whenever ≥1 language exists; it surfaces
-    // the localized section label "Langue" plus per-language buttons.
-    await expect(langFilter).toContainText(siteLabels.blogChrome.listing.filters.language.fr!);
+    // The one-choice Language group is gone (owner, 15 November); the navbar toggle
+    // remains the only language control, and each page lists its own locale's posts.
+    await expect(langFilter).not.toContainText(siteLabels.blogChrome.listing.filters.language.fr!);
+    await expect(page.getByTestId('blog-lang-chip')).toHaveCount(0);
 
-    // The server narrows the listing before deriving facets. The only language
-    // option on the French route is therefore French; persisted EN/ES filters
-    // cannot hide the active-locale posts after a locale switch.
-    const options = langFilter.getByRole('radio');
-    expect(await options.count()).toBeGreaterThan(0);
-    await expect(langFilter.getByRole('radio', { name: siteLabels.ui.languageNames.fr.fr! })).toBeVisible();
-    await expect(langFilter.getByRole('radio', { name: siteLabels.ui.languageNames.en.fr! })).toHaveCount(0);
-    await expect(langFilter.getByRole('radio', { name: siteLabels.ui.languageNames.es.fr! })).toHaveCount(0);
+    const hrefs = await page.locator('a[data-testid="blog-row"]').evaluateAll(nodes =>
+      nodes.map(node => node.getAttribute('href') ?? '')
+    );
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) expect(href).toMatch(/^\/fr\/blog\//);
   });

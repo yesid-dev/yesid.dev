@@ -17,6 +17,7 @@
 	import { StateNotice } from '@yesid/ui/feedback';
 	import { siteLabels } from '#lib/content/index.ts';
 	import { persisted } from '@yesid/ui/state';
+	import { tick } from 'svelte';
 
 	let {
 		projects,
@@ -53,15 +54,24 @@
 	const mobileFiltersLabel = resolveLocale(listingChrome.filters.filtersLabel, locale);
 	const listingIntro = $derived(resolveLocale(projectsPage.intro, locale));
 	const emptyStateText = $derived(
-		resolveLocale(projectsPage.emptyState, locale) ||
-			resolveLocale(
-				{
-					en: 'No projects match the selected filters.',
-					fr: 'Aucun projet ne correspond aux filtres choisis.',
-					es: 'Ningún proyecto coincide con los filtros elegidos.',
-				},
-				locale
-			)
+		projects.length === 0
+			? resolveLocale(
+					{
+						en: 'No projects are published yet.',
+						fr: "Aucun projet n'est encore publié.",
+						es: 'Todavía no hay proyectos publicados.',
+					},
+					locale
+				)
+			: resolveLocale(projectsPage.emptyState, locale) ||
+					resolveLocale(
+						{
+							en: 'No projects match the selected filters.',
+							fr: 'Aucun projet ne correspond aux filtres choisis.',
+							es: 'Ningún proyecto coincide con los filtros elegidos.',
+						},
+						locale
+					)
 	);
 	// Filter state — read from URL params. Browser-gated: the page prerenders
 	// (url.searchParams is unreadable at build), so SSR HTML is always the
@@ -126,6 +136,8 @@
 
 	let hasActiveFilters = $derived(!!activeService || !!activeStack || searchQuery.value.trim() !== '');
 
+	let searchRef = $state<HTMLInputElement | null>(null);
+
 	async function clearFilters() {
 		flipState = captureFlipState();
 		searchQuery.value = '';
@@ -133,6 +145,9 @@
 		url.searchParams.delete('service');
 		url.searchParams.delete('stack');
 		await gotoPreservingScroll(url.toString(), { replaceState: true });
+		// The search field is where "clear filters" returns the visitor (DEV-15).
+		await tick();
+		searchRef?.focus();
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -155,6 +170,7 @@
 		subtitle={listingIntro}
 		onHeaderMount={blueprintScrub}
 		filterLabel={mobileFiltersLabel}
+		rule="hazard"
 	>
 		{#snippet blueprint()}
 			<ProjectsBlueprint />
@@ -165,6 +181,8 @@
 				label={searchPlaceholder}
 				placeholder={searchPlaceholder}
 				bind:value={searchQuery.value}
+				bind:ref={searchRef}
+				textSize="body"
 				testId="project-search-sidebar"
 			/>
 		{/snippet}

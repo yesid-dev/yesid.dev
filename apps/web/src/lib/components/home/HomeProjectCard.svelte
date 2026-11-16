@@ -10,7 +10,7 @@
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import ProjectHeroPreview from '#lib/components/projects/ProjectHeroPreview.svelte';
-	import HomeProjectLinks from './HomeProjectLinks.svelte';
+	import ProjectCardLinks from '#lib/components/shared/ProjectCardLinks.svelte';
 
 	let { project, facts = [] }: { project: ProjectSummary; facts?: readonly GlanceFact[] } = $props();
 
@@ -49,7 +49,7 @@
 	{/if}
 
 	<div class="home-card__foot" data-testid="proof-card-links">
-		<HomeProjectLinks {project} />
+		<ProjectCardLinks {project} />
 	</div>
 </Card>
 

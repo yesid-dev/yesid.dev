@@ -1,4 +1,4 @@
-<!-- A home project card's own links: Case study, Website and Repo where they exist, each named with its project. -->
+<!-- A project card's own links: Case study, Website and Repo where they exist, each named with its project. -->
 <script lang="ts">
 	import type { ProjectSummary } from '#lib/types.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
@@ -8,9 +8,19 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
 	import { SITE_HOST } from '#lib/utils/seo-defaults.ts';
-	import { homeLabels } from './home-labels.ts';
+	import { homeLabels } from '#lib/components/home/home-labels.ts';
 
-	let { project }: { project: ProjectSummary } = $props();
+	let {
+		project,
+		testIdPrefix = 'home-project',
+		tabbable = true
+	}: {
+		project: ProjectSummary;
+		/** Prefix for the links' test ids: `{prefix}-case-study`, `-website`, `-repo`. */
+		testIdPrefix?: string;
+		/** False keeps every link out of the tab order (decorative loop copies). */
+		tabbable?: boolean;
+	} = $props();
 
 	const locale = getLocale();
 	const l = homeLabels.projects;
@@ -26,9 +36,13 @@
 	}
 </script>
 
-<ul class="home-project-links" data-testid="home-project-links">
+<ul class="project-link-row" data-testid={testIdPrefix === 'home-project' ? 'home-project-links' : `${testIdPrefix}-link-list`}>
 	<li>
-		<a href={localizeHref(`/projects/${project.slug}`, locale)} aria-label={named(l.caseStudyName)} data-testid="home-project-case-study"
+		<a
+			href={localizeHref(`/projects/${project.slug}`, locale)}
+			aria-label={named(l.caseStudyName)}
+			data-testid="{testIdPrefix}-case-study"
+			tabindex={tabbable ? undefined : -1}
 			>{resolveLocale(l.caseStudy, locale)}</a
 		>
 	</li>
@@ -40,7 +54,8 @@
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="{named(l.websiteName)}{newTab}"
-				data-testid="home-project-website"
+				data-testid="{testIdPrefix}-website"
+				tabindex={tabbable ? undefined : -1}
 				onclick={(event) => track(event, href, 'live')}
 				onauxclick={(event) => track(event, href, 'live')}>{resolveLocale(l.website, locale)}</a
 			>
@@ -54,7 +69,8 @@
 				target="_blank"
 				rel="noopener noreferrer"
 				aria-label="{named(l.repoName)}{newTab}"
-				data-testid="home-project-repo"
+				data-testid="{testIdPrefix}-repo"
+				tabindex={tabbable ? undefined : -1}
 				onclick={(event) => track(event, href, 'repo')}
 				onauxclick={(event) => track(event, href, 'repo')}>{resolveLocale(l.repo, locale)}</a
 			>
@@ -63,7 +79,7 @@
 </ul>
 
 <style>
-	.home-project-links {
+	.project-link-row {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0 1.5rem;
@@ -73,7 +89,7 @@
 	}
 
 	/* Text links in the brand's orange (base.css styles class-less links); each a 44px target. */
-	.home-project-links :global(a) {
+	.project-link-row :global(a) {
 		display: inline-flex;
 		align-items: center;
 		min-height: var(--size-tap-min);

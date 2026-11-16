@@ -9,6 +9,7 @@
 		project,
 		preset,
 		alt = '',
+		secondaryAlt,
 		decorative = false,
 		class: className = '',
 		imageClass = '',
@@ -19,6 +20,8 @@
 		project: ProjectSummary;
 		preset: string;
 		alt?: string;
+		/** The phone screenshot's own description; defaults to the primary alt plus "secondary view". */
+		secondaryAlt?: string;
 		decorative?: boolean;
 		class?: string;
 		imageClass?: string;
@@ -49,7 +52,9 @@
 	);
 	const hasSecondary = $derived(Boolean(secondaryId));
 	const primaryAlt = $derived(decorative ? '' : alt);
-	const secondaryAlt = $derived(decorative ? '' : `${alt} secondary view`.trim());
+	const secondaryAltText = $derived(
+		decorative ? '' : (secondaryAlt ?? `${alt} secondary view`).trim(),
+	);
 
 	const primaryImage = $derived(primaryId ? assetImage(primaryId, preset) : undefined);
 	const secondaryImage = $derived(secondaryId ? assetImage(secondaryId, preset) : undefined);
@@ -85,7 +90,7 @@
 					sizes={secondarySizes}
 					width={secondaryImage?.width}
 					height={secondaryImage?.height}
-					alt={secondaryAlt}
+					alt={secondaryAltText}
 					class="project-hero-preview__image {imageClass}"
 					data-testid="project-hero-preview-image"
 					loading={eager ? 'eager' : 'lazy'}

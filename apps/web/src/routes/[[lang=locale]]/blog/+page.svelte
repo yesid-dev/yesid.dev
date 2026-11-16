@@ -28,7 +28,6 @@
 <BlogListingPage
 	posts={data.posts}
 	allTags={data.tags}
-	languages={data.languages}
 	svgContents={data.svgContents}
 	{heading}
 	{subtitle}

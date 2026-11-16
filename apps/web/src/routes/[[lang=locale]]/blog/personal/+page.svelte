@@ -23,13 +23,11 @@
 <BlogListingPage
 	posts={data.posts}
 	allTags={data.tags}
-	languages={data.languages}
 	svgContents={data.svgContents}
 	{heading}
 	{subtitle}
 	{emptyState}
 	{emptyStateNoPosts}
-	accentColor="var(--accent-text)"
 	cornerLink={{
 		href: '/blog',
 		label: backLabel,
