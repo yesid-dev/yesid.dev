@@ -107,7 +107,7 @@
 						{href}
 						size="cta"
 						wrap
-						class="deep-dive-cta max-w-full min-w-0 {responsive ? '' : 'py-3'}"
+						class="deep-dive-cta min-h-11 max-w-full min-w-0 {responsive ? '' : 'py-3'}"
 						data-testid="service-deep-dive-{service.id}"
 					>
 						{deepDiveLabel}<span class="sr-only">: {title}</span>
