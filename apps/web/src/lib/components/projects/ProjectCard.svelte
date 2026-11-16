@@ -157,7 +157,7 @@
 			{/if}
 		</div>
 
-		<div class="project-card-body">
+		<div class="project-card-body" data-testid="project-card-body">
 			<h2
 				id={titleId}
 				class="project-card-title"

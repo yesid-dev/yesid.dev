@@ -34,10 +34,6 @@
 		...rest
 	}: BlogRowProps = $props();
 
-	const uid = $props.id();
-	const titleId = `${uid}-title`;
-	const dateId = `${uid}-date`;
-
 	let cardHovered = $state(false);
 
 	let iconSize = 64;
@@ -50,7 +46,6 @@
 	class={cn("group block", className)}
 	data-testid="blog-row"
 	data-batch="blog-item"
-	aria-labelledby="{titleId} {dateId}"
 	use:boop={{ scale: 1.015, timing: 300 }}
 	use:pointerHover={(hovering) => (cardHovered = hovering)}
 	{...rest}
@@ -72,11 +67,11 @@
 		<!-- Content -->
 		<div class="blog-row-body relative z-10 min-w-0">
 			<div class="blog-row-head">
-				<h2 id={titleId} class="blog-row-title font-semibold text-[var(--foreground)] transition-colors duration-300 group-hover:text-[var(--primary)]">
+				<h2 class="blog-row-title font-semibold text-[var(--foreground)] transition-colors duration-300 group-hover:text-[var(--primary)]">
 					{post.title}
 				</h2>
 				<div class="blog-meta-row" data-testid="blog-meta-row">
-					<time id={dateId} datetime={post.date} class="blog-date">
+					<time datetime={post.date} class="blog-date">
 						{post.date}
 					</time>
 				</div>

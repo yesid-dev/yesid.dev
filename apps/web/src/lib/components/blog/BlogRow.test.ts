@@ -52,19 +52,17 @@ describe('BlogRow', () => {
 		expect(getByText('2025-01-15')).toBeTruthy();
 	});
 
-	it('shows no language chip and names the row by its title and date', () => {
-		const { container, getByRole, queryByTestId } = render(BlogRow, {
+	it('shows no language chip and includes all visible row text in its accessible name', () => {
+		const { getByRole, queryByTestId } = render(BlogRow, {
 			props: { post: makePost({ lang: 'en' }) }
 		});
 
 		expect(queryByTestId('blog-lang-chip')).toBeNull();
 
 		const row = getByRole('link');
-		const labelledBy = row.getAttribute('aria-labelledby')?.split(/\s+/) ?? [];
-		expect(labelledBy).toHaveLength(2);
-		expect(container.querySelector(`#${labelledBy[0]}`)?.textContent?.trim()).toBe('Test Post Title');
-		expect(container.querySelector(`#${labelledBy[1]}`)?.textContent?.trim()).toBe('2025-01-15');
-		expect(row).toHaveAccessibleName('Test Post Title 2025-01-15');
+		expect(row).toHaveAccessibleName(
+			'Test Post Title 2025-01-15 A short excerpt for testing purposes. sql postgres',
+		);
 	});
 
 	it('keeps long tags allowed to wrap on a narrow screen', () => {
