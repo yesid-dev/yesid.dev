@@ -4,7 +4,7 @@ import { installMetricProofFixture, navigateWithMetricFixture, proofUrl } from '
 for (const locale of ['en', 'fr', 'es'] as const) {
 	const prefix = locale === 'en' ? '' : `/${locale}`;
 	for (const [surface, path, selector] of [
-		['home', '/', '.services-metric-value'],
+		['home', '/', '[data-testid="services-section"] [data-testid="service-metric"] .metric-value'],
 		['services', '/services', '.metric-value'],
 		['service', '/services/database-engineering', '.impact-value, .metric-inline-value'],
 		['project', '/projects/transit-data-pipeline', '[data-testid="project-impact-card"] .metric-value'],
