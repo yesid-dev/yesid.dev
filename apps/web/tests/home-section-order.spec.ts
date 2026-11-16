@@ -68,7 +68,7 @@ test('reduced motion keeps the new homepage order and manifesto readable @motion
 });
 
 for (const width of [390, 1440]) {
-	test(`${width}px: every section but the last ends on the kit dimension line, none before the footer`, async ({ page }) => {
+	test(`${width}px: every section but the last ends on the kit hand-drawn divider, none before the footer`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await page.goto('/');
 		const home = page.getByTestId('home-sections');
@@ -89,7 +89,7 @@ for (const width of [390, 1440]) {
 		layout.children.forEach((child, i) => {
 			expect(child.slot).toBe(i % 2 === 0 ? 'page-section' : 'page-section-boundary');
 			if (child.slot === 'page-section-boundary') {
-				expect(child.variant).toBe('dimension');
+				expect(child.variant).toBe('hand-drawn');
 				// Edge to edge, between the two sections it divides.
 				expect(Math.abs(child.box.width - layout.width)).toBeLessThanOrEqual(20);
 				expect(child.box.top).toBeGreaterThanOrEqual(layout.children[i - 1]!.box.bottom - 1);
@@ -100,6 +100,6 @@ for (const width of [390, 1440]) {
 		expect(last.slot).toBe('page-section');
 		// Nothing drawn between Terminus and the footer: the footer's hazard edge closes the page.
 		expect(layout.footer.top - last.box.bottom).toBeLessThanOrEqual(1);
-		await expect(page.locator('main [data-slot="separator"]:not([data-variant="dimension"])').filter({ visible: true })).toHaveCount(0);
+		await expect(page.locator('main [data-slot="separator"]:not([data-variant="hand-drawn"])').filter({ visible: true })).toHaveCount(0);
 	});
 }

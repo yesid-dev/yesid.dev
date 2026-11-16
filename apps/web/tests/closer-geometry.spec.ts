@@ -35,7 +35,7 @@ for (const locale of ['en', 'fr', 'es']) {
 				await mkdir(process.env.S8_EVIDENCE, { recursive: true });
 				await writeFile(join(process.env.S8_EVIDENCE, `${locale}-${viewport.width}x${viewport.height}-dividers.json`), JSON.stringify(dividerGeometry, null, 2));
 			}
-			expect.soft(dividerGeometry.ctaGap, 'reference CTA heading begins 4rem after its dimension line').toBeCloseTo(64, 1);
+			expect.soft(dividerGeometry.ctaGap, 'reference CTA heading begins 4rem after its hand-drawn divider').toBeCloseTo(64, 1);
 			expect.soft(dividerGeometry.terminusGap, 'Terminus uses the measured CTA gap, including the divider edge').toBeCloseTo(dividerGeometry.ctaGap, 1);
 			expect.soft(dividerGeometry.terminusGap, 'both gaps stay pinned to the intended value').toBeCloseTo(64, 1);
 			if (viewport.width < 1024) {

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test';
 
-/** Measure from the painted dimension line's bottom edge (D22), not an inner content wrapper. */
+/** Measure from the kit section boundary's bottom edge, not an inner content wrapper. */
 export function measureCloserGap(page: Page) {
 	return page.evaluate(() => {
 		const cta = document.querySelector('[data-testid="home-cta-band"]')!;
@@ -9,8 +9,8 @@ export function measureCloserGap(page: Page) {
 		const ctaDivider = cta.closest('[data-slot="page-section"]')!.previousElementSibling!;
 		const divider = section.previousElementSibling!;
 		for (const edge of [ctaDivider, divider]) {
-			if (edge.getAttribute('data-slot') !== 'page-section-boundary' || edge.getAttribute('data-variant') !== 'dimension') {
-				throw new Error('Expected the kit dimension line immediately before the section');
+			if (edge.getAttribute('data-slot') !== 'page-section-boundary' || edge.getAttribute('data-variant') !== 'hand-drawn') {
+				throw new Error('Expected the kit hand-drawn divider immediately before the section');
 			}
 		}
 		// A zero-size baseline marker locates the real DOM baseline. Canvas then
