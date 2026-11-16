@@ -1,240 +1,258 @@
+<!--
+  The home's projects (D-M1, DEV-38): a carousel on the browser's own horizontal scroll with snap
+  points. At most two cards a view on desktop, one on phones and tablets; swipe, the keyboard (Tab
+  into a card's links, or the arrow keys) and the previous and next buttons move it. The buttons and
+  the position show only when the cards overflow; the position is announced politely after a move.
+  No autoplay; under reduced motion the buttons jump.
+-->
 <script lang="ts">
-	import emblaCarouselSvelte from 'embla-carousel-svelte';
-	import WheelGesturesPlugin from 'embla-carousel-wheel-gestures';
-	import type { EmblaCarouselType } from 'embla-carousel';
-	import { allowCarouselDrag } from '#lib/utils/carousel-drag.ts';
+	import { onMount, tick } from 'svelte';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { localizeHref } from '#lib/utils/locale-routing.ts';
+	import { fillTemplate } from '#lib/utils/labels.ts';
 	import { persisted } from '@yesid/ui/state';
 	import { siteLabels } from '#lib/content/index.ts';
-	import type { ProjectSummary, ProofReelContent, Service } from '#lib/types.ts';
+	import type { ProjectSummary, ProofReelContent } from '#lib/types.ts';
+	import type { GlanceFact } from '#lib/utils/glance-facts.ts';
 	import { SliderButton } from '@yesid/ui/brand';
-	import ProjectCard, { alignProjectCards } from '#lib/components/projects/ProjectCard.svelte';
+	import { equalizeRows } from '#lib/utils/equalize-rows.ts';
+	import HomeProjectCard from './HomeProjectCard.svelte';
+	import { homeLabels } from './home-labels.ts';
 
 	const locale = getLocale();
 
 	let {
 		proofReel: proofReelContent,
 		projects,
-		services = [],
-		serviceSvgContents = {},
+		facts = {},
 	}: {
 		proofReel: ProofReelContent;
 		projects: readonly ProjectSummary[];
-		services?: readonly Service[];
-		serviceSvgContents?: Record<string, string>;
+		facts?: Readonly<Record<string, readonly GlanceFact[]>>;
 	} = $props();
 
-	const carouselPrevAria = $derived(resolveLocale(siteLabels.a11y.carouselPrev, locale));
-	const carouselNextAria = $derived(resolveLocale(siteLabels.a11y.carouselNext, locale));
+	const prevLabel = $derived(resolveLocale(siteLabels.a11y.carouselPrev, locale));
+	const nextLabel = $derived(resolveLocale(siteLabels.a11y.carouselNext, locale));
 	const viewAllLabel = $derived(resolveLocale(proofReelContent.viewAllLabel, locale));
-	const viewAllHref = $derived(proofReelContent.viewAllHref);
-	const visibleProjects = $derived(projects);
-	const total = $derived(visibleProjects.length);
-	// Embla disables loop when the slides barely exceed the viewport (4 projects, 3 per view).
-	// A second, hidden set gives it room to wrap at every width.
-	const loopCopies = $derived(total > 1 ? visibleProjects : []);
+	const total = $derived(projects.length);
 
-	function wrapCarouselIndex(index: number, count: number): number {
-		if (count <= 0) return 0;
-		return ((index % count) + count) % count;
+	let track = $state<HTMLDivElement>();
+	let controls = $state<HTMLDivElement>();
+	const button = (id: 'proof-prev' | 'proof-next') =>
+		controls?.querySelector<HTMLButtonElement>(`[data-testid="${id}"]`) ?? undefined;
+	/** Cards a view: one under 1024px, at most two from there (owner, 15 November). */
+	let perView = $state(1);
+	/** The first card in view. */
+	let first = $state(0);
+	let overflows = $state(false);
+	let announcement = $state('');
+	const stored = persisted<number>('featured-card', 0);
+
+	const last = $derived(Math.min(total, first + perView));
+	const position = $derived(
+		perView > 1 && last - first > 1
+			? fillTemplate(resolveLocale(homeLabels.projects.positionRange, locale), { from: String(first + 1), to: String(last), total: String(total) })
+			: fillTemplate(resolveLocale(homeLabels.projects.positionOne, locale), { from: String(first + 1), total: String(total) }),
+	);
+	const atStart = $derived(first <= 0);
+	const atEnd = $derived(first + perView >= total);
+
+	function cards(): HTMLElement[] {
+		return track ? Array.from(track.children) as HTMLElement[] : [];
 	}
 
-	function clampCarouselIndex(index: number, count: number): number {
-		if (count <= 0) return 0;
-		return Math.min(Math.max(index, 0), count - 1);
+	function reducedMotion(): boolean {
+		return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 	}
 
-	function formatCarouselPosition(index: number, count: number) {
-		const safeTotal = Math.max(0, count);
-		const wrappedIndex = wrapCarouselIndex(index, safeTotal);
-		const current = safeTotal > 0 ? String(wrappedIndex + 1).padStart(2, '0') : '00';
-		const totalLabel = String(safeTotal).padStart(2, '0');
-
-		return {
-			current,
-			index: wrappedIndex,
-			label: `${current} / ${totalLabel}`,
-			total: totalLabel,
-		};
+	/** Reads the view from the track: how many cards fit, which comes first, whether they overflow. */
+	function measure(): void {
+		if (!track) return;
+		perView = Math.min(window.matchMedia('(min-width: 1024px)').matches ? 2 : 1, Math.max(1, total));
+		overflows = track.scrollWidth - track.clientWidth > 1;
+		// Not laid out yet (or no layout engine): keep the card the page restored.
+		if (track.clientWidth === 0) return;
+		const start = track.getBoundingClientRect().left;
+		const offsets = cards().map((card) => Math.abs(card.getBoundingClientRect().left - start));
+		first = offsets.length ? offsets.indexOf(Math.min(...offsets)) : 0;
 	}
 
-	let emblaApi: EmblaCarouselType | undefined = $state(undefined);
-	let canScrollPrevious = $state(false);
-	let canScrollForward = $state(false);
-	const card = persisted<number>('featured-card', 0);
-	let currentIndex = $derived(card.value);
-	const activeIndex = $derived(clampCarouselIndex(currentIndex, total));
-	const currentPosition = $derived(formatCarouselPosition(activeIndex, total));
-	const previousControlAria = $derived(carouselPrevAria);
-	const nextControlAria = $derived(carouselNextAria);
+	function scrollToCard(index: number, smooth = true): void {
+		const card = cards()[Math.max(0, Math.min(index, total - 1))];
+		if (!track || !card) return;
+		const left = card.offsetLeft - (cards()[0]?.offsetLeft ?? 0);
+		track.scrollTo({ left, behavior: smooth && !reducedMotion() ? 'smooth' : 'auto' });
+	}
 
-	const emblaOptions = {
-		loop: true,
-		align: 'start' as const,
-		slidesToScroll: 1,
-		containScroll: 'trimSnaps' as const,
-		watchDrag: allowCarouselDrag,
-	};
+	/** A button moves by a view. */
+	function move(direction: -1 | 1): void {
+		const target = Math.max(0, Math.min(first + direction * perView, total - perView));
+		moved = true;
+		scrollToCard(target);
+	}
 
-	function onEmblaInit(event: CustomEvent<EmblaCarouselType>) {
-		emblaApi = event.detail;
-		const snapCount = emblaApi.scrollSnapList().length;
-		const target = snapCount > 0 ? Math.min(Math.max(card.value, 0), snapCount - 1) : 0;
-		if (target !== emblaApi.selectedScrollSnap()) {
-			emblaApi.scrollTo(target, true);
+	let moved = false;
+	let settleTimer: ReturnType<typeof setTimeout> | undefined;
+	function onScroll(): void {
+		clearTimeout(settleTimer);
+		settleTimer = setTimeout(async () => {
+			const focused = document.activeElement;
+			measure();
+			stored.value = first;
+			// Announced once the cards have settled, never on load.
+			if (moved || track?.contains(focused)) announcement = position;
+			moved = false;
+			// At an end a button turns disabled; its partner takes the focus, so the focus never drops.
+			await tick();
+			if (focused === button('proof-prev') && atStart) button('proof-next')?.focus();
+			if (focused === button('proof-next') && atEnd) button('proof-prev')?.focus();
+		}, 120);
+	}
+
+	onMount(() => {
+		// The card in view survives a remount (back and forward, a language switch).
+		if (stored.value > 0 && stored.value < total) {
+			first = Math.min(stored.value, Math.max(0, total - 1));
+			scrollToCard(first, false);
 		}
-		const syncPosition = () => {
-			if (!emblaApi) return;
-			card.value = emblaApi.selectedScrollSnap() % Math.max(total, 1);
-			canScrollPrevious = emblaApi.canScrollPrev();
-			canScrollForward = emblaApi.canScrollNext();
+		measure();
+		const observer = typeof ResizeObserver === 'undefined' ? undefined : new ResizeObserver(() => measure());
+		if (track) observer?.observe(track);
+		return () => {
+			clearTimeout(settleTimer);
+			observer?.disconnect();
 		};
-		// Copies look identical, so resting on the real set is an invisible jump that keeps
-		// the clickable, accessible originals in view.
-		const restOnRealSet = () => {
-			const snap = emblaApi?.selectedScrollSnap() ?? 0;
-			if (total > 0 && snap >= total) emblaApi?.scrollTo(snap % total, true);
-		};
-		syncPosition();
-		emblaApi.on('select', syncPosition);
-		emblaApi.on('reInit', syncPosition);
-		emblaApi.on('settle', restOnRealSet);
-		emblaApi.on('reInit', restOnRealSet);
-	}
-
-
-	function scrollPrev() {
-		emblaApi?.scrollPrev();
-	}
-
-	function scrollNext() {
-		emblaApi?.scrollNext();
-	}
+	});
 </script>
 
-<section
-	data-testid="proof-reel-section"
-	class="proof-reel-section relative px-[var(--space-page-x)] lg:min-h-dvh lg:flex lg:flex-col lg:justify-center"
->
+<div data-testid="proof-reel-section" class="proof-reel-section" style="--proof-per-view: {perView}">
 	<div
-		class="embla"
-		use:emblaCarouselSvelte={{ options: emblaOptions, plugins: [WheelGesturesPlugin()] }}
-		onemblaInit={onEmblaInit}
+		bind:this={track}
+		id="home-proof-track"
+		class="proof-track"
+		data-testid="proof-track"
+		onscroll={onScroll}
+		use:equalizeRows={['.home-card__title', '.home-card__text', '.home-card__facts']}
+		data-ripple-exempt
 	>
-		<div class="embla__container" use:alignProjectCards data-ripple-exempt>
-			{#each visibleProjects as project, i}
-				<div class="embla__slide">
-					<ProjectCard {project} {services} {serviceSvgContents} placement="proof" class="w-full" data-active={activeIndex === i} />
-				</div>
-			{/each}
-			{#each loopCopies as project}
-				<div class="embla__slide" aria-hidden="true" data-loop-copy>
-					<ProjectCard {project} {services} {serviceSvgContents} placement="proof" class="w-full" tabbable={false} data-testid="proof-card-copy" />
-				</div>
-			{/each}
-		</div>
+		{#each projects as project (project.slug)}
+			<div class="proof-slide" data-testid="proof-slide">
+				<HomeProjectCard {project} facts={facts[project.slug] ?? []} />
+			</div>
+		{/each}
 	</div>
 
-	<div class="proof-controls">
-		<SliderButton direction="previous" onclick={scrollPrev} aria-label={previousControlAria} data-testid="proof-prev" disabled={!canScrollPrevious} />
-		<SliderButton direction="next" onclick={scrollNext} aria-label={nextControlAria} data-testid="proof-next" disabled={!canScrollForward} />
-		<div class="proof-count" aria-live="polite" aria-label={currentPosition.label} data-testid="proof-count">
-			<span class="proof-count-current">{currentPosition.current}</span>
-			<span class="proof-count-sep">/</span>
-			<span class="proof-count-total">{currentPosition.total}</span>
+	<div class="proof-bar">
+		<div class="proof-controls" data-testid="proof-controls" hidden={!overflows} bind:this={controls}>
+			<SliderButton
+				direction="previous"
+				aria-label={prevLabel}
+				aria-controls="home-proof-track"
+				data-testid="proof-prev"
+				disabled={atStart}
+				onclick={() => move(-1)}
+			/>
+			<SliderButton
+				direction="next"
+				aria-label={nextLabel}
+				aria-controls="home-proof-track"
+				data-testid="proof-next"
+				disabled={atEnd}
+				onclick={() => move(1)}
+			/>
+			<p class="proof-position" data-testid="proof-position">{position}</p>
 		</div>
-		<a
-			data-testid="proof-view-all"
-			href={viewAllHref}
-			class="home-view-all tap-feedback ml-auto inline-flex items-center font-mono text-caption tracking-wider md:text-mono"
-		>{viewAllLabel}</a>
+		<p class="sr-only" aria-live="polite" data-testid="proof-announcement">{announcement}</p>
+		<p class="proof-view-all"><a data-testid="proof-view-all" href={localizeHref(proofReelContent.viewAllHref, locale)}>{viewAllLabel}</a></p>
 	</div>
-</section>
+</div>
 
 <style>
 	.proof-reel-section {
-		container: proof-reel / inline-size;
-		padding-block: clamp(2rem, 4dvh, 4rem);
+		padding-block-end: var(--space-section-y);
+		padding-inline: var(--space-page-x);
 	}
 
-	.embla {
-		--proof-columns: 1;
+	/* One card a view on phones and tablets, two on desktop, side by side on a scroll that snaps. */
+	.proof-track {
 		--proof-gap: 1.25rem;
-		overflow-x: clip;
-		overflow-y: visible;
-		margin-bottom: 1.5rem;
-		padding-block: 0.5rem;
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: calc((100% - (var(--proof-per-view, 1) - 1) * var(--proof-gap)) / var(--proof-per-view, 1));
+		column-gap: var(--proof-gap);
+		/* One card a view keeps its natural height; side by side, the cards share one. */
+		align-items: start;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-behavior: smooth;
+		/* Room for the cards' 1px lift and focus outlines inside the clipping scroll. */
+		padding: 6px 4px;
+		margin: -6px -4px;
+		scroll-padding-inline: 4px;
+		scrollbar-width: none;
 	}
 
-	.embla__container {
+	.proof-track::-webkit-scrollbar {
+		display: none;
+	}
+
+	.proof-slide {
 		display: flex;
-		align-items: flex-start;
-		margin-left: calc(-1 * var(--proof-gap));
-		touch-action: pan-y pinch-zoom;
-	}
-
-	.embla__slide {
-		flex: 0 0 calc(100% / var(--proof-columns));
 		min-width: 0;
-		padding-left: var(--proof-gap);
+		scroll-snap-align: start;
+	}
+
+	.proof-bar {
 		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1.25rem;
+		margin-top: 1.25rem;
 	}
 
 	.proof-controls {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.5rem;
 	}
 
-	.proof-count {
+	.proof-controls[hidden] {
+		display: none;
+	}
+
+	.proof-position {
+		margin-inline-start: 0.5rem;
+		font-size: var(--text-small);
+		color: var(--muted-foreground);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* An orange text link (base.css styles class-less links), a 44px target. */
+	.proof-view-all {
+		margin-inline-start: auto;
+	}
+
+	.proof-view-all :global(a) {
 		display: inline-flex;
-		align-items: baseline;
-		gap: 0.375rem;
-		margin-left: 0.5rem;
-		font-family: var(--font-mono);
-		letter-spacing: 0.15em;
-		flex-shrink: 0;
-		white-space: nowrap;
+		align-items: center;
+		min-height: var(--size-tap-min);
 	}
 
-	.proof-count-current {
-		font-size: var(--text-menu-subtitle);
-		font-weight: 700;
-		color: var(--accent-text);
+	@media (prefers-reduced-motion: reduce) {
+		.proof-track {
+			scroll-behavior: auto;
+		}
 	}
 
-	.proof-count-sep,
-	.proof-count-total {
-		font-size: var(--text-mono);
-		color: var(--accent-text);
-	}
-
-	.home-view-all {
-		color: var(--primary);
-		border-bottom: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
-		min-height: 2.75rem;
-		padding-inline: 0.25rem;
-		transition: border-color var(--duration-normal) var(--ease-default);
-	}
-
-	.home-view-all:hover {
-		border-color: color-mix(in srgb, var(--primary) 60%, transparent);
-	}
-
-	/* One whole card, then two, then three once each stays readable; never more, even on ultrawide. */
-	@container proof-reel (min-width: 45.25rem) {
-		.embla { --proof-columns: 2; }
-		.embla__container { align-items: stretch; }
-	}
-
-	@container proof-reel (min-width: 70rem) {
-		.embla { --proof-columns: 3; }
-	}
-
-	@media (--tablet-max) {
+	/* Desktop: the measure gives the cards their width; no extra page gutter inside it. */
+	@media (--desktop-min) {
 		.proof-reel-section {
-			padding-block: clamp(2.5rem, 6dvh, 4rem);
+			padding-inline: 0;
+		}
+		.proof-track {
+			align-items: stretch;
 		}
 	}
 </style>

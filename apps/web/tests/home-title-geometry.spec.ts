@@ -1,84 +1,72 @@
 import { expect, test } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
 
+// D23 (owner, 15 November): the home's section titles are the kit's RailTitle: the section's real
+// h2, rotated on a side rail outside the centred content from 1024px, sticky under the header pill
+// while its section scrolls, then the next title takes over; horizontal below 1024px.
 test.skip(({ viewport }) => viewport?.width !== 1440, 'Explicit title matrix runs in desktop.');
 
 for (const locale of ['en', 'fr', 'es']) {
 	for (const viewport of [{ width: 1024, height: 900 }, { width: 1440, height: 900 }, { width: 1440, height: 1200 }]) {
-		test(`${locale} ${viewport.width}x${viewport.height} home titles share type, column placement and sticky line`, async ({ page }, testInfo) => {
+		test(`${locale} ${viewport.width}x${viewport.height} rail titles share type, sit on the rails and stay in view while their section scrolls`, async ({ page }, testInfo) => {
 			await page.setViewportSize(viewport);
 			await page.goto(locale === 'en' ? '/' : `/${locale}`);
-			await expect(page.locator('.home-section').first()).toHaveAttribute('style', /--rotated-title-size:/);
 			await page.evaluate(() => document.fonts.ready);
-			await expect(page.locator('.construction-extension')).toHaveCSS('height', '0px');
-			const titles = page.locator('.rotated-title');
+			const titles = page.locator('[data-slot="rail-title"]');
 			await expect(titles).toHaveCount(4);
-			await page.evaluate(() => window.scrollTo(0, 0));
-			const measured = await titles.evaluateAll(elements => elements.map(el => {
-				const heading = el.querySelector('.section-heading-text')!;
-				const dot = el.querySelector('[data-slot="section-heading-dot"]')!;
-				const content = el.parentElement!.querySelector('.home-section-content')!;
-				const style = getComputedStyle(el), type = getComputedStyle(heading);
-				const rect = el.getBoundingClientRect(), parent = el.parentElement!.getBoundingClientRect(), text = heading.getBoundingClientRect(), c = content.getBoundingClientRect();
-				const right = el.classList.contains('rotated-title--right');
-				return {
-					title: heading.textContent!.trim(),
-					type: { font: type.fontFamily, size: type.fontSize, weight: type.fontWeight, spacing: type.letterSpacing, writing: style.writingMode },
-					rotation: style.rotate, right, block: { width: rect.width, height: rect.height }, text: { width: text.width, height: text.height },
-					columnOffset: right ? parent.right - rect.right : rect.left - parent.left,
-					contentGap: right ? rect.left - c.right : c.left - rect.right,
-					textCenterOffset: (text.left + text.right - rect.left - rect.right) / 2,
-					stickyTop: parseFloat(style.top), z: style.zIndex,
-					dot: { color: getComputedStyle(dot).color, size: getComputedStyle(dot).fontSize, hidden: dot.getAttribute('aria-hidden') },
-					sectionTop: parent.top + scrollY, sectionHeight: parent.height,
-					start: parent.top + scrollY - parseFloat(style.top),
-					end: parent.bottom + scrollY - rect.height - parseFloat(style.top),
-					travel: parent.height - rect.height,
-				};
-			}));
+			const pillBottom = await page.locator('header').first().evaluate(el => {
+				const pill = el.querySelector('nav') ?? el;
+				return pill.getBoundingClientRect().bottom;
+			});
 			const samples = [];
-			for (let i = 0; i < measured.length; i++) {
-				const title = measured[i];
-				expect(title.type).toEqual(measured[0].type);
-				expect(title.dot).toEqual(measured[0].dot);
-				expect(title.rotation).toBe(title.right ? 'none' : '180deg');
-				expect(Math.abs(title.columnOffset)).toBeLessThanOrEqual(1);
-				expect(Math.abs(title.contentGap)).toBeLessThanOrEqual(1);
-				expect(Math.abs(title.textCenterOffset)).toBeLessThanOrEqual(1);
-				expect(title.stickyTop).toBe(viewport.height / 2);
-				expect(title.z).toBe(measured[0].z);
-				const positions = [];
-				for (const requested of [title.start - 20, title.start + 1, (title.start + title.end) / 2, title.end - 1, title.end + 20]) {
-					await page.evaluate(y => window.scrollTo({ top: y, behavior: 'instant' }), requested);
-					if (i === 3) await expect.poll(() => page.locator('.construction-extension').evaluate(el => {
-						const progress = Number(document.querySelector('[data-slot="construction-props"]')!.getAttribute('data-progress'));
-						return Math.abs(el.getBoundingClientRect().height - 100 * progress);
-					})).toBeLessThan(0.1);
-					await expect.poll(() => titles.nth(i).evaluate(el => {
-						const r = el.getBoundingClientRect(), p = el.parentElement!.getBoundingClientRect();
-						return Math.abs(r.top - Math.min(Math.max(p.top, innerHeight / 2), p.bottom - r.height));
-					})).toBeLessThanOrEqual(1);
-					positions.push(await titles.nth(i).evaluate(el => ({ scroll: scrollY, top: el.getBoundingClientRect().top })));
-				}
-				// Check the shared line itself, not only agreement with CSS's formula.
-				for (const position of positions.slice(1, 4)) expect(Math.abs(position.top - title.stickyTop)).toBeLessThanOrEqual(1);
-				expect(positions[0].top).toBeGreaterThan(title.stickyTop);
-				expect(positions[4].top).toBeLessThan(title.stickyTop);
-				samples.push({ ...title, positions });
-				if (process.env.S7_EVIDENCE && viewport.width === 1440 && viewport.height === 900 && [0, 2].includes(i)) {
-					await mkdir(process.env.S7_EVIDENCE, { recursive: true });
-					await page.evaluate(y => window.scrollTo({ top: y, behavior: 'instant' }), title.start + 1);
-					await titles.nth(i).locator('..').screenshot({ path: join(process.env.S7_EVIDENCE, `${locale}-1440x900-${i === 2 ? 'about' : 'services'}-section.png`) });
-					await page.screenshot({ path: join(process.env.S7_EVIDENCE, `${locale}-1440x900-${i === 2 ? 'about' : 'services'}-sticky.png`) });
-				}
+			for (let i = 0; i < 4; i++) {
+				const title = titles.nth(i);
+				await title.evaluate(el => el.closest('[data-slot="page-section"]')!.scrollIntoView({ block: 'start', behavior: 'instant' }));
+				await page.evaluate(() => window.scrollBy({ top: 200, behavior: 'instant' }));
+				const measured = await title.evaluate(el => {
+					const heading = el.querySelector('h2')!;
+					// Terminus owns its rail (the scene runs to the right edge); the others centre their content.
+					const layout = el.closest('[data-slot="rail-title-layout"]') ?? el.closest('[data-slot="page-section"]')!;
+					const content = (layout.querySelector('[data-slot="rail-title-content"]') ?? layout.querySelector('[data-testid="closer-section"]'))!.getBoundingClientRect();
+					const style = getComputedStyle(heading);
+					const r = el.getBoundingClientRect(), t = heading.getBoundingClientRect(), l = layout.getBoundingClientRect();
+					return {
+						side: el.getAttribute('data-side'),
+						type: { font: style.fontFamily, weight: style.fontWeight, writing: style.writingMode },
+						title: t.toJSON(), rail: r.toJSON(), content: content.toJSON(), layout: l.toJSON(),
+						section: el.closest('[data-slot="page-section"]')!.getBoundingClientRect().toJSON(),
+						centred: Boolean(el.closest('[data-slot="rail-title-layout"]')),
+					};
+				});
+				expect(measured.type.writing).toBe('vertical-rl');
+				// On its rail, never over the content.
+				if (measured.side === 'left') expect(measured.title.right).toBeLessThanOrEqual(measured.content.left + 1);
+				else expect(measured.title.left).toBeGreaterThanOrEqual(measured.content.right - 1);
+				// The content is centred between the two rails.
+				if (measured.centred) expect(Math.abs((measured.content.left - measured.layout.left) - (measured.layout.right - measured.content.right))).toBeLessThanOrEqual(2);
+				// Sticky: once the section's top has scrolled under the pill, the title has not
+				// (only the last section may stop short of that, at the end of the page).
+				if (i < 3) expect(measured.section.top).toBeLessThan(pillBottom);
+				if (measured.section.top < pillBottom) expect(measured.title.top).toBeGreaterThanOrEqual(pillBottom - 1);
+				else expect(measured.title.top).toBeGreaterThanOrEqual(measured.section.top - 1);
+				expect(measured.title.bottom).toBeLessThanOrEqual(viewport.height);
+				samples.push(measured);
 			}
-			const report = JSON.stringify({ locale, ...viewport, titles: samples }, null, 2);
-			await testInfo.attach('title-geometry', { body: report, contentType: 'application/json' });
-			if (process.env.S7_EVIDENCE) {
-				await mkdir(process.env.S7_EVIDENCE, { recursive: true });
-				await writeFile(join(process.env.S7_EVIDENCE, `${locale}-${viewport.width}x${viewport.height}-titles.json`), report);
-			}
+			for (const sample of samples) expect(sample.type).toEqual(samples[0]!.type);
+			expect(samples.map(sample => sample.side)).toEqual(['left', 'right', 'right', 'left']);
+			await testInfo.attach('title-geometry', { body: JSON.stringify({ locale, ...viewport, pillBottom, samples }, null, 2), contentType: 'application/json' });
 		});
 	}
+}
+
+for (const width of [390, 768]) {
+	test(`${width}px: the rail titles read horizontally above their sections`, async ({ page }) => {
+		await page.setViewportSize({ width, height: 844 });
+		await page.goto('/');
+		const titles = page.locator('[data-slot="rail-title"] h2');
+		await expect(titles).toHaveCount(4);
+		for (const title of await titles.all()) {
+			await expect(title).toHaveCSS('writing-mode', 'horizontal-tb');
+			await expect(title).toBeVisible();
+		}
+	});
 }

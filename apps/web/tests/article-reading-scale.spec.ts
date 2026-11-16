@@ -78,9 +78,16 @@ test('project, blog and service details share the reading scale without page-wid
 		await expect.soft(page.locator('.section-header .section-title:visible').first()).toHaveCSS('font-size', `${desktop ? 22 : 20}px`);
 		if (reader.kind === 'services') {
 			const metric = page.locator(desktop ? '.impact-value:visible' : '.metric-inline-value:visible').first();
-			const size = await metric.evaluate((element) => parseFloat(getComputedStyle(element).fontSize));
+			// The published metric reads at reading size (owner, D-M5): the title step on the rail, the heading step inline.
+			const [size, expected] = await metric.evaluate((element, token) => {
+				const probe = document.body.appendChild(document.createElement('span'));
+				probe.style.fontSize = `var(${token})`;
+				const reference = parseFloat(getComputedStyle(probe).fontSize);
+				probe.remove();
+				return [parseFloat(getComputedStyle(element).fontSize), reference];
+			}, desktop ? '--text-title' : '--text-heading');
 			measurements.push({ serviceImpact: size });
-			expect.soft(size).toBeCloseTo(desktop ? Math.min(124, Math.max(78, viewport!.width * 0.089)) : Math.min(36, Math.max(28.8, viewport!.width * 0.045)), 1);
+			expect.soft(size).toBeCloseTo(expected, 1);
 		}
 		await body.scrollIntoViewIfNeeded();
 		await page.screenshot({ path: testInfo.outputPath(`${reader.kind}-${desktop ? 'desktop' : 'mobile'}.png`) });

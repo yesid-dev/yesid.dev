@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { aboutPageContent } from '../../src/lib/content/about-page';
+import { contactLines } from '../../src/lib/components/about/about-copy';
 
 test.beforeEach(async ({ page }) => {
 	await page.route(/web3forms|plausible|cal\.com|vercel.*(analytics|insights)/, route => route.abort());
@@ -21,7 +22,8 @@ for (const locale of ['', '/fr', '/es'])
 			expect(Math.min(...sizes), `${id} prose keeps the approved body-text floor`).toBeGreaterThanOrEqual(16);
 		}
 		const card = page.getByTestId('about-testimonials');
-		const dots = card.getByRole('tab');
+		// The quote dots are labelled slide buttons with aria-current (D-M6), not tabs.
+		const dots = card.getByTestId('about-quote-dot');
 		for (const viewport of [{ width: 1920, height: 1080 }, { width: 390, height: 844 }, { width: 820, height: 1180 }, { width: 1280, height: 600 }]) {
 			await page.setViewportSize(viewport);
 			await page.evaluate(() => document.fonts.ready);
@@ -29,12 +31,12 @@ for (const locale of ['', '/fr', '/es'])
 			for (const dot of await dots.all()) {
 				await expect(async () => {
 					await dot.click();
-					await expect(dot).toHaveAttribute('aria-selected', 'true', { timeout: 1000 });
+					await expect(dot).toHaveAttribute('aria-current', 'true', { timeout: 1000 });
 				}).toPass();
 				await expect(dot).toBeFocused();
 				const geometry = await card.evaluate((el) => {
 					const style = getComputedStyle(el), bounds = el.getBoundingClientRect();
-					const label = el.querySelector('[data-slot="stop-label"]')!;
+					const label = el.querySelector('[data-slot="card-heading"]')!;
 					const controls = el.querySelector('[data-testid="about-quote-controls"]')!;
 					const quote = [...el.querySelectorAll('blockquote')].find(item => getComputedStyle(item).visibility === 'visible')!.parentElement!.getBoundingClientRect();
 					const top = label.getBoundingClientRect().bottom + parseFloat(getComputedStyle(label).marginBottom);
@@ -52,7 +54,7 @@ for (const locale of ['', '/fr', '/es'])
 				expect(Math.abs(geometry.height - baseline.height), 'all quotes share the largest intrinsic card height').toBeLessThanOrEqual(1);
 				expect(Math.abs(geometry.controls - baseline.controls), 'selection never moves the controls within the card').toBeLessThanOrEqual(1);
 				await expect(card.getByRole('blockquote')).toHaveCount(1);
-				expect(Math.abs(geometry.topGap), 'the stop label stays at the padded card top').toBeLessThanOrEqual(1);
+				expect(Math.abs(geometry.topGap), 'the card heading stays at the padded card top').toBeLessThanOrEqual(1);
 				expect(Math.abs(geometry.bottomGap), 'controls sit at the padded card bottom').toBeLessThanOrEqual(1);
 				expect(Math.abs(geometry.centreOffset), 'quote and attribution centre between label and controls').toBeLessThanOrEqual(1);
 				expect(geometry.clearsLabel && geometry.clearsControls, 'quote content does not overlap the label or controls').toBe(true);
@@ -160,8 +162,8 @@ test.describe('/about page content', () => {
       expect(h1Text?.trim().length).toBeGreaterThan(0);
       expect(h1Text?.trim()).not.toMatch(/^(STOP|ARRÊT|PARADA)\b/);
 
-      // Every h2 is a card stop label, and each one has text.
-      const stopHeadings = page.locator('h2[data-slot="stop-label"]');
+      // Every h2 is a card's plain heading (D-M6: no stop label), and each one has text.
+      const stopHeadings = page.locator('h2[data-slot="card-heading"]');
       await expect(stopHeadings).toHaveCount(Object.keys(aboutPageContent.stopLabels).length - 1);
       for (const text of await stopHeadings.allTextContents()) {
         expect(text.trim().length).toBeGreaterThan(0);
@@ -302,10 +304,13 @@ for (const locale of ['en', 'fr', 'es'] as const) {
 		await page.goto(`${locale === 'en' ? '' : `/${locale}`}/about`);
 		const terminal = page.getByTestId('about-cta');
 		await terminal.scrollIntoViewIfNeeded();
-		for (const line of aboutPageContent.cta.lines) {
-			const text = typeof line.text === 'string' ? line.text : line.text[locale] ?? line.text.en;
-			await expect(terminal.getByText(text, { exact: true })).toBeVisible();
+		// The kept lines, without the ">" prompts; the filler line and the pretend command are gone (D-M6).
+		for (const line of contactLines(aboutPageContent.cta.lines, locale)) {
+			if (line.kind === 'text') await expect(terminal.getByText(line.text, { exact: true })).toBeVisible();
+			else await expect(terminal.getByRole('link', { name: line.display.join('') })).toBeVisible();
 		}
+		await expect(terminal).not.toContainText(aboutPageContent.cta.command);
+		await expect(terminal).not.toContainText(/AI-accelerated|assisté par l'IA|Con ayuda de IA/);
 		expect(await terminal.evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
 		await page.getByTestId('about-cta-button').focus();
 		await expect(page.getByTestId('about-cta-button')).toBeFocused();

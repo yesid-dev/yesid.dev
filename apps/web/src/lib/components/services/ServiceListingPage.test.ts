@@ -40,6 +40,8 @@ const renderProps = {
 	serviceSvgContents: Object.fromEntries(services.map((s) => [s.id, ''])),
 };
 
+const stations = () => screen.getAllByTestId(/^station-tab-/);
+
 function renderPage() {
 	return render(ServiceListingPage, { props: renderProps });
 }
@@ -78,7 +80,7 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 				intersectionRect: new DOMRect(0, 0, 100, 1), rootBounds: null, time: 0,
 			}], {} as IntersectionObserver);
 			await Promise.resolve();
-			expect(screen.getByRole('tab', { name: /02/ })).toHaveAttribute('aria-selected', 'true');
+			expect(screen.getByTestId('station-tab-data-pipeline')).toHaveAttribute('aria-current', 'true');
 			expect(gotoMock).not.toHaveBeenCalled();
 		} finally {
 			cleanup();
@@ -88,7 +90,7 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 
 	it('handles an empty supplied station set', () => {
 		render(ServiceListingPage, { props: { services: [], serviceSvgContents: {} } });
-		expect(screen.queryAllByRole('tab')).toEqual([]);
+		expect(screen.queryAllByTestId(/^station-tab-/)).toEqual([]);
 		expect(gotoMock).not.toHaveBeenCalled();
 	});
 
@@ -97,11 +99,11 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 		expect(screen.getByTestId('service-listing-page')).toBeInTheDocument();
 	});
 
-	it('writes ?station=<id> while preserving scroll and resetting focus', async () => {
+	it('writes ?station=<id> while preserving scroll and moves focus to the service title', async () => {
 		renderPage();
-		// StationTabs (mode="scroll") renders each station as a button; click the
+		// StationTabs (mode="scroll") renders each station as an in-page link; click the
 		// second one and assert the URL write contract.
-		const tabs = screen.getAllByRole('tab');
+		const tabs = stations();
 		expect(tabs.length).toBe(services.length);
 		tabs[1]!.focus();
 		await fireEvent.click(tabs[1]!); // data-pipeline
@@ -110,13 +112,13 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 		const [url, opts] = gotoMock.mock.calls[0]!;
 		expect(String(url)).toContain('station=data-pipeline');
 		expect(opts).toMatchObject({ replaceState: true, reset: false });
-		expect(document.activeElement).toBe(document.body);
+		await vi.waitFor(() => expect(document.activeElement).toBe(document.getElementById('svc-title-data-pipeline')));
 	});
 
 	it('triggers the Lenis-aware scroll on an explicit tab click', async () => {
 		// The clicked station's viewport must exist for querySelector to find it.
 		renderPage();
-		const tabs = screen.getAllByRole('tab');
+		const tabs = stations();
 		await fireEvent.click(tabs[2]!); // web-development
 		// ServiceCard renders #service-<id>; the scroll targets that element.
 		expect(scrollToMock).toHaveBeenCalledTimes(1);
@@ -152,9 +154,7 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 	it('falls back to scrollIntoView when Lenis is unavailable', async () => {
 		mocks.lenis = null;
 		renderPage();
-		const tabs = screen.getAllByRole('tab');
-		// Click a NON-active tab (station 1 is active on mount; bits-ui Tabs won't
-		// re-fire onValueChange for the already-selected tab).
+		const tabs = stations();
 		const target = document.querySelector<HTMLElement>('#service-web-development');
 		expect(target, 'station viewport must render').not.toBeNull();
 		const intoView = vi.fn();
@@ -162,5 +162,37 @@ describe('ServiceListingPage station (slice-34.5)', () => {
 		await fireEvent.click(tabs[2]!); // web-development
 		expect(intoView).toHaveBeenCalledTimes(1);
 		expect(scrollToMock).not.toHaveBeenCalled();
+	});
+});
+
+describe('ServiceListingPage composition (D-M5)', () => {
+	it('titles the page "Services." on the left rail, as its one h1', () => {
+		renderPage();
+		const title = screen.getByRole('heading', { level: 1 });
+		expect(title.textContent?.replace(/\s+/g, '')).toBe('Services.');
+		expect(title.closest('[data-slot="rail-title"]')).toHaveAttribute('data-side', 'left');
+		expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
+	});
+
+	it('lists four alike interactive cards in the CMS order, without counters', () => {
+		renderPage();
+		const items = screen.getAllByRole('listitem').filter((item) => item.id.startsWith('service-'));
+		expect(items.map((item) => item.id)).toEqual(services.map((service) => `service-${service.id}`));
+		for (const item of items) expect(item.querySelector('[data-slot="card"]')).toHaveAttribute('data-interactive', 'true');
+		expect(document.body.textContent).not.toMatch(/Service\s*\d+\s*\/\s*\d+/i);
+	});
+
+	it('ends with the closing band, with one divider between the sections and none after the band', () => {
+		renderPage();
+		const sections = document.querySelectorAll('[data-slot="page-section"]');
+		expect(sections).toHaveLength(2);
+		const band = screen.getByTestId('services-cta');
+		expect(sections[1]).toBe(band);
+		expect(band).toHaveAttribute('data-register', 'expressive');
+		expect(screen.getByTestId('services-cta-band-contact')).toBeInTheDocument();
+		const dividers = document.querySelectorAll('[data-slot="page-section-boundary"]');
+		expect(dividers).toHaveLength(1);
+		expect(dividers[0].nextElementSibling).toBe(band);
+		expect(band.nextElementSibling, 'nothing follows the last section before the footer').toBeNull();
 	});
 });

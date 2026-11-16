@@ -27,7 +27,8 @@ vi.mock('#lib/directus/assets.ts', () => ({
 
 // Derive featured membership from CMS data and mirror the server load's resolved collection props.
 const featuredProjects = getFeaturedProjects();
-const expectedProofCards = featuredProjects.length;
+// Transit is the opening's showcase; the carousel shows the other featured projects (D-M1).
+const expectedProofCards = featuredProjects.filter((project) => project.slug !== 'transit-data-pipeline').length;
 
 // PageData merges +page.server.ts return + +layout.server.ts return + +layout.ts
 // return (per SvelteKit's typed load chain). The home component only consumes
@@ -80,17 +81,11 @@ describe('Home page', () => {
 		expect(cursor).toBeNull();
 	});
 
-	it('renders the hero headline', () => {
+	it('renders the hero heading', () => {
 		renderPage();
-		// Structural: both headline lines render with non-empty content from
-		// whatever data the catalog supplied. We do NOT assert specific copy —
-		// Directus owns the words; this test owns the chain integrity.
-		const line1 = screen.getByTestId('hero-line1');
-		const line2 = screen.getByTestId('hero-line2');
-		expect(line1).toBeInTheDocument();
-		expect(line1.textContent?.trim()).toBeTruthy();
-		expect(line2).toBeInTheDocument();
-		expect(line2.textContent?.trim()).toBeTruthy();
+		const heading = screen.getByRole('heading', { level: 1 });
+		expect(heading).toBe(screen.getByTestId('hero-heading'));
+		expect(heading.textContent?.trim()).toBeTruthy();
 	});
 
 	it('renders the hero orange dot', () => {
@@ -100,51 +95,51 @@ describe('Home page', () => {
 		expect(dot.tagName.toLowerCase()).toBe('svg');
 	});
 
-	it('renders hero subheadline', () => {
+	it('renders the hero lead', () => {
 		renderPage();
-		const sub = screen.getByTestId('hero-subheadline');
-		expect(sub).toBeInTheDocument();
-		expect(sub.textContent?.trim()).toBeTruthy();
-	});
-
-	it('renders hero subtitle', () => {
-		renderPage();
-		const subtitle = screen.getByTestId('hero-subtitle');
-		expect(subtitle).toBeInTheDocument();
-		expect(subtitle.textContent?.trim()).toBeTruthy();
+		expect(screen.getByTestId('hero-subtitle').textContent?.trim()).toBeTruthy();
 	});
 
 	it('renders hero CTAs', () => {
 		renderPage();
-		expect(screen.getByTestId('hero-cta-projects')).toBeInTheDocument();
+		expect(screen.getByTestId('hero-cta-project')).toBeInTheDocument();
 		expect(screen.getByTestId('hero-cta-contact')).toBeInTheDocument();
 	});
 
-	it('renders hero metric cards', () => {
+	it('renders Transit in the opening with its three figures', () => {
 		renderPage();
-		expect(screen.getByTestId('hero-metrics')).toBeInTheDocument();
-		const cards = screen.getAllByTestId('metric-card');
-		expect(cards).toHaveLength(stubData.initialHeroData.metrics.length);
+		const card = screen.getByTestId('hero-transit-card');
+		expect(card).toHaveAttribute('data-interactive', 'true');
+		expect(screen.getAllByTestId('hero-transit-figure')).toHaveLength(stubData.initialHeroData.metrics.length);
 	});
 
-	it('renders hero SQL panel', () => {
+	it('shows no SQL demo and no "See the data example" anywhere on the home (owner, 15 November)', () => {
 		renderPage();
-		const panels = screen.getAllByTestId('sql-panel');
-		expect(panels.length).toBeGreaterThanOrEqual(1);
-		const queries = screen.getAllByTestId('sql-query');
-		expect(queries[0].textContent).toContain('SELECT');
+		expect(screen.queryByTestId('sql-panel')).toBeNull();
+		expect(screen.queryByTestId('hero-mobile-sql')).toBeNull();
+		expect(screen.getByTestId('app-root').textContent).not.toMatch(/SELECT|avg_delay_s/);
 	});
 
-	it('renders hero refresh button', () => {
+	it('ends every section but the last with the kit dimension line, none before the footer', () => {
 		renderPage();
-		expect(screen.getByTestId('hero-refresh')).toBeInTheDocument();
+		const sections = screen.getByTestId('home-sections');
+		const registered = sections.querySelectorAll('[data-slot="page-section"]');
+		const boundaries = sections.querySelectorAll('[data-slot="page-section-boundary"]');
+		expect(registered).toHaveLength(7);
+		expect(boundaries).toHaveLength(registered.length - 1);
+		expect(sections.lastElementChild).toBe(screen.getByTestId('home-section-terminus'));
+		// Every boundary is the dimension line, and nothing else sits between two sections.
+		for (const boundary of boundaries) expect(boundary).toHaveAttribute('data-variant', 'dimension');
+		for (const child of sections.children) {
+			expect(child.matches('[data-slot="page-section"], [data-slot="page-section-boundary"]')).toBe(true);
+		}
 	});
 
-	it('renders hazard stripe dividers between sections', () => {
+	it('titles Projects, Services, About and Terminus with the kit rail title, the real h2', () => {
 		renderPage();
-		const container = screen.getByTestId('app-root');
-		const stripes = container.querySelectorAll('[aria-hidden="true"][style*="repeating-linear-gradient"]');
-		expect(stripes.length).toBeGreaterThanOrEqual(1);
+		const titles = screen.getByTestId('home-sections').querySelectorAll('[data-slot="rail-title"]');
+		expect(titles).toHaveLength(4);
+		for (const title of titles) expect(title.querySelector('h2')).not.toBeNull();
 	});
 
 	it('renders the manifesto section', () => {

@@ -31,6 +31,11 @@ function liveFetch() {
 	return vi.spyOn(globalThis, 'fetch').mockImplementation(async () => Response.json(contract.examples[0].body));
 }
 
+const proof = (view: ReturnType<typeof mountHero>) => view.getByTestId('hero-transit-proof');
+const stateOf = (view: ReturnType<typeof mountHero>) => proof(view).getAttribute('data-state');
+const figures = (view: ReturnType<typeof mountHero>) => view.getByTestId('hero-transit-figures').textContent;
+const stateLine = (view: ReturnType<typeof mountHero>) => view.getByTestId('hero-transit-state');
+
 afterEach(() => {
 	cleanup();
 	vi.clearAllTimers();
@@ -46,15 +51,12 @@ describe('HeroBanner live KPI polling boundary', () => {
 		fetchKpis.mockRejectedValue(new Error('offline'));
 		vi.spyOn(Math, 'random').mockReturnValue(0.1);
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS * 2);
-		const rows = view.getAllByTestId('sql-results')[0];
-		const metrics = view.getByTestId('hero-metrics-desktop');
-		const meta = view.getAllByTestId('sql-meta')[0];
-		const demo = { rows: rows.textContent, metrics: metrics.textContent, meta: meta.textContent };
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'failure');
+		const demo = figures(view);
+		expect(stateOf(view)).toBe('failure');
 		vi.spyOn(Math, 'random').mockReturnValue(0.9);
 		for (let poll = 0; poll < 2; poll++) {
 			await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-			expect({ rows: rows.textContent, metrics: metrics.textContent, meta: meta.textContent }).toEqual(demo);
+			expect(figures(view)).toBe(demo);
 		}
 	});
 
@@ -62,118 +64,101 @@ describe('HeroBanner live KPI polling boundary', () => {
 		liveFetch().mockRejectedValue(new Error('offline'));
 		vi.spyOn(Math, 'random').mockReturnValue(0.9);
 		const view = mountHero();
-		const rows = view.getAllByTestId('sql-results')[0];
-		const metrics = view.getByTestId('hero-metrics-desktop');
-		const meta = view.getAllByTestId('sql-meta')[0];
-		const initial = { rows: rows.textContent, metrics: metrics.textContent, meta: meta.textContent };
+		const initial = figures(view);
 		await settle();
 		for (let poll = 0; poll < 4; poll++) {
 			await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-			expect({ rows: rows.textContent, metrics: metrics.textContent, meta: meta.textContent }).toEqual(initial);
-			expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'failure');
+			expect(figures(view)).toBe(initial);
+			expect(stateOf(view)).toBe('failure');
 		}
 	});
 
-	it('manual refresh in DEMO regenerates with the just-now stamp even during a failed initial poll', async () => {
-		let finish!: (response: Response) => void;
-		liveFetch().mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+	it('generates another example in DEMO, even during a pending initial poll', async () => {
+		liveFetch().mockImplementation(() => new Promise(() => {}));
 		vi.spyOn(Math, 'random').mockReturnValue(0.9);
 		const view = mountHero();
-		const rows = view.getAllByTestId('sql-results')[0];
-		const initial = rows.textContent;
-		await fireEvent.click(view.getByTestId('hero-refresh'));
-		finish(new Response('cold', { status: 503 }));
+		const initial = figures(view);
+		expect(stateOf(view)).toBe('demo');
+		expect(view.queryByTestId('hero-refresh')).toBeNull();
+		await fireEvent.click(view.getByTestId('hero-regenerate'));
 		await settle();
-		expect(rows.textContent).not.toBe(initial);
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'failure');
-		expect(view.getAllByTestId('sql-meta')[0]).toHaveTextContent(heroContent.sqlPanel.stamps.refreshed.en);
+		expect(figures(view)).not.toBe(initial);
+		expect(stateOf(view)).toBe('demo');
 	});
 
 	it('holds real values and their original ageing clock once, then labels DEMO, and recovers', async () => {
 		const fetchKpis = liveFetch();
 		const view = mountHero();
 		await settle();
-		const badge = view.getAllByTestId('sql-live')[0];
-		const meta = view.getAllByTestId('sql-meta')[0];
-		const rows = () => view.getAllByTestId('sql-results')[0].querySelector('tbody')!.textContent;
-		const realRows = rows();
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'live');
-		expect(meta).toHaveTextContent('5s ago');
+		const realFigures = figures(view);
+		expect(stateOf(view)).toBe('live');
+		expect(stateLine(view)).toHaveTextContent('Live · updated just now');
 
 		fetchKpis.mockResolvedValue(new Response('cold', { status: 503 }));
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'held');
-		expect(rows()).toBe(realRows);
-		expect(meta).toHaveTextContent('50s ago');
+		expect(stateOf(view)).toBe('held');
+		expect(figures(view)).toBe(realFigures);
+		expect(stateLine(view)).toHaveTextContent('Last received 50 seconds ago. New readings are not arriving.');
 		await vi.advanceTimersByTimeAsync(5_000);
-		expect(meta).toHaveTextContent('55s ago');
+		expect(stateLine(view)).toHaveTextContent('Last received 55 seconds ago.');
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS - 5_000);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'failure');
-		expect(meta).not.toHaveTextContent(/\d+s ago/);
+		expect(stateOf(view)).toBe('failure');
+		expect(stateLine(view)).toHaveTextContent(heroContent.sqlPanel.failure.en);
 
 		fetchKpis.mockImplementation(async () => Response.json(contract.examples[0].body));
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'live');
+		expect(stateOf(view)).toBe('live');
 		fetchKpis.mockRejectedValue(new Error('offline'));
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'held');
+		expect(stateOf(view)).toBe('held');
 	});
 
 	it('uses the same consecutive failure budget for manual refresh and automatic polls', async () => {
 		const fetchKpis = liveFetch();
 		const view = mountHero();
 		await settle();
-		const badge = view.getAllByTestId('sql-live')[0];
 		fetchKpis.mockRejectedValue(new Error('offline'));
 		await fireEvent.click(view.getByTestId('hero-refresh'));
 		await settle();
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'held');
+		expect(stateOf(view)).toBe('held');
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'failure');
+		expect(stateOf(view)).toBe('failure');
 
 		fetchKpis.mockImplementation(async () => Response.json(contract.examples[0].body));
 		await fireEvent.click(view.getByTestId('hero-refresh'));
 		await settle();
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'live');
+		expect(stateOf(view)).toBe('live');
 		fetchKpis.mockRejectedValue(new Error('offline'));
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'held');
+		expect(stateOf(view)).toBe('held');
 		await fireEvent.click(view.getByTestId('hero-refresh'));
 		await settle();
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'failure');
+		expect(stateOf(view)).toBe('failure');
 	});
 
 	it('a success between failures resets the budget before DEMO', async () => {
 		const fetchKpis = liveFetch();
 		const view = mountHero();
 		await settle();
-		const badge = view.getAllByTestId('sql-live')[0];
 		for (const fail of [true, false, true, true]) {
 			fetchKpis.mockImplementation(async () => fail
 				? new Response('cold', { status: 503 })
 				: Response.json(contract.examples[0].body));
 			await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-			if (!fail) expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'live');
-			else if (fetchKpis.mock.calls.length < 5) expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'held');
+			if (!fail) expect(stateOf(view)).toBe('live');
+			else if (fetchKpis.mock.calls.length < 5) expect(stateOf(view)).toBe('held');
 		}
-		expect(badge.closest('[data-state]')).toHaveAttribute('data-state', 'failure');
+		expect(stateOf(view)).toBe('failure');
 	});
 
-	it('keeps the webdriver bypass for unrelated suites and labels failed initial checks DEMO', async () => {
+	it('keeps the webdriver bypass for unrelated suites and labels the example as a demonstration', async () => {
 		const fetchKpis = liveFetch();
 		vi.spyOn(navigator, 'webdriver', 'get').mockReturnValue(true);
 		const view = mountHero();
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS * 2);
 		expect(fetchKpis).not.toHaveBeenCalled();
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'demo');
-	});
-
-	it('renders the usable route count in the SQL caption', async () => {
-		liveFetch().mockImplementation(async () => Response.json(contract.examples[1].body));
-		const view = mountHero();
-		await settle();
-		expect(view.getAllByTestId('sql-results')[0].querySelectorAll('tbody tr')).toHaveLength(4);
-		expect(view.getAllByTestId('sql-meta')[0]).toHaveTextContent('4 rows');
+		expect(stateOf(view)).toBe('demo');
+		expect(stateLine(view)).toHaveTextContent('Simulated data. This is a demonstration.');
 	});
 
 	it('shares a pending poll with manual refresh so one failed request consumes one failure', async () => {
@@ -187,18 +172,19 @@ describe('HeroBanner live KPI polling boundary', () => {
 		expect(fetchKpis).toHaveBeenCalledTimes(2);
 		finish(new Response('cold', { status: 503 }));
 		await settle();
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'held');
+		expect(stateOf(view)).toBe('held');
 	});
 
 	it('keeps initial failures labelled DEMO when no real reading exists', async () => {
 		liveFetch().mockRejectedValue(new Error('offline'));
 		const view = mountHero();
 		await settle();
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'failure');
+		expect(stateOf(view)).toBe('failure');
 		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
-		expect(view.getAllByTestId('sql-panel')[0]).toHaveAttribute('data-state', 'failure');
-		expect(view.getAllByTestId('sql-meta')[0]).not.toHaveTextContent(/\d+s ago/);
+		expect(stateOf(view)).toBe('failure');
+		expect(stateLine(view)).not.toHaveTextContent(/seconds? ago/);
 	});
+
 	it('polls while mounted and stops polling after unmount', async () => {
 		vi.useFakeTimers();
 		vi.spyOn(navigator, 'webdriver', 'get').mockReturnValue(false);
@@ -226,6 +212,83 @@ describe('HeroBanner live KPI polling boundary', () => {
 	});
 });
 
+describe('HeroBanner Refresh', () => {
+	it('says it is working, keeps the focus, then announces the new reading politely', async () => {
+		const fetchKpis = liveFetch();
+		const view = mountHero();
+		await settle();
+		let finish!: (response: Response) => void;
+		fetchKpis.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+		const button = view.getByTestId('hero-refresh');
+		expect(button).toHaveAccessibleName('Refresh Transit data');
+		button.focus();
+		await fireEvent.click(button);
+		await tick();
+		expect(button).toHaveAttribute('aria-disabled', 'true');
+		expect(button).toHaveAccessibleName('Refreshing Transit data');
+		expect(button).toHaveTextContent('Refreshing');
+		expect(proof(view)).toHaveAttribute('aria-busy', 'true');
+		expect(document.activeElement).toBe(button);
+		// A second press while it asks sends nothing more.
+		await fireEvent.click(button);
+		expect(fetchKpis).toHaveBeenCalledTimes(2);
+
+		finish(Response.json(contract.examples[0].body));
+		await settle();
+		await vi.advanceTimersByTimeAsync(100);
+		expect(button).not.toHaveAttribute('aria-disabled');
+		expect(proof(view)).toHaveAttribute('aria-busy', 'false');
+		expect(document.activeElement).toBe(button);
+		const region = view.getByTestId('hero-transit-announcement');
+		expect(region).toHaveAttribute('aria-live', 'polite');
+		expect(region).toHaveTextContent('Transit data refreshed, updated just now.');
+		expect(stateLine(view)).toHaveTextContent('Live · updated just now');
+	});
+
+	it('keeps the last reading and says so when a refresh fails', async () => {
+		const fetchKpis = liveFetch();
+		const view = mountHero();
+		await settle();
+		const reading = figures(view);
+		fetchKpis.mockRejectedValue(new Error('offline'));
+		await vi.advanceTimersByTimeAsync(20_000);
+		await fireEvent.click(view.getByTestId('hero-refresh'));
+		await settle();
+		await vi.advanceTimersByTimeAsync(100);
+		expect(figures(view)).toBe(reading);
+		const words = 'Could not refresh. Still showing the reading from 25 seconds ago. Try again.';
+		expect(stateLine(view)).toHaveTextContent(words);
+		expect(view.getByTestId('hero-transit-announcement')).toHaveTextContent(words);
+	});
+
+	it('says the demonstration stays when a refresh fails without live data', async () => {
+		const fetchKpis = liveFetch();
+		fetchKpis.mockRejectedValue(new Error('offline'));
+		const view = mountHero('fr');
+		await settle();
+		expect(stateOf(view)).toBe('failure');
+		await fireEvent.click(view.getByTestId('hero-refresh'));
+		await settle();
+		await vi.advanceTimersByTimeAsync(100);
+		const words = 'Actualisation impossible. Les données en direct sont toujours indisponibles; la démonstration reste affichée. Réessayez.';
+		expect(stateLine(view)).toHaveTextContent(words);
+		expect(view.getByTestId('hero-transit-announcement')).toHaveTextContent(words);
+	});
+
+	it('clears a failed refresh once a new reading arrives', async () => {
+		const fetchKpis = liveFetch();
+		const view = mountHero();
+		await settle();
+		fetchKpis.mockRejectedValue(new Error('offline'));
+		await fireEvent.click(view.getByTestId('hero-refresh'));
+		await settle();
+		expect(stateLine(view)).toHaveTextContent('Could not refresh.');
+		fetchKpis.mockImplementation(async () => Response.json(contract.examples[0].body));
+		await vi.advanceTimersByTimeAsync(LIVE_POLL_MS);
+		expect(stateLine(view)).toHaveTextContent('Live · updated just now');
+	});
+});
+
 it.each([
 	['en', 'Live data is unavailable. Showing a demonstration.'],
 	['fr', 'Les données en direct sont indisponibles. Une démonstration est affichée.'],
@@ -234,5 +297,5 @@ it.each([
 	liveFetch().mockRejectedValue(new Error('offline'));
 	const view = mountHero(locale);
 	await settle();
-	expect(view.getAllByTestId('sql-live')[0]).toHaveTextContent(message);
+	expect(stateLine(view)).toHaveTextContent(message);
 });

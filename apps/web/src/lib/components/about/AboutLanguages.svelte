@@ -7,10 +7,19 @@
 	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
 	import LanguageFlag, { isFlagId } from './LanguageFlag.svelte';
+	import AboutCardHeading from './AboutCardHeading.svelte';
 
 	const locale = getLocale();
 
-	let { languages, stop, label }: { languages: readonly AboutLanguage[]; stop: string; label: string } = $props();
+	// The home's About block passes `stop` and `label` and renders as it always has. About passes
+	// `heading` (D-M6): a plain heading above the flags, so nothing covers them, readable names
+	// and a static card without glow.
+	let {
+		languages,
+		stop = '',
+		label = '',
+		heading,
+	}: { languages: readonly AboutLanguage[]; stop?: string; label?: string; heading?: string } = $props();
 
 	let activeIndex = $state(-1);
 
@@ -24,49 +33,62 @@
 	}
 </script>
 
+{#snippet flags()}
+	<div class="language-strip flex h-full min-h-36 flex-col">
+		{#each languages as language, i}
+			{@const languageLabel = resolveLocale(language.label, locale)}
+			<button
+				type="button"
+				class="tap-press language-flag relative flex min-h-0 flex-1 items-center justify-center overflow-hidden transition-all duration-500 ease-out"
+				class:language-flag-seamed={i > 0}
+				class:language-flag-active={activeIndex === i}
+				data-testid="about-language-flag"
+				data-region={language.id}
+				aria-label={languageLabel}
+				aria-pressed={activeIndex === i}
+				onclick={() => handleTap(i)}
+			>
+				{#if isFlagId(language.id)}
+					<LanguageFlag id={language.id} class="flag-image absolute inset-0 transition-transform duration-500 ease-out" />
+				{:else}
+					<img
+						src={resolveLanguageImage(language.image)}
+						alt=""
+						class="flag-image absolute inset-0 transition-transform duration-500 ease-out"
+						data-testid="about-language-image"
+						loading="lazy"
+						decoding="async"
+					/>
+				{/if}
+				<div class="flag-overlay absolute inset-0 transition-opacity duration-500"></div>
+
+				<span class="flag-label absolute z-10 font-mono text-caption font-semibold tracking-[3px]">
+					{languageLabel}
+				</span>
+			</button>
+		{/each}
+	</div>
+{/snippet}
+
+{#if heading !== undefined}
+	<Card class="languages-plain relative h-full !gap-0 overflow-hidden !py-0" data-testid="about-languages">
+		<AboutCardHeading text={heading} class="languages-heading" />
+		<div class="relative flex min-h-0 flex-1 flex-col">
+			{@render flags()}
+		</div>
+	</Card>
+{:else}
 <div class="group h-full" use:cursorGlow>
 	<Card class="relative h-full !gap-0 overflow-hidden !py-0" data-testid="about-languages">
 		<div class="language-stop-badge absolute top-3 left-4 z-20">
 			<StopLabel {stop} {label} as="h2" />
 		</div>
 		<div class="relative flex h-full flex-col">
-			<div class="language-strip flex h-full min-h-36 flex-col">
-				{#each languages as language, i}
-					{@const languageLabel = resolveLocale(language.label, locale)}
-					<button
-						type="button"
-						class="tap-press language-flag relative flex min-h-0 flex-1 items-center justify-center overflow-hidden transition-all duration-500 ease-out"
-						class:language-flag-seamed={i > 0}
-						class:language-flag-active={activeIndex === i}
-						data-testid="about-language-flag"
-						data-region={language.id}
-						aria-label={languageLabel}
-						aria-pressed={activeIndex === i}
-						onclick={() => handleTap(i)}
-					>
-						{#if isFlagId(language.id)}
-							<LanguageFlag id={language.id} class="flag-image absolute inset-0 transition-transform duration-500 ease-out" />
-						{:else}
-							<img
-								src={resolveLanguageImage(language.image)}
-								alt=""
-								class="flag-image absolute inset-0 transition-transform duration-500 ease-out"
-								data-testid="about-language-image"
-								loading="lazy"
-								decoding="async"
-							/>
-						{/if}
-						<div class="flag-overlay absolute inset-0 transition-opacity duration-500"></div>
-
-						<span class="flag-label absolute z-10 font-mono text-caption font-semibold tracking-[3px]">
-							{languageLabel}
-						</span>
-					</button>
-				{/each}
-			</div>
+			{@render flags()}
 		</div>
 	</Card>
 </div>
+{/if}
 
 <style>
 	.language-strip {
@@ -137,6 +159,22 @@
 		text-shadow: 0 1px 4px color-mix(in srgb, var(--background) 82%, transparent);
 		text-transform: uppercase;
 		white-space: nowrap;
+	}
+
+	/* About (D-M6): the heading sits above the flags, and each name stays readable at 13px on a
+	   firmer chip in every card width. */
+	:global(.languages-plain) :global(.languages-heading) {
+		padding: 0.75rem 0.75rem 0.625rem;
+	}
+
+	:global(.languages-plain) .flag-label {
+		padding: 0.1rem 0.4rem;
+		background: color-mix(in srgb, var(--background) 72%, transparent);
+		font-size: var(--text-caption);
+		letter-spacing: 0.12em;
+		line-height: 1.5;
+		backdrop-filter: none;
+		text-shadow: none;
 	}
 
 	:global([data-theme="light"]) .language-flag :global(.flag-image),

@@ -23,16 +23,17 @@
 		type HeroData,
 		type LiveHeroSnapshot,
 	} from '#lib/live/index.ts';
-	import type { HeroContent, HeroAnimContent } from '#lib/types.ts';
+	import type { HeroContent, HeroAnimContent, ProjectSummary } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
+	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { fillTemplate } from '#lib/utils/labels.ts';
+	import { homeLabels } from './home-labels.ts';
 
 	const locale = getLocale();
 	import MetroNetwork from '#lib/motion/svg/MetroNetwork.svelte';
-	import HeroSqlPanel from './HeroSqlPanel.svelte';
 	import HeroTextContent from './HeroTextContent.svelte';
-	import HeroMobileSql from './HeroMobileSql.svelte';
+	import HeroTransitCard, { type ReadingState } from './HeroTransitCard.svelte';
 
 	interface Props {
 		metroSvg: string;
@@ -41,8 +42,10 @@
 		initialHeroData: HeroData;
 		/** Contact channels Calendar link opened by the second hero button. */
 		bookingHref: string;
+		/** Transit, the opening's showcase (screenshots, words and links). */
+		transitProject?: ProjectSummary;
 	}
-	let { metroSvg, hero: heroContent, heroAnim: heroAnimContent, initialHeroData: INITIAL_HERO_DATA, bookingHref }: Props = $props();
+	let { metroSvg, hero: heroContent, heroAnim: heroAnimContent, initialHeroData: INITIAL_HERO_DATA, bookingHref, transitProject }: Props = $props();
 
 	let pinContainer: HTMLDivElement;
 	let svgWrapper: HTMLDivElement;
@@ -56,36 +59,19 @@
 		const size = (90 / len + 0.5) / 0.6;
 		return Math.min(8, Math.max(4, size)).toFixed(2);
 	});
-	const headlineLine1 = $derived(resolveLocale(heroContent.headline.line1, locale));
-	const headlineLine2 = $derived(resolveLocale(heroContent.headline.line2, locale));
-	const subheadlineText = $derived(resolveLocale(heroContent.subheadline, locale));
-	const subtitleText = $derived(resolveLocale(heroContent.subtitle, locale));
-	const ctaWorkLabel = $derived(resolveLocale(heroContent.ctaWork, locale));
-	const ctaContactLabel = $derived(resolveLocale(heroContent.ctaContact, locale));
+	const heading = resolveLocale(homeLabels.hero.heading, locale);
+	const lead = resolveLocale(homeLabels.hero.lead, locale);
+	const ctaProjectLabel = resolveLocale(homeLabels.hero.ctaProject, locale);
+	const bookingLabel = $derived(resolveLocale(heroContent.ctaContact, locale));
+	const newTabLabel = resolveLocale(homeLabels.hero.newTab, locale);
 	// Seed once from the prop, then let refreshes own the local data.
 	let heroData: HeroData = $state(untrack(() => INITIAL_HERO_DATA));
 	// LIVE labels require real transit data; simulated values must retain DEMO labels.
 	let live = $state(false);
-	let readingState = $state<'demo' | 'live' | 'held' | 'failure'>('demo');
-	const statusWords = $derived({
-		held: resolveLocale(heroContent.sqlPanel.held, locale),
-		failure: resolveLocale(heroContent.sqlPanel.failure, locale),
-	});
-	const sqlLabels = $derived({
-		state: readingState,
-		prompt: resolveLocale(heroContent.sqlPanel.prompt, locale),
-		liveLabel: readingState === 'held' ? statusWords.held : readingState === 'failure' ? statusWords.failure : resolveLocale(live ? heroContent.sqlPanel.liveBadge : heroContent.sqlPanel.liveLabel, locale),
-		columnRoute: resolveLocale(heroContent.sqlPanel.columns.route, locale),
-		columnAvgDelay: resolveLocale(heroContent.sqlPanel.columns.avgDelayS, locale),
-		columnVehicles: resolveLocale(heroContent.sqlPanel.columns.vehicles, locale),
-		metaTemplate: resolveLocale(heroContent.sqlPanel.metaTemplate, locale)
-			.replace(/^\d+\b/, String(heroData.queryRows.length)),
-	});
-	const headlineAriaSuffix = $derived(resolveLocale(heroContent.headline.ariaSuffix, locale));
-	const refreshLabel = $derived(resolveLocale(heroContent.refreshButton.label, locale));
-	const refreshHelper = $derived(
-		resolveLocale(live ? heroContent.refreshButton.helperLive : heroContent.refreshButton.helper, locale),
-	);
+	let readingState = $state<ReadingState>('demo');
+	const regenerateLabel = $derived(resolveLocale(heroContent.refreshButton.label, locale));
+	const t = homeLabels.transit;
+	const words = (value: { en: string; fr: string; es: string }) => resolveLocale(value, locale);
 
 	const sceneWords = $derived({
 		name: resolveLocale(heroContent.scene.name, locale),
@@ -107,83 +93,104 @@
 	const metroCaption = resolveLocale(siteLabels.ui.metroCaption, locale);
 
 	let heroTextContainer: HTMLDivElement;
-	let refreshIcon: HTMLSpanElement;
-
-	// Prerendered demo data has no meaningful age; only a user refresh can claim it was regenerated just now.
-	const stamps = untrack(() => heroContent.sqlPanel.stamps);
-	const updatedAgoInitial = resolveLocale(stamps.demo, locale);
-	const updatedAgoJustNow = resolveLocale(stamps.refreshed, locale);
-	const liveStampTemplate = resolveLocale(stamps.liveTemplate, locale);
-	let demoStamp: string = $state(updatedAgoInitial);
-
-	function spinRefreshIcon() {
-		if (refreshIcon) {
-			refreshIcon.style.transition = 'transform 0.6s ease';
-			refreshIcon.style.transform = 'rotate(360deg)';
-			setTimeout(() => {
-				refreshIcon.style.transition = 'none';
-				refreshIcon.style.transform = 'rotate(0deg)';
-			}, 600);
-		}
-	}
 
 	// The shared clock advances server-provided freshness between polls.
 	let liveBase = $state<{ freshnessS: number; receivedAt: number } | null>(null);
 	$effect(() => clock.subscribe());
-	const updatedAgo = $derived(
-		liveBase
-			? liveStamp(liveBase.freshnessS + Math.max(0, Math.round((clock.now - liveBase.receivedAt) / 1000)))
-			: demoStamp,
+	const ageSeconds = $derived(
+		liveBase ? liveBase.freshnessS + Math.max(0, Math.round((clock.now - liveBase.receivedAt) / 1000)) : 0,
 	);
 
-	function liveStamp(seconds: number): string {
-		return fillTemplate(liveStampTemplate, { seconds: String(seconds) });
+	/** "22 seconds", "1 minute", "3 minutes" in the page language. */
+	function ageWords(seconds: number): string {
+		const s = Math.max(1, Math.round(seconds));
+		if (s < 60) return s === 1 ? words(t.second) : fillTemplate(words(t.seconds), { n: String(s) });
+		const m = Math.floor(s / 60);
+		return m === 1 ? words(t.minute) : fillTemplate(words(t.minutes), { n: String(m) });
 	}
+
+	// A refresh the visitor asked for that did not bring new data; cleared by the next reading.
+	let refreshFailed = $state(false);
+	let refreshing = $state(false);
+	let announcement = $state('');
+
+	/** The words beside the figures: what the reading is and how old, or why it is not live. */
+	const stateLine = $derived.by((): { word?: string; text: string } => {
+		const age = ageWords(ageSeconds);
+		if (refreshFailed && (readingState === 'live' || readingState === 'held')) {
+			return { text: fillTemplate(words(t.refreshFailedKept), { age }) };
+		}
+		if (refreshFailed && readingState === 'failure') return { text: words(t.refreshFailedDemo) };
+		if (readingState === 'live') {
+			return {
+				word: words(t.live),
+				text: ageSeconds < 10 ? words(t.updatedJustNow) : fillTemplate(words(t.updatedAgo), { age }),
+			};
+		}
+		if (readingState === 'held') return { text: fillTemplate(words(t.held), { age }) };
+		if (readingState === 'failure') return { text: resolveLocale(heroContent.sqlPanel.failure, locale) };
+		return {
+			text: `${resolveLocale(heroContent.sqlPanel.liveLabel, locale)}. ${resolveLocale(heroContent.refreshButton.helper, locale)}`,
+		};
+	});
 
 	function applyLiveSnapshot(snapshot: LiveHeroSnapshot) {
 		heroData = snapshot.data;
 		live = true;
 		readingState = 'live';
+		refreshFailed = false;
 		liveBase = { freshnessS: snapshot.freshnessS, receivedAt: Date.now() };
 	}
 
-	function dropToDemo(stamp: string) {
+	function dropToDemo() {
 		live = false;
 		readingState = 'failure';
 		liveBase = null;
 		heroData = generateHeroData();
-		demoStamp = stamp;
 	}
 
 	let consecutiveFailures = 0;
-	let pendingLiveCheck: Promise<void> | null = null;
-	function refreshLive(stamp: string): Promise<void> {
+	let pendingLiveCheck: Promise<boolean> | null = null;
+	/** One live check; resolves true when a reading arrived. */
+	function refreshLive(): Promise<boolean> {
 		// A click during a poll shares that check instead of consuming two failures.
 		if (pendingLiveCheck) return pendingLiveCheck;
 		pendingLiveCheck = fetchLiveKpis().then((snapshot) => {
-			if (destroyed) return;
+			if (destroyed) return false;
 			if (snapshot) {
 				consecutiveFailures = 0;
 				applyLiveSnapshot(snapshot);
-			} else {
-				consecutiveFailures += 1;
-				// Keep the original liveBase so a held real reading keeps ageing.
-				if (live && consecutiveFailures < 2) readingState = 'held';
-				else if (live) dropToDemo(stamp);
-				else readingState = 'failure';
+				return true;
 			}
+			consecutiveFailures += 1;
+			// Keep the original liveBase so a held real reading keeps ageing.
+			if (live && consecutiveFailures < 2) readingState = 'held';
+			else if (live) dropToDemo();
+			else readingState = 'failure';
+			return false;
 		}).finally(() => { pendingLiveCheck = null; });
 		return pendingLiveCheck;
 	}
 
-	function handleRefresh() {
-		spinRefreshIcon();
-		if (!liveEnabled || !live) {
-			heroData = generateHeroData();
-			demoStamp = updatedAgoJustNow;
-			if (!liveEnabled) return;
-		}
-		void refreshLive(updatedAgoJustNow);
+	/** Said politely: cleared first, so the same words are announced again. */
+	function announce(text: string): void {
+		announcement = '';
+		setTimeout(() => { if (!destroyed) announcement = text; }, 80);
+	}
+
+	/** Refresh asks Transit at once; the focus stays on the button, which says it is working. */
+	async function handleRefresh(): Promise<void> {
+		if (refreshing || !liveEnabled) return;
+		refreshing = true;
+		const arrived = await refreshLive();
+		if (destroyed) return;
+		refreshing = false;
+		refreshFailed = !arrived;
+		announce(arrived ? words(t.refreshed) : stateLine.text);
+	}
+
+	function handleRegenerate(): void {
+		heroData = generateHeroData();
 	}
 
 	// Automated browsers use deterministic demo data so E2E runs do not depend on the transit service.
@@ -191,7 +198,7 @@
 	onMount(() => {
 		if (navigator.webdriver) return;
 		liveEnabled = true;
-		const stopLivePolling = startLiveKpiPolling(() => refreshLive(updatedAgoInitial));
+		const stopLivePolling = startLiveKpiPolling(() => { void refreshLive(); });
 		return stopLivePolling;
 	});
 
@@ -485,24 +492,19 @@
 
 		<div
 			bind:this={heroTextContainer}
-			class="hero-text-layer absolute inset-0 flex items-start justify-center opacity-0 md:items-center md:pb-[max(5svh,2.5rem)]"
+			class="hero-text-layer absolute inset-0 flex items-start justify-center opacity-0 lg:items-center"
 			data-testid="hero-text-container"
 		>
 			<div class="w-full px-[var(--space-page-x)]">
 				<div class="hero-grid">
-
 					<HeroTextContent
-						{headlineLine1}
-						{headlineLine2}
-						{headlineAriaSuffix}
-						{subheadlineText}
-						{subtitleText}
-						{ctaWorkLabel}
-						{ctaContactLabel}
-						ctaWorkHref={heroContent.ctaWorkHref}
+						{heading}
+						{lead}
+						{ctaProjectLabel}
+						ctaProjectHref={localizeHref('/contact', locale)}
+						{bookingLabel}
 						{bookingHref}
-						heroData={heroData}
-						{live}
+						{newTabLabel}
 						{replayEnabled}
 						beaconSettled={introCollapsed}
 						{replayAriaLabel}
@@ -510,36 +512,18 @@
 						onReplay={handleReplay}
 					/>
 
-					<div
-						class="hidden self-stretch lg:block"
-						data-hero-stagger="5"
-					>
-						<div class="hero-divider"></div>
-					</div>
-
-					<div class="hero-viewport-sql hidden lg:block">
-						<div data-hero-stagger="4">
-							<HeroSqlPanel
-								rows={heroData.queryRows}
-								queryTime={heroData.queryTime}
-								{...sqlLabels}
-								{updatedAgo}
-							/>
-						</div>
-
-						<div class="mt-8 text-center" data-hero-stagger="7">
-							<button
-								class="refresh-btn tap-press"
-								data-testid="hero-refresh"
-								onclick={handleRefresh}
-							>
-								<span bind:this={refreshIcon} class="text-xl">&#x21bb;</span>
-								{refreshLabel}
-							</button>
-							<div class="mt-2 font-mono text-caption text-[var(--muted-foreground)]">
-								{refreshHelper}
-							</div>
-						</div>
+					<div class="hero-transit-slot" data-hero-stagger="4">
+						<HeroTransitCard
+							project={transitProject}
+							{heroData}
+							{readingState}
+							{stateLine}
+							{refreshing}
+							{announcement}
+							{regenerateLabel}
+							onRefresh={handleRefresh}
+							onRegenerate={handleRegenerate}
+						/>
 					</div>
 				</div>
 			</div>
@@ -562,15 +546,10 @@
 		</section>
 	{/if}
 
-	<HeroMobileSql
-		heroData={heroData}
-		labels={{ ...sqlLabels, updatedAgo, refreshLabel, refreshHelper }}
-		onRefresh={handleRefresh}
-	/>
 </section>
 
 <style>
-	/* Reserve the trigger height plus its pin extension; mobile also needs the SQL tab and trailing buffer. */
+	/* Reserve the trigger height plus its pin extension. */
 	.hero-section-reserve {
 		min-height: 450svh;
 	}
@@ -668,10 +647,11 @@
 	}
 
 	.hero-text-layer {
-		/* Empty space in the absolute text layer must not intercept the mobile example. */
+		/* While the intro plays, the layer floats over the metro scene and lets the scroll through. */
 		pointer-events: none;
 		width: 100%;
 		padding-top: calc(var(--nav-clearance) + 1rem);
+		padding-bottom: 2rem;
 	}
 
 	.hero-text-layer :global(a),
@@ -679,45 +659,24 @@
 		pointer-events: auto;
 	}
 
+	/* Settled (the default) or reduced motion: the layer is the opening itself, in the page's flow,
+	   so every part of it, the Transit card included, takes the pointer and taps. */
+	:global(.hero-section-reserve.hero-intro-done [data-testid='hero-text-container']) {
+		pointer-events: auto;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.hero-section-reserve [data-testid='hero-text-container']) {
+			pointer-events: auto;
+		}
+	}
+
+	/* Phones and tablets stack: the offer, then Transit. */
 	.hero-grid {
 		display: grid;
-		/* minmax(0, 1fr) removes the min-content floor that would clip the SQL panel on small laptops. */
-		grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
-		gap: 32px;
+		grid-template-columns: minmax(0, 1fr);
+		gap: 2rem;
 		align-items: start;
-	}
-
-	.hero-divider {
-		width: 1px;
-		height: 100%;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			var(--border-rule-accent) 15%,
-			var(--border-rule-accent) 85%,
-			transparent 100%
-		);
-	}
-
-	.refresh-btn {
-		display: inline-flex;
-		align-items: center;
-		gap: 10px;
-		background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
-		color: var(--background);
-		border: none;
-		padding: 16px 48px;
-		border-radius: 10px;
-		font-size: var(--text-control);
-		font-weight: 800;
-		font-family: var(--font-mono);
-		letter-spacing: 2px;
-		cursor: pointer;
-		box-shadow: var(--shadow-cta);
-		transition: box-shadow var(--duration-normal), transform var(--duration-normal);
-	}
-	.refresh-btn:hover {
-		transform: translateY(-1px);
 	}
 
 	.scroll-prompt {
@@ -728,30 +687,22 @@
 
 	@media (--tablet-min) {
 		.scroll-prompt {
-
 			font-size: var(--billboard-vw, 6.8vw);
 			letter-spacing: -0.5vw;
 			bottom: 0;
 		}
 	}
 
-	@media (--desktop-max) {
-		.hero-intro-done .hero-pin {
-			min-height: 100svh;
-		}
+	/* Desktop: the offer and Transit share the width evenly, close under the header; the opening
+	   fills the window as a minimum and grows with short windows or large text. */
+	@media (--desktop-min) {
 		.hero-text-layer {
-			padding-bottom: 2rem;
+			padding-top: calc(var(--nav-clearance) + 0.5rem);
+			padding-bottom: 2.5rem;
 		}
 		.hero-grid {
-			grid-template-columns: 1fr;
-			gap: 0;
-		}
-		.refresh-btn {
-			width: 100%;
-			justify-content: center;
-			padding: 16px 14px;
-			min-height: 44px;
-			font-size: var(--text-mono);
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+			gap: clamp(2.5rem, 4vw, 5rem);
 		}
 	}
 </style>

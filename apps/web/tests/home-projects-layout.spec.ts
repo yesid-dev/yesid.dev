@@ -5,7 +5,7 @@ import { installNavigationContentFixture, navigateWithContentFixture } from './_
 
 async function cardPositions(reel: Locator) {
 	return reel.evaluate(section => {
-		const frame = section.querySelector('.embla')!.getBoundingClientRect();
+		const frame = section.querySelector('[data-testid="proof-track"]')!.getBoundingClientRect();
 		return [...section.querySelectorAll<HTMLElement>('[data-testid="proof-card"]')].map((card, index) => {
 			const box = card.getBoundingClientRect();
 			const visible = Math.max(0, Math.min(frame.right, box.right) - Math.max(frame.left, box.left));
@@ -29,16 +29,29 @@ async function expectWholeCards(reel: Locator) {
 		};
 	}, { intervals: [100], message: `the settled carousel at ${reel.page().viewportSize()?.width}px must contain only complete cards` }).toEqual({ hasVisibleCard: true, partial: [], settled: true });
 	const visible = (await cardPositions(reel)).filter(card => card.visible > 1);
-	expect(visible.length).toBeLessThanOrEqual(3);
+	// At most two cards at a time (owner, 15 November).
+	expect(visible.length).toBeLessThanOrEqual(2);
 	return visible;
 }
 
 async function expectMediaAboveInfo(card: Locator) {
-	const split = await card.evaluate(element => ({
-		card: element.getBoundingClientRect().toJSON(),
-		media: element.querySelector('[data-testid$="card-image"]')!.getBoundingClientRect().toJSON(),
-		info: element.querySelector('[data-testid="project-card-info"]')!.getBoundingClientRect().toJSON(),
-	}));
+	const split = await card.evaluate(element => {
+		const listingInfo = element.querySelector('[data-testid="project-card-info"]');
+		// A home card's information runs from its title to its links.
+		const head = element.querySelector('[data-testid="proof-card-head"]');
+		const links = element.querySelector('[data-testid="proof-card-links"]');
+		const info = listingInfo
+			? listingInfo.getBoundingClientRect().toJSON()
+			: (() => {
+				const top = head!.getBoundingClientRect().top, bottom = links!.getBoundingClientRect().bottom;
+				return { top, bottom, height: bottom - top };
+			})();
+		return {
+			card: element.getBoundingClientRect().toJSON(),
+			media: element.querySelector('[data-testid$="card-image"]')!.getBoundingClientRect().toJSON(),
+			info,
+		};
+	});
 	expect(split.media.height, `the media never takes more room than the info: ${JSON.stringify(split)}`).toBeLessThanOrEqual(split.info.height + 2);
 	expect(split.media.top).toBeGreaterThanOrEqual(split.card.top - 1);
 	expect(split.media.bottom).toBeLessThanOrEqual(split.info.top + 1);
@@ -155,14 +168,14 @@ test('navigation and resizing settle on whole cards and keep every project reach
 				await expect(reel.getByTestId('proof-prev')).toBeDisabled();
 			}
 			if (await next.isDisabled()) break;
-			const before = await reel.getByTestId('proof-count').getAttribute('aria-label');
+			const before = await reel.getByTestId('proof-position').textContent();
 			await next.click();
-			await expect(reel.getByTestId('proof-count')).not.toHaveAttribute('aria-label', before!);
+			await expect(reel.getByTestId('proof-position')).not.toHaveText(before!);
 			await expectWholeCards(reel);
 		}
 	}
 	expect(seen.size).toBe(total);
-	expect(Math.max(...counts)).toBe(Math.min(total, 3));
+	expect(Math.max(...counts)).toBe(Math.min(total, 2));
 	expect(Math.min(...counts)).toBe(1);
 	const previous = reel.getByTestId('proof-prev');
 	if (await previous.isEnabled()) { await previous.click(); await expectWholeCards(reel); }

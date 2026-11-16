@@ -1,9 +1,6 @@
-// FeaturedProjects: the focused card is stored with persisted('featured-card'),
-// so it survives a remount. Embla's scroll restore runs in onEmblaInit, which
-// can't fire in happy-dom (no layout engine); the Playwright spec covers it. These
-// tests cover the counter reflecting the stored value.
-//
-// Render shape mirrors FeaturedProjects.test.ts (CMS-decoupling precedent).
+// FeaturedProjects: the first card in view is stored with persisted('featured-card'), so it
+// survives a remount. The scroll itself needs layout (Playwright covers it); these tests cover
+// the position reflecting the stored value.
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { flushSync } from 'svelte';
@@ -22,30 +19,25 @@ vi.mock('#lib/directus/assets.ts', () => ({
 	}),
 }));
 
-const resolvedProjects: readonly Project[] = getFeaturedProjects();
+const resolvedProjects: readonly Project[] = getFeaturedProjects().filter((project) => project.slug !== 'transit-data-pipeline');
 const renderProps = { proofReel: proofReelContent, projects: resolvedProjects };
-
-function currentCounter(): HTMLElement {
-	const el = screen.getByTestId('proof-count').querySelector<HTMLElement>('.proof-count-current');
-	expect(el, 'position counter must render').not.toBeNull();
-	return el!;
-}
 
 afterEach(() => cleanup());
 
 describe('FeaturedProjects (remount)', () => {
 	it('starts on the first card on a cold mount', () => {
+		persisted<number>('featured-card', 0).value = 0;
 		render(FeaturedProjects, { props: renderProps });
 		flushSync();
-		expect(currentCounter().textContent).toBe('01');
+		expect(screen.getByTestId('proof-position')).toHaveTextContent(new RegExp(`^1( to 2)? of ${resolvedProjects.length}$`));
 	});
 
-	it('keeps the focused card across a remount', () => {
+	it('keeps the card in view across a remount', () => {
 		const restoredIndex = Math.max(0, resolvedProjects.length - 1);
 		persisted<number>('featured-card', 0).value = restoredIndex;
 
 		render(FeaturedProjects, { props: renderProps });
 		flushSync();
-		expect(currentCounter().textContent).toBe(String(restoredIndex + 1).padStart(2, '0'));
+		expect(screen.getByTestId('proof-position')).toHaveTextContent(`${restoredIndex + 1} of ${resolvedProjects.length}`);
 	});
 });

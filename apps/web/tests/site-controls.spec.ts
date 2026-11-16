@@ -5,7 +5,7 @@ test('touch buttons shrink once across hero, CTA band and contact form', async (
 	test.skip(!isMobile, 'Touch press behavior');
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	for (const [path, ids] of [
-		['/', ['hero-cta-projects', 'hero-cta-contact', 'home-cta-band-contact', 'home-cta-band-github']],
+		['/', ['hero-cta-project', 'hero-cta-contact', 'home-cta-band-contact', 'home-cta-band-booking']],
 		['/contact', ['contact-submit']],
 	] as const) {
 		await page.goto(path, { waitUntil: 'domcontentloaded' });

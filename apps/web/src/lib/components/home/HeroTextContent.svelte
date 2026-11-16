@@ -1,104 +1,85 @@
 <!--
-  HeroTextContent — Left column of the hero grid: headline, metrics, subheadline, CTAs.
-  Parent coordinates scroll-driven animation via data-hero-stagger attributes.
+  HeroTextContent: the offer in the opening (D-M1, DEV-38): the heading ending on the orange dot
+  ("click me" replays the metro scene), the lead and the two actions. HeroBanner coordinates the
+  scroll-driven intro through the data-hero-stagger attributes.
 -->
 <script lang="ts">
-	import { desktop } from '@yesid/ui/state';
 	import { onMount } from 'svelte';
-	import HeroMetrics from './HeroMetrics.svelte';
 	import HeroDotAnnotation from './HeroDotAnnotation.svelte';
 	import { CLICK_ME, getLettering } from './annotation-lettering';
 	import { Button } from '@yesid/ui/button';
-	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
 
 	const locale = getLocale();
-	import type { HeroData } from '#lib/live/index.ts';
 	let {
-		headlineLine1,
-		headlineLine2,
-		headlineAriaSuffix,
-		subheadlineText,
-		subtitleText,
-		ctaWorkLabel,
-		ctaContactLabel,
-		ctaWorkHref,
+		heading,
+		lead,
+		ctaProjectLabel,
+		ctaProjectHref,
+		bookingLabel,
 		bookingHref,
-		heroData,
-		live = false,
+		newTabLabel,
 		replayEnabled = false,
 		beaconSettled = false,
 		replayAriaLabel = 'Replay intro',
 		replayExpanded,
 		onReplay,
 	}: {
-		headlineLine1: string;
-		headlineLine2: string;
-		headlineAriaSuffix: string;
-		subheadlineText: string;
-		subtitleText: string;
-		ctaWorkLabel: string;
-		ctaContactLabel: string;
-		ctaWorkHref: string;
+		/** The offer, one sentence without its final period (the dot is the replay button). */
+		heading: string;
+		lead: string;
+		ctaProjectLabel: string;
+		ctaProjectHref: string;
+		bookingLabel: string;
 		bookingHref: string;
-		heroData: HeroData;
-
-		live?: boolean;
+		/** Accessible suffix for the booking link, which opens a new tab. */
+		newTabLabel: string;
 		replayEnabled?: boolean;
 		/** Final geometry enables annotation positioning and redraw. */
 		beaconSettled?: boolean;
 		/** aria-label for the armed dot (site_labels a11y.replayIntro). */
 		replayAriaLabel?: string;
 		replayExpanded?: boolean;
-		/** Fired when the armed dot is clicked — HeroBanner replays the intro. */
+		/** Fired when the armed dot is clicked: HeroBanner replays the intro. */
 		onReplay?: () => void;
 	} = $props();
+
 	const lettering = getLettering(CLICK_ME[locale]);
-	const lastWordIndex = $derived(headlineLine1.lastIndexOf(' '));
-	const headlineLead = $derived(headlineLine1.slice(0, lastWordIndex + 1));
-	const headlineLastWord = $derived(headlineLine1.slice(lastWordIndex + 1));
-	const finalWordIndex = $derived(headlineLine2.lastIndexOf(' '));
-	const finalLineLead = $derived(headlineLine2.slice(0, finalWordIndex + 1));
-	const finalWord = $derived(headlineLine2.slice(finalWordIndex + 1));
-	let heading: HTMLDivElement;
+	// The dot is glued to the last letter only, so a long last word can still wrap at 200% text.
+	const head = $derived(heading.slice(0, -1));
+	const lastLetter = $derived(heading.slice(-1));
+	// The heading never breaks inside a word: its size is capped so the language's longest word fits.
+	const longestWord = $derived(Math.max(...heading.split(/\s+/).map((word) => word.length)) + 1);
+
+	let headingBox: HTMLDivElement;
 	let headingWidth = $state(0);
 	let headingHeight = $state(0);
 	let arrow = $state('');
 	let arrowHead = $state('');
 	let annotationX = $state(0);
-	let annotationY = $state(25);
-	let annotationSlot: HTMLSpanElement;
+	const annotationY = 22;
 	let annotationReady = $state(false);
 
+	/** "click me" sits above the heading, beside its longest line toward the edge; the arrow ends at the dot. */
 	function alignArrow() {
-		if (!heading || !beaconSettled) return;
-		const box = heading.getBoundingClientRect();
-		const dot = heading.querySelector('[data-testid="hero-dot"]')!.getBoundingClientRect();
-		const x = dot.right - box.left + 8;
-		const y = dot.top + dot.height / 2 - box.top;
-		const inkRight = Math.max(...['hero-line1', 'hero-line2'].flatMap((id) => {
-			const range = document.createRange();
-			const text = document.createTreeWalker(heading.querySelector(`[data-testid="${id}"]`)!, NodeFilter.SHOW_TEXT);
-			const rights: number[] = [];
-			while (text.nextNode()) {
-				if (!text.currentNode.textContent?.trim()) continue;
-				range.selectNodeContents(text.currentNode);
-				rights.push(...Array.from(range.getClientRects(), rect => rect.right - box.left));
-			}
-			return rights;
-		}));
-		let edge = Math.min(headingWidth - 8, Math.max(inkRight + 24, x + 48));
-		if (!desktop.current) {
-			const slot = annotationSlot.getBoundingClientRect();
-			const lastWord = heading.querySelector('[data-testid="hero-line1-last"]')!.getBoundingClientRect();
-			annotationX = Math.max(lastWord.right - box.left + 12,
-				Math.min(headingWidth - lettering.width - 4, x - lettering.width - 12));
-			annotationY = slot.top - box.top;
-		} else {
-			annotationX = Math.max(0, edge - lettering.width - 40);
-			annotationY = 25;
+		if (!headingBox || !beaconSettled) return;
+		const box = headingBox.getBoundingClientRect();
+		const dotRect = headingBox.querySelector('[data-testid="hero-dot"]')?.getBoundingClientRect();
+		if (!dotRect) return;
+		const x = dotRect.right - box.left + 8;
+		const y = dotRect.top + dotRect.height / 2 - box.top;
+		const range = document.createRange();
+		const walker = document.createTreeWalker(headingBox.querySelector('h1')!, NodeFilter.SHOW_TEXT);
+		const rights: number[] = [];
+		while (walker.nextNode()) {
+			if (!walker.currentNode.textContent?.trim()) continue;
+			range.selectNodeContents(walker.currentNode);
+			rights.push(...Array.from(range.getClientRects(), (rect) => rect.right - box.left));
 		}
+		const inkRight = Math.max(x, ...rights);
+		let edge = Math.min(headingWidth - 8, Math.max(inkRight + 24, x + 48));
+		annotationX = Math.max(0, edge - lettering.width - 40);
 		const startX = annotationX + lettering.end.x + 1;
 		const startY = annotationY + lettering.end.y;
 		edge = Math.min(headingWidth - 8, Math.max(edge, startX + 20));
@@ -108,103 +89,132 @@
 	}
 
 	$effect(() => {
-		headingWidth; headingHeight; beaconSettled;
+		void [headingWidth, headingHeight, beaconSettled, heading];
 		alignArrow();
 	});
 	onMount(() => {
-		const resize = () => { alignArrow(); };
-		void (document.fonts?.ready ?? Promise.resolve()).then(() => { resize(); annotationReady = true; });
+		const resize = () => alignArrow();
+		void (document.fonts?.ready ?? Promise.resolve()).then(() => {
+			resize();
+			annotationReady = true;
+		});
 		window.addEventListener('resize', resize);
 		return () => window.removeEventListener('resize', resize);
 	});
 </script>
 
-<div class="hero-viewport-text">
-	<div class="hero-heading" bind:this={heading} bind:clientWidth={headingWidth} bind:clientHeight={headingHeight}>
-	<h1 class="font-heading font-black leading-[0.88] tracking-[-0.04em]" aria-label="{headlineLine1} {headlineAriaSuffix}">
-		<span
-			class="block text-[var(--foreground)]"
-			data-testid="hero-line1"
-			data-hero-stagger="1"
-		>
-			{headlineLead}<span class="hero-title-tail"><span data-testid="hero-line1-last">{headlineLastWord}</span><span class="annotation-slot" style="width: {lettering.width + 16}px" bind:this={annotationSlot} aria-hidden="true"></span></span>
-		</span>
-	</h1>
+<div class="hero-viewport-text" style="--hero-longest-word: {longestWord}">
+	<div class="hero-heading" bind:this={headingBox} bind:clientWidth={headingWidth} bind:clientHeight={headingHeight}>
+		<!-- The words fade in with the intro; the dot stays, as the station the scene zooms out of. -->
+		<h1 class="hero-title" aria-label={heading} data-testid="hero-heading">
+			<span data-hero-stagger="1" data-testid="hero-line1">{head}</span><span class="hero-title-tail"
+				><span data-hero-stagger="1">{lastLetter}</span><span class="hero-dot-anchor"
+					><button
+						type="button"
+						class="hero-dot-btn {replayEnabled ? 'hero-dot-armed' : ''}"
+						data-testid="hero-dot-replay"
+						disabled={!replayEnabled}
+						aria-hidden={replayEnabled ? undefined : 'true'}
+						aria-label={replayAriaLabel}
+						aria-expanded={replayExpanded}
+						aria-controls={replayExpanded !== undefined ? 'metro-still-scene' : undefined}
+						onclick={() => onReplay?.()}
+						><svg class="hero-dot" data-testid="hero-dot" viewBox="0 0 10 10" aria-hidden="true"
+							><circle cx="5" cy="5" r="5" fill="currentColor" /></svg
+						></button
+					></span
+				></span
+			>
+		</h1>
 
-	<!-- Hide only the decorative text; an aria-hidden ancestor would hide the replay button too. -->
-	<p class="font-heading font-black leading-[0.88] tracking-[-0.04em]">
-		<span
-			class="block text-[var(--primary)]"
-			data-testid="hero-line2"
-		>
-			<span data-hero-stagger="1" aria-hidden="true">{finalLineLead}</span><span class="hero-dot-word"><span data-hero-stagger="1" data-testid="hero-line2-last" aria-hidden="true">{finalWord}</span><span class="hero-dot-anchor"><button
-				type="button"
-				class="hero-dot-btn {replayEnabled ? 'hero-dot-armed' : ''}"
-				data-testid="hero-dot-replay"
-				disabled={!replayEnabled}
-				aria-hidden={replayEnabled ? undefined : 'true'}
-				aria-label={replayAriaLabel}
-				aria-expanded={replayExpanded}
-				aria-controls={replayExpanded !== undefined ? 'metro-still-scene' : undefined}
-				onclick={() => onReplay?.()}
-			><svg
-					class="hero-dot"
-					data-testid="hero-dot"
-					viewBox="0 0 10 10"
-					aria-hidden="true"
-				><circle cx="5" cy="5" r="5" fill="currentColor" /></svg></button></span></span>
-		</span>
-	</p>
-
-	<HeroDotAnnotation {lettering} width={headingWidth} height={headingHeight}
-		x={annotationX} y={annotationY} {arrow} tip={arrowHead} visible={beaconSettled} ready={annotationReady} />
+		<HeroDotAnnotation
+			{lettering}
+			width={headingWidth}
+			height={headingHeight}
+			x={annotationX}
+			y={annotationY}
+			{arrow}
+			tip={arrowHead}
+			visible={beaconSettled}
+			ready={annotationReady}
+		/>
 	</div>
 
-	<!-- Keep the replay stagger order while placing metrics below the headline. -->
-	<div class="my-6 md:my-6" data-hero-stagger="3">
-		<HeroMetrics metrics={heroData.metrics} {live} />
-	</div>
+	<p class="hero-lead" data-testid="hero-subtitle" data-hero-stagger="2">{lead}</p>
 
-	<div
-		class="mt-3 text-title font-bold leading-[1.1] text-[var(--secondary-foreground)] md:mt-2.5 md:text-[clamp(26px,min(3.5vw,4svh),44px)]"
-		data-testid="hero-subheadline"
-		data-hero-stagger="2"
-	>
-		{subheadlineText}
-	</div>
-
-	<p
-		class="mt-5 text-reading leading-[1.7] text-[var(--secondary-foreground)] lg:text-reading-desktop"
-		data-testid="hero-subtitle"
-		data-hero-stagger="6"
-	>
-		{subtitleText}
-	</p>
-
-	<div class="mt-6 flex flex-wrap gap-3.5" data-hero-stagger="6">
-		<Button variant="default" size="cta-lg" href={localizeHref(ctaWorkHref, locale)} data-testid="hero-cta-projects">
-			{ctaWorkLabel}
+	<div class="hero-actions" data-hero-stagger="6">
+		<Button variant="conversion" size="cta-lg" wrap href={ctaProjectHref} data-testid="hero-cta-project">
+			{ctaProjectLabel}
 		</Button>
-		<Button variant="conversion" size="cta-lg" href={bookingHref} target="_blank" rel="noopener" data-testid="hero-cta-contact" onclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'hero' })} onauxclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'hero' })}>
-			{ctaContactLabel}
+		<Button
+			variant="outline"
+			size="cta-lg"
+			wrap
+			href={bookingHref}
+			target="_blank"
+			rel="noopener"
+			data-testid="hero-cta-contact"
+			aria-label="{bookingLabel}{newTabLabel}"
+			onclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'hero' })}
+			onauxclick={(event) => trackLinkActivation(event, 'booking_click', { placement: 'hero' })}
+		>
+			{bookingLabel}
 		</Button>
 	</div>
 </div>
 
 <style>
+	.hero-viewport-text {
+		width: 100%;
+		container-type: inline-size;
+	}
+
+	/* Room above the heading for the hand-lettered "click me". */
 	.hero-heading {
 		position: relative;
-		padding-block: 3.5rem 1.75rem;
-		padding-inline-end: 1.5rem;
+		padding-block: 2.5rem 0.75rem;
 	}
-	.hero-dot-anchor { display: inline-block; line-height: 0; }
-	.hero-dot-word { display: inline-block; white-space: nowrap; }
-	.annotation-slot { display: none; }
 
-	/* Keep the period glued to the headline and its SVG overflow visible so the heartbeat cannot clip. */
+	/* Bigger on every width, never wider than the language's longest word allows. */
+	.hero-title {
+		margin: 0;
+		font-family: var(--font-heading);
+		font-weight: 900;
+		line-height: 1;
+		letter-spacing: -0.035em;
+		color: var(--foreground);
+		text-wrap: balance;
+		font-size: min(clamp(2.25rem, 11.5cqi, 3.5rem), calc(100cqi / (var(--hero-longest-word) * 0.66)));
+	}
+
+	@media (--tablet-min) {
+		.hero-title {
+			font-size: min(clamp(3rem, 9cqi, 4.5rem), calc(100cqi / (var(--hero-longest-word) * 0.66)));
+		}
+	}
+
+	@media (--desktop-min) {
+		.hero-heading {
+			padding-block-start: 2.75rem;
+		}
+		.hero-title {
+			font-size: max(2.25rem, min(clamp(3.5rem, 5.6vw, 7rem), calc(100cqi / (var(--hero-longest-word) * 0.66))));
+		}
+	}
+
+	/* The last letter and the dot never part. */
+	.hero-title-tail {
+		white-space: nowrap;
+	}
+
+	.hero-dot-anchor {
+		display: inline-block;
+		line-height: 0;
+	}
+
+	/* A period-sized mark inside a 44px button. */
 	.hero-dot {
 		display: inline-block;
-		/* The armed dot is the replay affordance: big enough to spot, still period-sized. */
 		width: 0.22em;
 		height: 0.22em;
 		vertical-align: baseline;
@@ -212,7 +222,6 @@
 		overflow: visible;
 	}
 
-	/* The button inherits glyph metrics to preserve the period's size and position. */
 	.hero-dot-btn {
 		display: inline-flex;
 		align-items: center;
@@ -234,113 +243,38 @@
 	.hero-dot-armed {
 		cursor: pointer;
 	}
+
 	.hero-dot-armed:focus-visible {
 		outline: 2px solid var(--ring);
 		outline-offset: 6px;
 		border-radius: 50%;
 	}
 
-	.hero-viewport-text { width: 100%; container-type: inline-size; }
-	[data-testid="hero-line1"], [data-testid="hero-line2"] {
-		font-size: clamp(min(2.25rem, 10cqi), min(12cqi, 9svh), 7rem);
+	.hero-lead {
+		max-width: 34em;
+		margin-top: 1rem;
+		text-wrap: pretty;
+		font-size: var(--text-reading);
+		line-height: 1.55;
+		color: var(--secondary-foreground);
 	}
 
-	/* Keep a strong fluid headline. Short screens and longer translations
-	   may grow beyond one viewport without shrinking the heading. */
-	@media (--desktop-max) {
-		.hero-heading { padding-top: 0; }
-		.hero-heading > h1 { margin-bottom: 0.5rem; }
-		.hero-title-tail { display: inline-block; white-space: nowrap; }
-		.annotation-slot { display: inline-block; height: 0; vertical-align: baseline; }
-		.hero-viewport-text {
-			min-height: calc(100svh - var(--nav-clearance) - 3rem);
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			max-width: 44rem;
-			margin-inline: auto;
-			padding-block: 0.5rem;
-		}
-		[data-testid="hero-line1"], [data-testid="hero-line2"] {
-			font-size: clamp(min(2.5rem, 10cqi), min(16cqi, 9svh), 7rem);
-		}
-		/* Tighten the inter-element spacing to reclaim vertical budget. */
-		.hero-viewport-text :global([data-hero-stagger="3"]) {
-			margin-block: 0.5rem;
-		}
-		.hero-viewport-text :global([data-testid="hero-subheadline"]) {
-			margin-top: 0.375rem;
-			font-size: clamp(1.2rem, 5vw, 1.5rem);
-			line-height: 1.12;
-		}
-		.hero-viewport-text :global([data-testid="hero-subtitle"]) {
-			margin-top: 0.5rem;
-		}
-		/* The CTA row (the only flex descendant tagged stagger 6) — tighten the
-		   top gap + inter-button gap, and the button block padding, so both
-		   CTAs stay on-screen. */
-		.hero-viewport-text :global([data-hero-stagger="6"].flex) {
-			margin-top: 0.75rem;
-			gap: 0.625rem;
-			display: grid;
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-		.hero-viewport-text :global([data-testid="hero-cta-projects"]),
-		.hero-viewport-text :global([data-testid="hero-cta-contact"]) {
-			padding-top: 0.7rem;
-			padding-bottom: 0.7rem;
-			width: 100%;
-			height: 100%;
-			white-space: normal;
-			text-align: center;
-			padding-inline: 0.75rem;
+	@media (--desktop-min) {
+		.hero-lead {
+			font-size: var(--text-reading-desktop);
 		}
 	}
 
-	/* Sub-660px-tall phones keep the English subtitle and both CTAs in the first
-	   screen down to 360x600. Longer FR/ES headlines may still run past it.
-	   iPhone SE (667) and Galaxy S23 (780) are above this floor and unaffected. */
-	@media (--tablet-max) and (max-height: 660px) {
-		.hero-viewport-text { padding-block: 0; }
-		.hero-heading { padding-block: 0; }
-		.hero-viewport-text :global([data-hero-stagger="3"]) {
-			margin-block: 0.125rem;
-		}
-		.hero-viewport-text :global([data-testid="hero-subheadline"]) {
-			margin-top: 0.125rem;
-		}
-		.hero-viewport-text :global([data-testid="hero-subtitle"]) {
-			margin-top: 0.25rem;
-		}
-		.hero-viewport-text :global([data-hero-stagger="6"].flex) {
-			margin-top: 0.25rem;
-		}
-		.hero-viewport-text :global([data-testid^="hero-cta-"]) {
-			width: 100%;
-			height: 100%;
-			min-height: 44px;
-			padding-inline: 0.5rem;
-			font-size: 0.875rem;
-			white-space: normal;
-			text-align: center;
-		}
+	.hero-actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.5rem;
 	}
 
-	@media (--tablet-min) and (--desktop-max) {
-		.hero-viewport-text :global([data-testid="hero-line1"]),
-		.hero-viewport-text :global([data-testid="hero-line2"]),
-		.hero-viewport-text :global([data-testid="hero-subheadline"]),
-		.hero-viewport-text :global([data-testid="hero-subtitle"]) {
-			overflow-wrap: normal;
-			word-break: normal;
-			hyphens: none;
+	@media (max-width: 479px) {
+		.hero-actions > :global(*) {
+			flex: 1 1 100%;
 		}
-		.hero-viewport-text :global([data-testid="hero-subheadline"]) {
-			font-size: clamp(1.625rem, calc(4vw - 0.25rem), 2.375rem);
-		}
-	}
-	@media (max-height: 720px) and (--tablet-min) {
-		.hero-viewport-text :global([data-hero-stagger="3"]) { margin-block: 0.75rem; }
-		.hero-viewport-text :global([data-testid="hero-subtitle"]) { margin-top: 0.75rem; }
 	}
 </style>

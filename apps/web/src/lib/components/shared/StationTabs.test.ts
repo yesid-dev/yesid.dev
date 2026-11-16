@@ -1,6 +1,6 @@
 import { siteLabels } from '#lib/content/site-labels.ts';
 import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import StationTabs from './StationTabs.svelte';
 import { serviceFactory } from '../../../tests/factories';
 
@@ -22,22 +22,20 @@ describe('StationTabs', () => {
 		}
 	});
 
-	it('renders station numbers', () => {
-		render(StationTabs, { props: { services: mockServices, activeId: 'database-engineering' } });
-		expect(screen.getByText('01')).toBeTruthy();
-		expect(screen.getByText('02')).toBeTruthy();
-		expect(screen.getByText('03')).toBeTruthy();
-		expect(screen.getByText('04')).toBeTruthy();
+	it('draws no station numbers and no hazard tape (owner, D-M5)', () => {
+		const { container } = render(StationTabs, { props: { services: mockServices, activeId: 'database-engineering' } });
+		expect(container.textContent).not.toMatch(/0[1-4]/);
+		expect(container.querySelector('[data-slot="separator"]')).toBeNull();
 	});
 
-	it('numbers tabs by position, not by the CMS order value', () => {
-		const gapped = [
-			serviceFactory.build({ id: 'web-development', title: { en: 'Websites' }, description: { en: '' }, station: 7, visible: true }),
-			serviceFactory.build({ id: 'data-pipeline', title: { en: 'Automation' }, description: { en: '' }, station: 3, visible: true }),
-		];
-		render(StationTabs, { props: { services: gapped, activeId: 'data-pipeline' } });
-		expect(screen.getByTestId('station-tab-data-pipeline')).toHaveTextContent('01');
-		expect(screen.getByTestId('station-tab-web-development')).toHaveTextContent('02');
+	it('orders stations by the CMS order value', () => {
+		render(StationTabs, { props: { services: mockServices, activeId: 'data-pipeline' } });
+		expect(screen.getAllByRole('link').map((link) => link.dataset.testid)).toEqual([
+			'station-tab-database-engineering',
+			'station-tab-data-pipeline',
+			'station-tab-analytics-reporting',
+			'station-tab-web-development',
+		]);
 	});
 
 	it('falls back to the full service title for an id missing from the CMS short-labels', () => {
@@ -48,10 +46,29 @@ describe('StationTabs', () => {
 		expect(screen.getByText('Mystery Offering')).toBeTruthy();
 	});
 
-	it('marks the active tab', () => {
+	it('on Services, is a named list of in-page links with the station in view marked current', () => {
 		render(StationTabs, { props: { services: mockServices, activeId: 'data-pipeline' } });
-		const activeTab = screen.getByTestId('station-tab-data-pipeline');
-		expect(activeTab.getAttribute('data-active')).toBe('true');
+		const nav = screen.getByRole('navigation', { name: 'Services on this page' });
+		expect(within(nav).getAllByRole('listitem')).toHaveLength(4);
+		expect(screen.queryAllByRole('tab')).toEqual([]);
+		const active = screen.getByTestId('station-tab-data-pipeline');
+		expect(active).toHaveAttribute('href', '#service-data-pipeline');
+		expect(active).toHaveAttribute('aria-current', 'true');
+		expect(active).toHaveAttribute('data-state', 'active');
+		for (const id of ['database-engineering', 'analytics-reporting', 'web-development']) {
+			expect(screen.getByTestId(`station-tab-${id}`)).not.toHaveAttribute('aria-current');
+			expect(screen.getByTestId(`station-tab-${id}`)).not.toHaveAttribute('data-state');
+		}
+	});
+
+	it('on Services, a station click selects it without following the fragment', async () => {
+		const selected: string[] = [];
+		render(StationTabs, { props: { services: mockServices, activeId: 'database-engineering', onSelect: (id: string) => selected.push(id) } });
+		const link = screen.getByTestId('station-tab-web-development');
+		const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+		link.dispatchEvent(event);
+		expect(event.defaultPrevented).toBe(true);
+		expect(selected).toEqual(['web-development']);
 	});
 
 	it('renders links in navigate mode', () => {
@@ -60,6 +77,14 @@ describe('StationTabs', () => {
 		expect(link.closest('a')?.getAttribute('href')).toBe('/services/data-pipeline');
 		expect(screen.getByTestId('station-tab-database-engineering')).toHaveAttribute('aria-current', 'page');
 		expect(link).not.toHaveAttribute('aria-current');
+		expect(screen.getByRole('navigation', { name: siteLabels.servicesChrome.detail.serviceNavAria.en })).toBeInTheDocument();
+	});
+
+	it('draws its orange band up behind the header pill in signage colours', () => {
+		render(StationTabs, { props: { services: mockServices, activeId: 'data-pipeline', mode: 'navigate' } });
+		const strip = screen.getByTestId('station-strip');
+		expect(strip.querySelector('.station-tabs')).toBeTruthy();
+		expect(strip.dataset.mode).toBe('navigate');
 	});
 });
 

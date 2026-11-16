@@ -1,15 +1,20 @@
 import { expect, type Locator } from '@playwright/test';
 
+/** The rows a listing card aligns, and the rows a home card aligns (D-M1: image; title and words; facts; links). */
+export const LISTING_CARD_ROWS = ['title', 'excerpt', 'service', 'services', 'links'] as const;
+export const HOME_CARD_ROWS = ['image', 'title', 'excerpt', 'facts', 'links'] as const;
+type CardRow = (typeof LISTING_CARD_ROWS)[number] | (typeof HOME_CARD_ROWS)[number];
+
 /** Count columns in the visible reel viewport or listing, including tablet layouts. */
 export async function hasMultipleCardColumns(cards: Locator) {
 	return cards.first().evaluate(card => {
-		const frame = card.closest('[data-testid="proof-reel-section"]')?.querySelector('.embla') ?? card.parentElement!;
+		const frame = card.closest('[data-testid="proof-reel-section"]')?.querySelector('[data-testid="proof-track"]') ?? card.parentElement!;
 		return frame.getBoundingClientRect().width >= card.getBoundingClientRect().width * 2 - 1;
 	});
 }
 
-export async function expectCardRowsNatural(cards: Locator) {
-	for (const row of ['title', 'excerpt', 'service', 'services', 'links']) {
+export async function expectCardRowsNatural(cards: Locator, rowNames: readonly CardRow[] = LISTING_CARD_ROWS) {
+	for (const row of rowNames) {
 		const rows = row === 'title' ? cards.getByRole('heading') : cards.getByTestId(new RegExp(`(?:project-card|proof-card|proof)-${row}$`));
 		await expect.poll(() => rows.evaluateAll(nodes => {
 			const visible = nodes.filter(node => node.checkVisibility());
@@ -27,9 +32,9 @@ export async function expectCardRowsNatural(cards: Locator) {
 	}
 }
 
-export async function expectCardRowsForLayout(cards: Locator) {
-	if (await hasMultipleCardColumns(cards)) await expectCardRowsAligned(cards);
-	else await expectCardRowsNatural(cards);
+export async function expectCardRowsForLayout(cards: Locator, rowNames: readonly CardRow[] = LISTING_CARD_ROWS) {
+	if (await hasMultipleCardColumns(cards)) await expectCardRowsAligned(cards, rowNames);
+	else await expectCardRowsNatural(cards, rowNames);
 }
 
 export async function expectCardContentInside(card: Locator) {
@@ -68,9 +73,9 @@ export async function expectCardContentInside(card: Locator) {
 }
 
 /** Compare rendered rows through the card's test interface, independent of its CSS. */
-export async function expectCardRowsAligned(cards: Locator) {
+export async function expectCardRowsAligned(cards: Locator, rowNames: readonly CardRow[] = LISTING_CARD_ROWS) {
 	expect(await cards.count(), 'alignment needs multiple cards with different content').toBeGreaterThan(1);
-	for (const row of ['title', 'excerpt', 'service', 'services', 'links']) {
+	for (const row of rowNames) {
 		const rows = row === 'title' ? cards.getByRole('heading') : cards.getByTestId(new RegExp(`(?:project-card|proof-card|proof)-${row}$`));
 		await expect.poll(async () => {
 			const heights = await rows.evaluateAll(nodes => nodes

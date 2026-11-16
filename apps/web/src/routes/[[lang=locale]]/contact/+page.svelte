@@ -1,4 +1,4 @@
-<!-- /contact route: full-bleed contact page with resizable terminals -->
+<!-- /contact route: the contact page (page type: contact) -->
 
 <script lang="ts">
 	import ContactPage from '#lib/components/contact/ContactPage.svelte';

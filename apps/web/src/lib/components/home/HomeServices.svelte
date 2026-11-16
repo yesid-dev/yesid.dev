@@ -6,16 +6,16 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 
 	const locale = getLocale();
-	import { fillTemplate } from '#lib/utils/labels.ts';
-	import { orderServices, stationNumber } from '#lib/utils/station.ts';
-	import { siteLabels } from '#lib/content/index.ts';
+	import { orderServices } from '#lib/utils/station.ts';
 
-	import { pressBounce, cursorGlow, cardParallax } from '@yesid/motion/actions';
+	import { pressBounce, cardParallax } from '@yesid/motion/actions';
+	import { Card } from '@yesid/ui/card';
 	import { morphHover } from '#lib/motion/actions/morphHover.js';
+	import { pointerHover } from '#lib/motion/actions/pointerHover.js';
+	import { prefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { loadDrawSVG } from '@yesid/motion/utils/gsap';
 	import { SVG_SHAPE_SELECTOR } from '#lib/motion/utils/morphHelpers.ts';
 	import { playSvgEntrance } from '#lib/motion/utils/svgEntrance.ts';
-	import { SectionHeading } from '@yesid/ui/brand';
 	import type { Service, ServicesGridContent } from '#lib/types.ts';
 
 	let {
@@ -24,18 +24,15 @@
 	}: { servicesGrid: ServicesGridContent; services: readonly Service[] } = $props();
 
 	const orderedServices = $derived(orderServices(services));
+	const viewIllustrationAriaTemplate = $derived(resolveLocale(servicesGridContent.viewIllustrationAria, locale));
 
-	const viewIllustrationAriaTemplate = $derived(
-		resolveLocale(servicesGridContent.viewIllustrationAria, locale)
-	);
 	const viewAllLink = $derived(resolveLocale(servicesGridContent.viewAllLink, locale));
-
-	const markerServiceTemplate = resolveLocale(siteLabels.ui.markerService, locale) || '{num} / SERVICE';
 
 	let sectionEl: HTMLElement | undefined = $state(undefined);
 
 	// Morphing waits for each injected SVG's entrance; readiness flags seed once and remain locally owned.
 	const svgReady = $state<boolean[]>(untrack(() => orderedServices.map(() => false)));
+	const svgHovered = $state<boolean[]>(untrack(() => orderedServices.map(() => false)));
 
 	onMount(() => {
 		if (!browser || !sectionEl) return;
@@ -98,165 +95,125 @@
 <section
 	bind:this={sectionEl}
 	data-testid="services-section"
-	class="services-section relative overflow-hidden"
+	class="services-section relative"
 >
-	<div class="relative z-10">
-
-		<div class="services-grid grid grid-cols-1 gap-5 lg:grid-cols-2" data-ripple-exempt>
-			{#each orderedServices as service, i}
-				{@const benefit = service.benefitHeadline ? resolveLocale(service.benefitHeadline, locale) : ''}
-				{@const title = resolveLocale(service.title, locale)}
-				{@const metricValue = service.impactMetric ? resolveLocale(service.impactMetric.value, locale) : ''}
-				{@const metricLabel = service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : ''}
-				<div
-					class="services-card services-card-item relative overflow-hidden"
-					use:cursorGlow
-					use:cardParallax
-				>
-					<a
-						href={localizeHref(`/services/${service.id}`, locale)}
-						data-testid="services-card"
-						class="services-card-link group block tap-press"
-						use:morphHover={{ enabled: svgReady[i], disableClickToggle: true }}
-					>
-
-						<div class="services-icon-zone relative">
-
-							<div class="services-marker">
-								{fillTemplate(markerServiceTemplate, { num: stationNumber(i) })}
-							</div>
-
-							<!-- Parent-link hover drives morphs; disabled click toggles let mobile taps navigate. -->
-							<button
-								type="button"
-								data-testid="services-svg-panel"
-								class="services-svg-panel"
-								aria-label={viewIllustrationAriaTemplate.replace('{title}', title)}
-							>
-								<div class="svg-inline-wrapper pointer-events-none">
-
-									<img
-										src="/svg/services/{service.svg}"
-										alt=""
-										width="96"
-										height="96"
-									/>
-								</div>
-							</button>
-						</div>
-
-						<div class="services-content">
-							<div
-								data-testid="services-title"
-								class="services-title"
-							>{title}</div>
-							{#if benefit}
-								<div
-									data-testid="services-benefit"
-									class="services-benefit"
-								>{benefit}</div>
-							{/if}
-						</div>
-
-					</a>
-					{#if metricValue}
-						<div
-							class="services-footer"
-							data-testid="services-metric"
+	<div class="services-grid grid grid-cols-1 gap-5 lg:grid-cols-2" data-ripple-exempt>
+		{#each orderedServices as service, i}
+			{@const benefit = service.benefitHeadline ? resolveLocale(service.benefitHeadline, locale) : ''}
+			{@const title = resolveLocale(service.title, locale)}
+			{@const metricValue = service.impactMetric ? resolveLocale(service.impactMetric.value, locale) : ''}
+			{@const metricLabel = service.impactMetric ? resolveLocale(service.impactMetric.label, locale) : ''}
+			<!-- The title link covers the card; the illustration keeps its own action above that link. -->
+			<div
+				class="services-card-item"
+				use:cardParallax
+				use:pointerHover={(hovering) => (svgHovered[i] = hovering)}
+			>
+				<Card interactive class="services-card relative h-full gap-0 py-0">
+					<div class="services-icon-zone relative">
+						<button
+							type="button"
+							data-testid="services-svg-panel"
+							class="services-svg-panel"
+							aria-label={viewIllustrationAriaTemplate.replace('{title}', title)}
+							disabled={!svgReady[i] || $prefersReducedMotion}
+							use:morphHover={{ enabled: svgReady[i] && !$prefersReducedMotion, hovered: svgHovered[i] }}
 						>
+							<div class="svg-inline-wrapper pointer-events-none">
+								<img src="/svg/services/{service.svg}" alt="" width="96" height="96" />
+							</div>
+						</button>
+					</div>
+
+					<div class="services-content">
+						<a
+							href={localizeHref(`/services/${service.id}`, locale)}
+							data-testid="services-card"
+							class="services-card-link"
+						><span data-testid="services-title" class="services-title">{title}</span></a>
+						{#if benefit}
+							<div data-testid="services-benefit" class="services-benefit">{benefit}</div>
+						{/if}
+					</div>
+
+					{#if metricValue}
+						<div class="services-footer" data-testid="services-metric">
 							<div class="services-metric-row">
 								<span class="services-metric-value">{metricValue}</span>
 								<span class="services-metric-label">{metricLabel}</span>
 							</div>
 						</div>
 					{/if}
-				</div>
-			{/each}
-		</div>
+				</Card>
+			</div>
+		{/each}
+	</div>
 
-		<div
-			data-testid="services-viewall"
-			class="mt-12 flex justify-end"
-		>
-			<a
-				href={localizeHref('/services', locale)}
-				class="home-view-all tap-feedback inline-flex items-center font-mono text-caption tracking-wider md:text-mono"
-				use:pressBounce
-			>{viewAllLink}</a>
-		</div>
+	<div data-testid="services-viewall" class="services-viewall">
+		<a href={localizeHref('/services', locale)} use:pressBounce>{viewAllLink}</a>
 	</div>
 </section>
 
 <style>
+	/* Phones keep the page gutter; on desktop the centred measure gives the cards their width. */
 	.services-section {
-		padding: var(--space-section-y) var(--space-page-x);
+		padding: 0 var(--space-page-x) var(--space-section-y);
 	}
 
-	@media (--desktop-min) {
-		.services-section {
-			min-height: 100dvh;
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-		}
+	.services-card-item {
+		min-width: 0;
 	}
-
-	.services-card-link {
-		text-decoration: none;
-		display: grid;
-		grid-template-rows: 12.5rem auto;
-		flex: 1;
-	}
-
-	/* The card clips decorative effects, so keep the shared keyboard outline inside it. */
-	.services-card-link:focus-visible {
-		position: relative;
-		outline-offset: -4px;
-		border-radius: var(--radius-lg);
-	}
-
-	/* Paint above the positioned illustration, inheriting primary or forced CanvasText. */
-	.services-card-link:focus-visible::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		z-index: 3;
-		outline: inherit;
-		outline-offset: inherit;
-		border-radius: inherit;
-		pointer-events: none;
-	}
-	.services-card-item { min-width: 0; }
 
 	/* Equal-height cards are useful in columns, but create empty mobile rows. */
 	@media (--desktop-min) {
-		.services-grid { grid-auto-rows: 1fr; }
-		.services-card-link { grid-template-rows: 12.5rem 1fr; }
+		.services-section {
+			padding-inline: 0;
+		}
+		.services-grid {
+			grid-auto-rows: 1fr;
+		}
 	}
 
-	.services-card {
-		background: var(--surface-1);
-		border: 2px solid var(--border-brand);
-		border-radius: var(--radius-lg);
-		box-shadow: inset 0 1px 0 var(--edge-highlight);
+	/* The title's link covers the card, so the whole card is one target. */
+	.services-card-link {
 		display: flex;
-		flex-direction: column;
-		transition:
-			border-color var(--duration-normal) var(--ease-default),
-			box-shadow var(--duration-normal) var(--ease-default),
-			transform 220ms var(--ease-default);
+		align-items: center;
+		min-height: var(--size-tap-min);
+		color: var(--foreground);
+		text-decoration: none;
 	}
 
-	.services-card:hover {
-		border-color: var(--border-brand-active);
-		transform: translateY(-3px);
+	.services-card-link::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		border-radius: inherit;
+	}
+
+	/* The focus outline is drawn around the whole card, inside its clipped edge. */
+	.services-card-link:focus-visible {
+		outline: none;
+	}
+
+	.services-card-link:focus-visible::after {
+		outline: 2px solid var(--ring);
+		outline-offset: -4px;
+		border-radius: calc(var(--radius-lg) - 2px);
+	}
+
+	/* Forced colours: the ring takes the system's text colour, as every other focus does. */
+	@media (forced-colors: active) {
+		.services-card-link:focus-visible::after {
+			outline-color: CanvasText;
+		}
 	}
 
 	.services-icon-zone {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 96%, var(--foreground)), color-mix(in srgb, var(--surface-1) 92%, var(--terminal)));
+		height: 12.5rem;
 		background-image:
 			radial-gradient(
 				circle at 50% 55%,
@@ -266,32 +223,12 @@
 			linear-gradient(135deg, color-mix(in srgb, var(--surface-2) 96%, var(--foreground)), color-mix(in srgb, var(--surface-1) 92%, var(--terminal)));
 	}
 
-	.services-marker {
-		position: absolute;
-		left: 1.25rem;
-		top: 1rem;
-		color: var(--accent-text);
-		font-family: var(--font-mono);
-		font-size: var(--text-mono);
-		letter-spacing: 0.22em;
-		text-transform: uppercase;
-		font-weight: 700;
+	.services-svg-panel {
+		position: relative;
 		z-index: 2;
-	}
-
-	@media (--tablet-min) {
-		.services-marker {
-			font-size: var(--text-menu-subtitle);
-			letter-spacing: 0.24em;
-		}
-	}
-
-	button.services-svg-panel {
 		appearance: none;
 		padding: 0;
 		font: inherit;
-		color: inherit;
-		text-align: inherit;
 		cursor: pointer;
 		width: 128px;
 		height: 128px;
@@ -301,10 +238,21 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		transition: all 250ms var(--ease-default);
+		transition:
+			background-color 250ms var(--ease-default),
+			border-color 250ms var(--ease-default);
 	}
 
-	.services-card-link:hover button.services-svg-panel {
+	.services-svg-panel:focus-visible {
+		outline: 2px solid var(--ring);
+		outline-offset: 4px;
+	}
+
+	.services-svg-panel:disabled {
+		cursor: default;
+	}
+
+	.services-card-item:hover .services-svg-panel {
 		background: color-mix(in srgb, var(--primary) 14%, var(--background));
 		border-color: color-mix(in srgb, var(--primary) 38%, transparent);
 	}
@@ -330,6 +278,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.4rem;
+		flex: 1;
 	}
 
 	.services-title {
@@ -365,6 +314,7 @@
 		gap: 0.625rem;
 	}
 
+	/* Metrics in reading ink with their labels in sentence case (D-M1); values unchanged. */
 	.services-metric-value {
 		flex: 0 0 auto;
 		max-width: 100%;
@@ -373,46 +323,41 @@
 		font-weight: 800;
 		font-size: var(--text-heading);
 		line-height: 1;
-		color: var(--accent-text);
+		color: var(--foreground);
 		letter-spacing: -0.02em;
 	}
 
 	.services-metric-label {
 		flex: 1 1 14rem;
 		min-width: 0;
-		font-family: var(--font-mono);
 		font-size: var(--text-card-meta);
 		color: var(--muted-foreground);
-		text-transform: uppercase;
-		letter-spacing: 0;
 	}
 
 	@media (--tablet-min) {
 		.services-metric-value {
 			font-size: 1.75rem;
 		}
-		.services-metric-label {
-			font-size: var(--text-card-meta);
-		}
 	}
 
-	.home-view-all {
-		color: var(--primary);
-		border-bottom: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
-		min-height: 2.75rem;
-		padding-inline: 0.25rem;
-		transition: border-color var(--duration-normal) var(--ease-default);
+	.services-viewall {
+		display: flex;
+		justify-content: flex-end;
+		margin-top: 2rem;
 	}
 
-	.home-view-all:hover {
-		border-color: color-mix(in srgb, var(--primary) 60%, transparent);
+	/* An orange text link (base.css styles class-less links), a 44px target. */
+	.services-viewall :global(a) {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--size-tap-min);
 	}
 
 	@media (--tablet-max) {
-		.services-card-link {
-			grid-template-rows: 10rem auto;
+		.services-icon-zone {
+			height: 10rem;
 		}
-		button.services-svg-panel {
+		.services-svg-panel {
 			width: 96px;
 			height: 96px;
 			border-radius: 16px;

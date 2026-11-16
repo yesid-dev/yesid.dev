@@ -1,7 +1,7 @@
 <!--
-  Four left-aligned facts share value and label tracks using row subgrids.
-  Narrow cards use two divided corner pairs; roomy cards keep shared rows up top.
-  Typography and accent colour come from the shared metric classes and tokens.
+  Fun facts: four short sentences in reading ink, each figure in bold (D-M6: no metric styling
+  on jokes). Narrow cards keep the two-by-two corners with their faint cross; roomy cards set
+  the four facts in one row. A static card.
 -->
 <script lang="ts">
 	import type { AboutMetric } from '#lib/types.ts';
@@ -9,35 +9,23 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 
 	const locale = getLocale();
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
+	import AboutCardHeading from './AboutCardHeading.svelte';
 
-	let { metrics, stop, label }: { metrics: readonly AboutMetric[]; stop: string; label: string } = $props();
+	let { metrics, heading }: { metrics: readonly AboutMetric[]; heading: string } = $props();
 </script>
 
-<div
-	class="group h-full"
-	use:cursorGlow
-	data-ripple-exempt
->
-<Card class="h-full p-3" data-testid="about-metrics">
+<Card class="h-full p-3" data-testid="about-metrics" data-ripple-exempt>
 	<div class="metrics-shell relative flex h-full flex-col">
-		<StopLabel {stop} {label} as="h2" />
+		<AboutCardHeading text={heading} />
 
-		<div class="metrics-grid">
+		<ul class="metrics-grid">
 			{#each metrics as metric}
-				{@const metricLabel = resolveLocale(metric.label, locale)}
-
-				<div class="fact">
-					<span class="metric-value font-heading font-extrabold leading-none text-heading text-accent-text">{metric.value}</span>
-					<span class="label-metric">{metricLabel}</span>
-				</div>
+				<li class="fact"><b class="fact-figure">{metric.value}</b> {resolveLocale(metric.label, locale)}</li>
 			{/each}
-		</div>
+		</ul>
 	</div>
 </Card>
-</div>
 
 <style>
 	.metrics-shell {
@@ -49,13 +37,15 @@
 		position: relative;
 		flex: 1;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-		grid-template-rows: auto auto minmax(1rem, 1fr) auto auto;
+		grid-template-rows: 1fr 1.5rem 1fr;
 		gap: 0.5rem 1rem;
-		margin-top: 1rem;
+		margin: 0.75rem 0 0;
+		padding: 0;
+		list-style: none;
 		text-align: left;
 	}
 
-	/* Split the corner pairs without adding decorative nodes to the reading order. */
+	/* The corner rules, as today (decorative, outside the reading order). */
 	.metrics-grid::before {
 		content: '';
 		position: absolute;
@@ -68,50 +58,44 @@
 	.metrics-grid::after {
 		content: '';
 		grid-column: 1 / -1;
-		grid-row: 3;
+		grid-row: 2;
 		align-self: center;
 		height: 1px;
 		background: linear-gradient(90deg, transparent, var(--border), transparent);
 	}
 
 	.fact {
-		display: grid;
-		grid-row: 1 / span 2;
-		grid-template-rows: subgrid;
 		min-width: 0;
-	}
-
-	.fact:nth-child(even) {
-		grid-column: 2;
-	}
-
-	.fact:nth-child(n + 3) {
-		grid-row: 4 / span 2;
-	}
-
-	.metric-value {
-		align-self: end;
-	}
-
-	.label-metric {
-		align-self: start;
+		font-size: var(--text-body);
+		line-height: 1.45;
+		color: var(--secondary-foreground);
 		overflow-wrap: normal;
 		word-break: normal;
 		hyphens: none;
 	}
 
-	/* Four 128px columns plus three 16px gutters keep the mono labels readable.
-	   The viewport guard keeps phones in corners even if their card is roomy. */
+	.fact:nth-child(1) { grid-area: 1 / 1; align-self: end; }
+	.fact:nth-child(2) { grid-area: 1 / 2; align-self: end; }
+	.fact:nth-child(3) { grid-area: 3 / 1; align-self: start; }
+	.fact:nth-child(4) { grid-area: 3 / 2; align-self: start; }
+
+	.fact-figure {
+		font-weight: 700;
+		color: var(--foreground);
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* Four facts in a row once the card has room; phones always keep the corners. */
 	@media (min-width: 640px) {
 		@container about-facts (min-width: 560px) {
 			.metrics-grid {
 				grid-template-columns: repeat(4, minmax(0, 1fr));
-				grid-template-rows: auto 1fr;
+				grid-template-rows: 1fr;
 			}
 
 			.fact:nth-child(n) {
-				grid-column: auto;
-				grid-row: 1 / span 2;
+				grid-area: auto;
+				align-self: center;
 			}
 
 			.metrics-grid::before,

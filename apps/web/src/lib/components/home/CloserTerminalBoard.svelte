@@ -36,6 +36,7 @@
 <TerminalPanel
 	title={terminalTitle}
 	noPadding
+	rule="dimension"
 	footer={[
 		{ label: '', value: cityLabel },
 		{ label: '', value: encodingLabel },
