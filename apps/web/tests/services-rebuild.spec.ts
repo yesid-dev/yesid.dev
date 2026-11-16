@@ -267,6 +267,21 @@ test.describe('the service page', () => {
 				});
 				expect(tile.width).toBeCloseTo(56, 0);
 				expect(tile.height).toBeCloseTo(56, 0);
+				const legibility = await page.evaluate(() => {
+					const svg = document.querySelector('.svg-mobile [data-testid="hero-dot-annotation"]')!;
+					const frame = svg.getBoundingClientRect(), label = svg.querySelector('g')!.getBoundingClientRect();
+					const heading = document.querySelector('h1')!;
+					const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+					let wholeWords = true;
+					while (walker.nextNode()) for (const match of walker.currentNode.textContent!.matchAll(/\p{L}{2,}/gu)) {
+						const range = document.createRange();
+						range.setStart(walker.currentNode, match.index!);
+						range.setEnd(walker.currentNode, match.index! + match[0].length);
+						wholeWords &&= range.getClientRects().length === 1;
+					}
+					return { wholeWords, labelInside: label.left >= frame.left - 1 && label.right <= frame.right + 1 && label.top >= frame.top - 1 && label.bottom <= frame.bottom + 1 };
+				});
+				expect(legibility, 'opening words stay whole and the handwritten label stays inside its SVG').toEqual({ wholeWords: true, labelInside: true });
 				// The annotation is a pointer-transparent overlay, never a control.
 				const annotation = page.locator('.svg-mobile [data-testid="hero-dot-annotation"]');
 				expect(await css(annotation, 'pointer-events')).toBe('none');

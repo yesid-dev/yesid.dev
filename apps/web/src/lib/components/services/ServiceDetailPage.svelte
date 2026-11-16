@@ -70,15 +70,17 @@
 	let hasStack = $derived((service.stack?.length ?? 0) > 0);
 	// The hand-lettered "click me", left of the drawing, its arrow ending at the drawing's edge.
 	const clickMe = getLettering(CLICK_ME[locale]);
-	const clickStart = { x: 4 + clickMe.end.x + 2, y: 20 + clickMe.end.y };
+	const clickBaseline = 26;
+	const clickStart = { x: 4 + clickMe.end.x + 2, y: clickBaseline + clickMe.end.y };
 	const clickWidth = Math.ceil(clickStart.x + 30);
 	const clickArrow = `M${clickStart.x} ${clickStart.y} C${clickStart.x + 6} ${clickStart.y + 26} ${clickWidth - 26} 52 ${clickWidth - 2} 52`;
 	const clickTip = `M${clickWidth - 11} 47 L${clickWidth - 2} 52 L${clickWidth - 11} 57`;
 	// Phones: the same hand lettering above the 56px drawing, its arrow landing on the tile's top edge.
 	const clickMobileWidth = Math.ceil(clickMe.width + 14);
-	const clickMobileHeight = 42;
-	const clickMobileArrow = 'M56 26 C61 30 64 33 67 36';
-	const clickMobileTip = 'M60 33 L67 36 L63 40';
+	const clickMobileHeight = 60;
+	const clickMobileTarget = clickMobileWidth / 2;
+	const clickMobileArrow = `M${clickStart.x} ${clickStart.y} C${clickStart.x + 6} ${clickStart.y + 14} ${clickMobileTarget + 18} 40 ${clickMobileTarget} 54`;
+	const clickMobileTip = `M${clickMobileTarget - 5} 49 L${clickMobileTarget} 54 L${clickMobileTarget + 5} 49`;
 
 	let backLinkLabel = $derived(resolveLocale(siteLabels.servicesChrome.detail.backToServicesLabel, locale));
 	let valuePropositionHeading = $derived(
@@ -246,14 +248,14 @@
 
 					{#if svgContent}
 						<!-- Phones: the drawing with its "click me" above it. -->
-						<div class="svg-mobile" data-ripple-exempt>
+						<div class="svg-mobile" style="--click-mobile-height: {clickMobileHeight}px" data-ripple-exempt>
 							<span class="click-me click-me--mobile" style="width: {clickMobileWidth}px; height: {clickMobileHeight}px">
 								<HeroDotAnnotation
 									lettering={clickMe}
 									width={clickMobileWidth}
 									height={clickMobileHeight}
 									x={4}
-									y={8}
+									y={clickBaseline}
 									arrow={clickMobileArrow}
 									tip={clickMobileTip}
 									visible={!$prefersReducedMotion}
@@ -270,7 +272,7 @@
 									width={clickWidth}
 									height={64}
 									x={4}
-									y={20}
+									y={clickBaseline}
 									arrow={clickArrow}
 									tip={clickTip}
 									visible={!$prefersReducedMotion}
@@ -418,23 +420,23 @@
 		text-decoration: underline;
 	}
 
-	/* Phones: title and drawing side by side, the description and "Collapse all" below. */
+	/* Phones: the title keeps the full measure; the drawing sits beside the description. */
 	.hero-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) auto;
 		grid-template-areas:
-			'title art'
-			'desc desc'
+			'title title'
+			'desc art'
 			'bulk bulk';
 		column-gap: 1rem;
-		align-items: center;
+		align-items: start;
 	}
 
 	.detail-title {
 		grid-area: title;
 		margin: 0;
 		font-family: var(--font-heading);
-		font-size: var(--text-display);
+		font-size: clamp(var(--text-title), 10vw, var(--text-display));
 		font-weight: 900;
 		line-height: 1.05;
 		letter-spacing: -0.02em;
@@ -449,10 +451,12 @@
 
 	.svg-mobile {
 		grid-area: art;
+		position: relative;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 0.125rem;
+		padding-block-start: calc(var(--click-mobile-height) + 2px);
 	}
 
 	.svg-mobile :global(.svg-panel--banner) {
@@ -486,12 +490,16 @@
 
 	/* Phones: the same hand lettering, drawn above the 56px tile on its own line. */
 	.click-me--mobile {
-		position: relative;
-		top: auto;
+		position: absolute;
+		top: 0;
 		right: auto;
+		left: 50%;
+		transform: translateX(-50%);
 		display: block;
-		height: 42px;
-		margin-inline: auto;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.svg-mobile { padding-block-start: 0; }
 	}
 
 	.detail-description {
@@ -530,6 +538,7 @@
 
 		/* "click me" hangs left of the drawing: the words keep clear of its arrow. */
 		.detail-title {
+			font-size: var(--text-display);
 			max-width: calc(100% - 8rem);
 		}
 
