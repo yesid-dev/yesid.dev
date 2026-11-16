@@ -38,7 +38,7 @@
 </script>
 
 <!-- Registered sections suppress this edge rule; legacy callers retain their own divider. -->
-{#if leadingRule}<Separator variant="hazard" data-edge-rule />{/if}
+{#if leadingRule}<Separator variant="hand-drawn" data-edge-rule />{/if}
 <section class="cta-band-shell" data-testid={testidPrefix}>
 	<CtaBlueprintBackground />
 	<div class="cta-band">

@@ -19,7 +19,7 @@ for (const locale of PUBLISHED_LOCALES) {
 			expect(bounds[i].top, `${sections[i]} follows ${sections[i - 1]} visually`).toBeGreaterThanOrEqual(bounds[i - 1].bottom - 1);
 		}
 		const titles = page.locator('[data-slot="rail-title"]');
-		expect(await titles.evaluateAll(nodes => nodes.map(node => node.getAttribute('data-side')))).toEqual(['left', 'right', 'right', 'left']);
+		expect(await titles.evaluateAll(nodes => nodes.map(node => node.getAttribute('data-side')))).toEqual(['right', 'left', 'right', 'left']);
 		await expect(page.getByTestId('closer-section').locator('[data-construction-prop]')).toHaveCount(4);
 		// Check real sequential focus across each moved boundary, including the CTA after About.
 		for (let i = 1; i < sections.length; i++) {
@@ -68,7 +68,7 @@ test('reduced motion keeps the new homepage order and manifesto readable @motion
 });
 
 for (const width of [390, 1440]) {
-	test(`${width}px: every section but the last ends on the kit dimension line, none before the footer`, async ({ page }) => {
+	test(`${width}px: every section but the last ends on the kit hand-drawn divider, none before the footer`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
 		await page.goto('/');
 		const home = page.getByTestId('home-sections');
@@ -89,7 +89,7 @@ for (const width of [390, 1440]) {
 		layout.children.forEach((child, i) => {
 			expect(child.slot).toBe(i % 2 === 0 ? 'page-section' : 'page-section-boundary');
 			if (child.slot === 'page-section-boundary') {
-				expect(child.variant).toBe('dimension');
+				expect(child.variant).toBe('hand-drawn');
 				// Edge to edge, between the two sections it divides.
 				expect(Math.abs(child.box.width - layout.width)).toBeLessThanOrEqual(20);
 				expect(child.box.top).toBeGreaterThanOrEqual(layout.children[i - 1]!.box.bottom - 1);
@@ -98,8 +98,8 @@ for (const width of [390, 1440]) {
 		});
 		const last = layout.children.at(-1)!;
 		expect(last.slot).toBe('page-section');
-		// Nothing drawn between Terminus and the footer: the footer's street edge closes the page.
+		// Nothing drawn between Terminus and the footer: the footer's hazard edge closes the page.
 		expect(layout.footer.top - last.box.bottom).toBeLessThanOrEqual(1);
-		await expect(page.locator('main [data-slot="separator"]:not([data-variant="dimension"])').filter({ visible: true })).toHaveCount(0);
+		await expect(page.locator('main [data-slot="separator"]:not([data-variant="hand-drawn"])').filter({ visible: true })).toHaveCount(0);
 	});
 }

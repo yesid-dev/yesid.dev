@@ -211,7 +211,9 @@ test.describe('projects carousel', () => {
 		expect(perView).toBe(page.viewportSize()!.width >= 1024 ? 2 : 1);
 		await expect(reel.getByTestId('proof-controls')).toBeVisible();
 		await expect(reel.getByTestId('proof-position')).toHaveText(perView === 2 ? '1 to 2 of 3' : '1 of 3');
-		await expect(reel.getByTestId('proof-prev')).toBeDisabled();
+		// The reel loops: from the first view both controls are live, neither a dead end.
+		await expect(reel.getByTestId('proof-prev')).toBeEnabled();
+		await expect(reel.getByTestId('proof-next')).toBeEnabled();
 
 		// Without overflow, no controls.
 		await reel.getByTestId('proof-slide').nth(2).evaluate(slide => slide.remove());
@@ -221,7 +223,7 @@ test.describe('projects carousel', () => {
 		}
 	});
 
-	test('the buttons and the keyboard move it, the focus never drops, and the position is announced', async ({ page, isMobile }) => {
+	test('the buttons and the keyboard move it, the loop wraps both ways and the position is announced', async ({ page, isMobile }) => {
 		test.skip(isMobile, 'Keyboard journey on pointer projects.');
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		await page.goto('/');
@@ -232,6 +234,7 @@ test.describe('projects carousel', () => {
 		const position = reel.getByTestId('proof-position');
 		const announcement = reel.getByTestId('proof-announcement');
 		await expect(announcement).toHaveText('');
+		const firstPosition = (await position.textContent())!;
 		await next.focus();
 		await page.keyboard.press('Enter');
 		await expect(position).toHaveText(/^2 (to 3 )?of 3$/);
@@ -240,18 +243,39 @@ test.describe('projects carousel', () => {
 			await page.keyboard.press('Enter');
 			await expect(position).toHaveText('3 of 3');
 		}
-		// At the end the next button is disabled and its partner holds the focus.
-		await expect(next).toBeDisabled();
-		await expect(previous).toBeFocused();
+		// At the last view next wraps to the first one, so it is never a dead end: the focus stays.
+		await expect(next).toBeEnabled();
 		await page.keyboard.press('Enter');
-		await expect(position).not.toHaveText(/3 of 3$/);
+		await expect(position).toHaveText(firstPosition);
+		await expect(announcement).toHaveText(firstPosition);
+		await expect(next).toBeFocused();
+		// Previous wraps the other way, from the first view to the last.
+		await previous.focus();
+		await page.keyboard.press('Enter');
+		await expect(position).toHaveText(/^3 of 3$|^2 to 3 of 3$/);
+		await expect(previous).toBeEnabled();
 
-		// Tab through a card's own links: the next card scrolls into view.
+		// Arrow keys move the reel from a card's own link, without leaving the reel.
 		await page.goto('/');
 		await reel.scrollIntoViewIfNeeded();
-		const lastCard = reel.getByTestId('proof-card').nth(2);
 		const firstLink = reel.getByTestId('proof-card').first().getByRole('link').first();
 		await firstLink.focus();
+		await expect(position).toHaveText(firstPosition);
+		const before = (await position.textContent())!;
+		await page.keyboard.press('ArrowRight');
+		await expect(position).not.toHaveText(before);
+		expect(await reel.getByTestId('proof-track').evaluate(track => {
+			const active = document.activeElement;
+			if (!(active instanceof HTMLElement) || !track.contains(active)) return false;
+			const frame = track.getBoundingClientRect();
+			const action = active.getBoundingClientRect();
+			return action.left >= frame.left - 1 && action.right <= frame.right + 1;
+		}), 'card-originated arrows keep the focused action inside the carousel view').toBe(true);
+		await page.keyboard.press('ArrowLeft');
+		await expect(position).toHaveText(before);
+
+		// Tab through a card's own links: the next card scrolls into view.
+		const lastCard = reel.getByTestId('proof-card').nth(2);
 		for (let i = 0; i < 12; i++) {
 			if (await lastCard.evaluate(card => card.contains(document.activeElement))) break;
 			await page.keyboard.press('Tab');
@@ -262,6 +286,50 @@ test.describe('projects carousel', () => {
 			return box.left >= frame.left - 1 && box.right <= frame.right + 1;
 		})).toBe(true);
 		await expect(lastCard).toHaveCSS('transform', 'none');
+	});
+
+	test('the first card in view survives a reload', async ({ page }) => {
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		const reel = page.getByTestId('proof-reel-section');
+		await reel.scrollIntoViewIfNeeded();
+		await reel.getByTestId('proof-next').click();
+		await expect(reel.getByTestId('proof-position')).not.toHaveText(/^1 (to 2 )?of 3$/);
+		const position = (await reel.getByTestId('proof-position').textContent())!;
+		await expect.poll(() => page.evaluate(() => Number(sessionStorage.getItem('persisted:featured-card')))).toBeGreaterThan(0);
+		await page.reload();
+		await reel.scrollIntoViewIfNeeded();
+		await expect(reel.getByTestId('proof-position')).toHaveText(position);
+	});
+
+	test('a touch drag past either end wraps the reel', async ({ page, isMobile }) => {
+		test.skip(!isMobile, 'Touch swipe runs on the touch projects.');
+		await page.emulateMedia({ reducedMotion: 'reduce' });
+		await page.goto('/');
+		const reel = page.getByTestId('proof-reel-section');
+		await reel.scrollIntoViewIfNeeded();
+		const track = reel.getByTestId('proof-track');
+		const position = reel.getByTestId('proof-position');
+		const start = (await position.textContent())!;
+		const swipe = (dx: number, dy = 0) => track.evaluate((element, { dx, dy }) => {
+			const box = element.getBoundingClientRect();
+			const y = box.top + box.height / 2;
+			const from = box.left + box.width / 2;
+			const touch = (x: number, offsetY = 0) => new Touch({ identifier: 1, target: element, clientX: x, clientY: y + offsetY });
+			element.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [touch(from)], targetTouches: [touch(from)], changedTouches: [touch(from)] }));
+			element.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [touch(from + dx, dy)] }));
+		}, { dx, dy });
+		// Normal page scrolling can drift sideways. It must not change the project.
+		await swipe(30, 180);
+		await expect(track).toHaveJSProperty('scrollLeft', 0);
+		await expect(position).toHaveText(start);
+		// Dragging right at the first card wraps to the last one; dragging left there wraps forward.
+		await swipe(60);
+		await expect(position).not.toHaveText(start);
+		const last = (await position.textContent())!;
+		await swipe(-60);
+		await expect(position).toHaveText(start);
+		expect(last).not.toBe(start);
 	});
 
 	test('under reduced motion the buttons jump without gliding', async ({ page }) => {

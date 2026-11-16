@@ -41,8 +41,8 @@
 	});
 </script>
 
-<!-- About is one section, the page's last: the kit draws no divider, and the footer's street edge closes it. -->
-<PageSections data-register="reading">
+<!-- About is one section, the page's last: the kit draws no divider, and the footer's hazard strip closes it. -->
+<PageSections divider="hand-drawn" data-register="reading">
 <PageSection class="w-full" style="min-height: calc(100dvh - 5rem)" data-testid="page-about">
 	<div class="px-3 py-2">
 		<div class="dashboard">

@@ -163,11 +163,9 @@ test('navigation and resizing settle on whole cards and keep every project reach
 			counts.push(visible.length);
 			visible.forEach(card => seen.add(card.index));
 			const next = reel.getByTestId('proof-next');
-			if (visible.length === total) {
-				await expect(next).toBeDisabled();
-				await expect(reel.getByTestId('proof-prev')).toBeDisabled();
-			}
-			if (await next.isDisabled()) break;
+			// A fitted view hides the controls; an overflowing reel loops, so next never dead-ends.
+			if (await next.isHidden()) break;
+			await expect(next).toBeEnabled();
 			const before = await reel.getByTestId('proof-position').textContent();
 			await next.click();
 			await expect(reel.getByTestId('proof-position')).not.toHaveText(before!);
@@ -178,7 +176,7 @@ test('navigation and resizing settle on whole cards and keep every project reach
 	expect(Math.max(...counts)).toBe(Math.min(total, 2));
 	expect(Math.min(...counts)).toBe(1);
 	const previous = reel.getByTestId('proof-prev');
-	if (await previous.isEnabled()) { await previous.click(); await expectWholeCards(reel); }
+	if (await previous.isVisible()) { await previous.click(); await expectWholeCards(reel); }
 });
 
 test('hover preserves whole single images and covered split panes', async ({ page }) => {
@@ -198,7 +196,7 @@ test('hover preserves whole single images and covered split panes', async ({ pag
 			await expectImagesFitPanes(card);
 			seen.add(visible.index);
 		}
-		if (await reel.getByTestId('proof-next').isDisabled()) break;
+		if (await reel.getByTestId('proof-next').isHidden()) break;
 		await reel.getByTestId('proof-next').click();
 	}
 	expect(seen.size).toBe(total);

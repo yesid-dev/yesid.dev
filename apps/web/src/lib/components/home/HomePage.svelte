@@ -174,7 +174,7 @@
 <!-- The page's sections (D22): the kit draws the dimension line at the bottom of every section but
      the last, so none sits before the footer. Order (D-M1): the opening, Projects, the manifesto,
      Services, About, the closing band, Terminus. -->
-<PageSections class="home-sections" data-testid="home-sections">
+<PageSections divider="hand-drawn" class="home-sections" data-testid="home-sections">
 	<!-- 1. The opening: edge to edge, the offer beside Transit's live data. -->
 	<PageSection class="home-opening" data-testid="home-section-opening">
 		<HeroBanner {metroSvg} {hero} {heroAnim} {initialHeroData} {bookingHref} {transitProject} />
@@ -183,7 +183,7 @@
 	<!-- 2. Projects: the blueprint drawing behind, edge to edge; the cards in the centred measure. -->
 	<PageSection class="home-section home-section--projects" data-testid="home-section-projects" aria-labelledby="home-title-projects">
 		<div class="home-section-backdrop" aria-hidden="true"><ServicesBlueprint /></div>
-		<RailTitle heading={sectionProjects} side="left" titleId="home-title-projects">
+		<RailTitle clipAtHeader={false} heading={sectionProjects} side="right" titleId="home-title-projects">
 			<div class="home-measure">
 				<FeaturedProjects {proofReel} projects={carouselProjects} facts={featuredFacts} />
 			</div>
@@ -197,7 +197,7 @@
 
 	<!-- 4. Services. -->
 	<PageSection class="home-section" data-testid="home-section-services" aria-labelledby="home-title-services">
-		<RailTitle heading={sectionServices} side="right" titleId="home-title-services">
+		<RailTitle clipAtHeader={false} heading={sectionServices} side="left" titleId="home-title-services">
 			<div class="home-measure">
 				<HomeServices {servicesGrid} {services} />
 			</div>
@@ -206,7 +206,7 @@
 
 	<!-- 5. About, exactly as it is on the live home. -->
 	<PageSection class="home-section" data-testid="home-section-about" aria-labelledby="home-title-about">
-		<RailTitle heading={sectionAbout} side="right" titleId="home-title-about">
+		<RailTitle clipAtHeader={false} heading={sectionAbout} side="right" titleId="home-title-about">
 			<div class="home-measure home-measure--about">
 				<HomeAboutTeaser {about} />
 			</div>
@@ -222,7 +222,7 @@
 	     scene keeps today's geometry: the title owns the left rail and the props run to the right edge. -->
 	<PageSection class="home-section home-section--terminus" data-testid="home-section-terminus" aria-labelledby="home-title-terminus">
 		<div class="home-terminus">
-			<div class="home-terminus__rail"><RailTitle heading={sectionTerminus} side="left" titleId="home-title-terminus" /></div>
+			<div class="home-terminus__rail"><RailTitle clipAtHeader={false} heading={sectionTerminus} side="left" titleId="home-title-terminus" /></div>
 			<div class="home-terminus__scene"><HomeCloser {closer} {siteMeta} /></div>
 		</div>
 	</PageSection>

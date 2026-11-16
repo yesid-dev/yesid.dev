@@ -207,10 +207,10 @@ test.describe('dividers and the closing band', () => {
 			const last = page.locator('main [data-slot="page-section"]').last();
 			await expect(last.getByTestId(/cta-band$/)).toBeVisible();
 			await expect(last.getByRole('link', { name: /./ }).first()).toBeVisible();
-			// Nothing drawn between the band and the footer's street edge.
+			// Nothing drawn between the band and the footer's hazard edge.
 			const gap = await page.evaluate(() => {
 				const band = [...document.querySelectorAll('main [data-slot="page-section"]')].at(-1)!.getBoundingClientRect();
-				const edge = document.querySelector('[data-slot="footer-street-edge"]')!.getBoundingClientRect();
+				const edge = document.querySelector('[data-slot="footer-hazard-edge"]')!.getBoundingClientRect();
 				const visible = [...document.querySelectorAll('[data-slot="separator"], [data-slot="page-section-boundary"]')].filter((el) => {
 					const box = el.getBoundingClientRect();
 					return box.height > 0 && getComputedStyle(el).display !== 'none' && box.top >= band.top - 1 && box.bottom <= edge.top + 1;
@@ -224,19 +224,75 @@ test.describe('dividers and the closing band', () => {
 test.describe('the service page', () => {
 	test.skip(({ viewport }) => viewport!.width < 1024, 'Sets its own viewports.');
 
-	test('fit first, reading-size title, "click me" beside the drawing, no counters', async ({ page }) => {
+	test('fit first, the larger opening, "click me" on phone and desktop, no counters', async ({ page }) => {
 		await page.setViewportSize({ width: 1440, height: 900 });
 		await open(page, DETAIL);
 		const anchors = await page.locator('.sections.article-body [data-toc]').evaluateAll((els) => els.map((el) => el.getAttribute('data-toc')));
 		expect(anchors[0]).toBe('svc-section-0');
 		await expect(page.locator('[data-toc="svc-section-0"] [aria-expanded]')).toHaveCount(0);
-		const size = await css(page.getByRole('heading', { level: 1 }), 'font-size');
-		expect(parseFloat(size)).toBeLessThanOrEqual(40.5);
+		// DEV-43: one step larger from the existing type tokens (--text-display, --text-reading).
+		const size = parseFloat(await css(page.getByRole('heading', { level: 1 }), 'font-size'));
+		expect(size).toBeGreaterThan(48);
+		expect(size).toBeLessThanOrEqual(64.5);
+		const subtitle = parseFloat(await css(page.locator('.detail-description'), 'font-size'));
+		expect(subtitle).toBeGreaterThan(17.5);
+		expect(subtitle).toBeLessThanOrEqual(19.5);
+		// The opening keeps its top tight under the strip, not pushed down.
+		const opening = await page.evaluate(() => {
+			const strip = document.querySelector('[data-testid="station-strip"]')!.getBoundingClientRect();
+			const title = document.querySelector('h1')!.getBoundingClientRect();
+			const bulk = document.querySelector('.sections-slot')!.getBoundingClientRect();
+			const grid = document.querySelector('.service-story-section')!.getBoundingClientRect();
+			return { toTitle: title.top - strip.bottom, toStory: grid.top - bulk.bottom };
+		});
+		expect(opening.toTitle).toBeLessThanOrEqual(76);
+		expect(opening.toStory).toBeLessThanOrEqual(140);
 		await expect(page.locator('.svg-desktop [data-testid="hero-dot-annotation"]')).toBeVisible();
 		await expect(page.locator('main')).not.toContainText(/SEC\s*\d+\s*\/\s*\d+|Service\s*\d+\s*\/\s*\d+/i);
 		await expect(page.locator('main [data-slot="badge"]')).toHaveCount(0);
 		await page.setViewportSize({ width: 390, height: 844 });
 		await expect(page.getByTestId('toc-pill')).toHaveCount(0);
+	});
+
+	test('phone: the 56px drawing keeps its "click me", the desktop panel stays away', async ({ page }) => {
+		for (const width of [320, 390]) {
+			for (const locale of ['en', 'fr', 'es']) {
+				await page.setViewportSize({ width, height: 844 });
+				await open(page, locale === 'en' ? DETAIL : `/fr${DETAIL}`);
+				await expect(page.locator('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeVisible();
+				await expect(page.locator('.svg-desktop')).toBeHidden();
+				const tile = await page.locator('.svg-mobile [data-testid="service-svg-panel"] [data-slot="svg-icon"]').evaluate((el) => {
+					const box = el.getBoundingClientRect();
+					return { width: box.width, height: box.height };
+				});
+				expect(tile.width).toBeCloseTo(56, 0);
+				expect(tile.height).toBeCloseTo(56, 0);
+				const legibility = await page.evaluate(() => {
+					const svg = document.querySelector('.svg-mobile [data-testid="hero-dot-annotation"]')!;
+					const frame = svg.getBoundingClientRect(), label = svg.querySelector('g')!.getBoundingClientRect();
+					const heading = document.querySelector('h1')!;
+					const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
+					let wholeWords = true;
+					while (walker.nextNode()) for (const match of walker.currentNode.textContent!.matchAll(/\p{L}{2,}/gu)) {
+						const range = document.createRange();
+						range.setStart(walker.currentNode, match.index!);
+						range.setEnd(walker.currentNode, match.index! + match[0].length);
+						wholeWords &&= range.getClientRects().length === 1;
+					}
+					return { wholeWords, labelInside: label.left >= frame.left - 1 && label.right <= frame.right + 1 && label.top >= frame.top - 1 && label.bottom <= frame.bottom + 1 };
+				});
+				expect(legibility, 'opening words stay whole and the handwritten label stays inside its SVG').toEqual({ wholeWords: true, labelInside: true });
+				// The annotation is a pointer-transparent overlay, never a control.
+				const annotation = page.locator('.svg-mobile [data-testid="hero-dot-annotation"]');
+				expect(await css(annotation, 'pointer-events')).toBe('none');
+				// The tile keeps the tap that morphs the drawing.
+				const url = page.url();
+				await page.locator('.svg-mobile [data-testid="service-svg-panel"]').click();
+				expect(page.url()).toBe(url);
+				await expect(page.locator('.svg-mobile [data-testid="service-svg-panel"]')).toBeVisible();
+				expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+			}
+		}
 	});
 
 	test('under reduced motion the drawings stand still and "click me" is not shown', async ({ page }) => {
@@ -249,5 +305,7 @@ test.describe('the service page', () => {
 			for (const icon of await icons.all()) await expect(icon).toHaveAttribute('data-still', '');
 		}
 		await expect(page.locator('.svg-desktop [data-testid="hero-dot-annotation"]')).toBeHidden();
+		await page.setViewportSize({ width: 390, height: 844 });
+		await expect(page.locator('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeHidden();
 	});
 });

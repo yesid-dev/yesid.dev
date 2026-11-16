@@ -1,7 +1,7 @@
 <!--
   Contact page (page type: contact, D20), rebuilt from the owner-reviewed preview D-M4 (DEV-40).
   One page section: the rotated "Contact." is the kit's RailTitle (the page's h1, sticky on the left
-  rail from 1024px, horizontal below), then two TerminalPanels with the kit's dimension line under
+  rail from 1024px, horizontal below), then two TerminalPanels with a solid yellow rule under
   their title bars: the info panel (location, weather, local time, reply time, languages, best fit,
   connect) and the form panel. Phones stack the details first. No divider before the footer.
   The form follows yesid.design's labelled-field recipe: visible labels, the required line and
@@ -251,14 +251,14 @@
 </script>
 
 <div class="contact-page" data-testid="page-contact" data-register="task">
-	<PageSections>
+	<PageSections divider="hand-drawn">
 		<PageSection class="contact-section" aria-labelledby="contact-title">
-			<RailTitle
+			<RailTitle clipAtHeader={false}
 				heading={pageTitle}
 				level={1}
 				titleId="contact-title"
 				side="left"
-				size="9rem"
+				size="clamp(3rem, 4vw, 3.5rem)"
 				horizontalSize="2rem"
 				style="--rail-title-rail: clamp(4.5rem, 12vw, 10.5rem)"
 			>
@@ -279,7 +279,7 @@
 {#snippet infoTerminal()}
 	<TerminalPanel
 		title={contactPage.infoTerminal.title}
-		rule="dimension"
+		rule="line"
 		class="h-full min-w-0"
 		data-testid="contact-info-terminal"
 	>
@@ -347,7 +347,7 @@
 {#snippet formTerminal()}
 	<TerminalPanel
 		title={contactPage.formTerminal.title}
-		rule="dimension"
+		rule="line"
 		class="h-full min-w-0"
 		data-testid="contact-form-terminal"
 	>

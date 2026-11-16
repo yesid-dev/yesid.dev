@@ -580,19 +580,20 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		const section = container.querySelector('[data-slot="page-section"]');
 		expect(section).toHaveAttribute('aria-labelledby', 'contact-title');
 		const layout = container.querySelector('[data-slot="rail-title-layout"]') as HTMLElement;
-		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('9rem');
+		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('clamp(3rem, 4vw, 3.5rem)');
 		expect(
 			layout.querySelector('[data-slot="rail-title-content"] [data-testid="contact-form-terminal"]'),
 		).not.toBeNull();
 	});
 
-	it('draws the kit dimension line under both title bars and no divider before the footer', () => {
+	it('uses solid terminal rules without extra separator elements or a rule before the footer', () => {
 		const { container } = render(ContactPage, { props: { contactPage: contactContent } });
 		for (const id of ['contact-info-terminal', 'contact-form-terminal']) {
 			const panel = screen.getByTestId(id);
 			const titlebar = panel.querySelector('.terminal-titlebar') as HTMLElement;
-			expect(titlebar.nextElementSibling).toHaveAttribute('data-variant', 'dimension');
-			expect(panel.querySelectorAll('.terminal-rule')).toHaveLength(1);
+			expect(panel).toHaveClass('terminal-rule-line');
+			expect(titlebar.nextElementSibling).toHaveClass('terminal-body');
+			expect(panel.querySelectorAll('.terminal-rule')).toHaveLength(0);
 		}
 		expect(container.querySelectorAll('[data-slot="page-section"]')).toHaveLength(1);
 		expect(container.querySelector('[data-slot="page-section-boundary"]')).toBeNull();

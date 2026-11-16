@@ -71,6 +71,7 @@ describe('ServiceDetailPage composition (D-M5)', () => {
 	it('keeps "click me" beside the drawing and the metric in reading ink', () => {
 		const { container } = renderPage();
 		expect(container.querySelector('.svg-desktop [data-testid="hero-dot-annotation"]')).toBeTruthy();
+		expect(container.querySelector('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeTruthy();
 		expect(container.querySelector('.impact-value')).toHaveTextContent('118');
 		expect(container.querySelector('.impact-label')).toHaveTextContent('checks/day');
 	});

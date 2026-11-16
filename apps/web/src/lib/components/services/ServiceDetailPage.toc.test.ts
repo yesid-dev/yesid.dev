@@ -6,6 +6,32 @@ import { projectFactory, serviceFactory } from '../../../tests/factories';
 const text = (en: string) => ({ en });
 
 describe('ServiceDetailPage TOC badges', () => {
+	it('gives the fit and approach cards their own icons from the section role, in any language', () => {
+		const localized = serviceFactory.build({
+			id: 'localized',
+			station: 1,
+			title: text('Localized'),
+			description: text('Text.'),
+			sections: [
+				{ title: { en: 'Fit A', fr: 'Est-ce pour vous ?' }, content: text('- One line') },
+				{ title: { en: 'Method B', fr: 'Mon approche' }, content: text('Done.') },
+			],
+		});
+		const { container } = render(ServiceDetailPage, {
+			props: { service: localized, services: [localized], relatedProjects: [], serviceSvgContents: {} },
+		});
+
+		const fit = container.querySelector('[data-toc="svc-section-0"]')!;
+		expect(fit.querySelector('[data-testid="section-grid-icon"]')).toBeTruthy();
+		const approach = container.querySelector('[data-toc="svc-section-1"]')!;
+		expect(approach.querySelector('[data-testid="section-arrow-icon"]')).toBeTruthy();
+
+		// The contents mirror each card's mark, once for the card and once for its entry.
+		const toc = container.querySelector('.impact-toc') as HTMLElement;
+		expect(within(toc).getAllByTestId('section-grid-icon')).toHaveLength(1);
+		expect(within(toc).getAllByTestId('section-arrow-icon')).toHaveLength(1);
+	});
+
 	it('uses the shared icon registry for service cards and matching TOC badges', () => {
 		const service = serviceFactory.build({
 			id: 'database-work',

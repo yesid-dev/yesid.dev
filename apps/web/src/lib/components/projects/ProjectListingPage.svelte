@@ -148,7 +148,7 @@
 </script>
 
 <div data-testid="project-listing" class="w-full">
-	<ListingFrame
+	<ListingFrame clipAtHeader={false} rule="hazard"
 		resultCountText={filterCountText(filteredProjects.length, countLabel, locale)}
 		heading={listingHeading}
 		edgeTitle={resolveLocale(siteLabels.pages.projectsEdgeTitle, locale)}

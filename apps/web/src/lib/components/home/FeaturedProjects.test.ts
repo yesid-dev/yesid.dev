@@ -96,8 +96,9 @@ describe('FeaturedProjects', () => {
 			expect(control).toHaveAttribute('data-direction', direction);
 			expect(control).toHaveAttribute('aria-label', label);
 			expect(control).toHaveAttribute('aria-controls', track.id);
+			// The reel loops, so neither control is a dead end.
+			expect(control).toBeEnabled();
 		}
-		expect(screen.getByTestId('proof-prev')).toBeDisabled();
 	});
 
 	it('hides the controls when the cards fit (no overflow)', () => {

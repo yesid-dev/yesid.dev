@@ -3,6 +3,9 @@ import { localeCopy } from '../src/lib/locales';
 import { expect, test, type Page } from '@playwright/test';
 
 import { menuItems } from '../src/lib/content/nav';
+import { menuGroupLabels } from '../src/lib/navigation/menu-groups';
+
+const CLIENT_LOGIN_URL = 'https://login.yesid.dev';
 import type { Locale } from '../src/lib/types';
 import { DEFAULT_LOCALE, resolveLocale } from '../src/lib/utils/locale';
 import { PUBLISHED_LOCALES } from '../src/lib/utils/published-locales';
@@ -32,6 +35,37 @@ async function openMenu(page: Page, locale: Locale) {
 		await expect(menu(page, locale)).toBeVisible({ timeout: 1000 });
 	}).toPass();
 	return menu(page, locale);
+}
+
+async function assertSymmetricNavbarPipes(page: Page) {
+	const splits = await page.getByTestId('nav-pill').evaluate(pill => {
+		const visible = (el: Element) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+		const renderedBox = (el: Element): { left: number; right: number } | undefined => {
+			const style = getComputedStyle(el);
+			if (style.display === 'none' || style.visibility === 'hidden') return;
+			if (style.display !== 'contents') return visible(el) ? el.getBoundingClientRect() : undefined;
+			const children = [...el.children].map(renderedBox).filter((r): r is { left: number; right: number } => Boolean(r));
+			if (children.length) return { left: Math.min(...children.map(r => r.left)), right: Math.max(...children.map(r => r.right)) };
+		};
+		const adjacent = (el: Element, direction: 'previousElementSibling' | 'nextElementSibling') => {
+			let sibling = el[direction];
+			while (sibling && !renderedBox(sibling)) sibling = sibling[direction];
+			return sibling ? renderedBox(sibling) : undefined;
+		};
+		return [...pill.querySelectorAll('span[aria-hidden="true"]')].filter(el => {
+			const r = el.getBoundingClientRect();
+			return visible(el) && r.width > 0 && r.width <= 2 && r.height > 8;
+		}).map(el => {
+			const r = el.getBoundingClientRect(), before = adjacent(el, 'previousElementSibling'), after = adjacent(el, 'nextElementSibling');
+			return { left: before ? r.left - before.right : null, right: after ? after.left - r.right : null };
+		});
+	});
+	if (page.viewportSize()!.width >= 768) expect(splits.length).toBeGreaterThan(0);
+	for (const split of splits) {
+		expect(split.left).not.toBeNull();
+		expect(split.right).not.toBeNull();
+		expect(Math.abs(split.left! - split.right!), 'each navbar pipe has symmetric physical space').toBeLessThanOrEqual(1);
+	}
 }
 
 for (const locale of PUBLISHED_LOCALES) {
@@ -204,6 +238,44 @@ for (const locale of PUBLISHED_LOCALES) {
 				await expectControlsInPill(page, locale);
 			}
 		});
+	});
+}
+
+// DEV-43: the menu is organised into named groups from the same visible destinations.
+for (const locale of PUBLISHED_LOCALES) {
+	test(`${locale}: the menu groups every destination once, keeps the current state and its locale href`, async ({ page }) => {
+		const labels = menuGroupLabels(locale);
+		await page.goto(localized('/projects', locale));
+		await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+		await assertSymmetricNavbarPipes(page);
+		const list = await openMenu(page, locale);
+
+		const headings = list.getByRole('heading', { level: 3 });
+		expect(await headings.allTextContents()).toEqual([labels.work, labels.explore, labels.connect]);
+		const columns = await list.locator('[data-slot="menu-group"]').evaluateAll(groups =>
+			new Set(groups.map(group => Math.round(group.getBoundingClientRect().left))).size);
+		if (page.viewportSize()!.width < 768) expect(columns).toBe(1);
+		else expect(columns, 'desktop and tablet menus use organized columns').toBeGreaterThan(1);
+
+		const links = await list.locator('a[href]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href')));
+		const expected = menuItems.map((item) =>
+			item.href === CLIENT_LOGIN_URL
+				? `${CLIENT_LOGIN_URL}/?lang=${locale}`
+				: localized(item.href, locale),
+		);
+		expect([...links].sort()).toEqual([...expected].sort());
+		expect(new Set(links).size).toBe(links.length);
+
+		const projects = list.locator(`a[href="${localized('/projects', locale)}"]`);
+		await expect(projects).toHaveCount(1);
+		await expect(projects).toHaveAttribute('aria-current', 'page');
+		// Every other destination is not marked current.
+		await expect(list.locator('a[aria-current="page"]')).toHaveCount(1);
+
+		// The grouped menu keeps the dialog contract: Escape closes it and restores the trigger.
+		await page.keyboard.press('Escape');
+		await expect(list).toBeHidden();
+		await expect(toggle(page, locale)).toBeFocused();
 	});
 }
 

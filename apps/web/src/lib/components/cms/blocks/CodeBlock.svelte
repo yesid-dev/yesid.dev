@@ -37,12 +37,14 @@
 {#if parsed.kind === 'mermaid'}
 	<MermaidDiagram code={parsed.body} />
 {:else}
+	<!-- Project accent scopes must not recolour the terminal's yellow rule. -->
 	<CodeBlock
+		class="[--accent:var(--hazard-a)]"
 		code={parsed.body}
 		title={resolveLocale(codeChrome.title, locale)}
 		language={parsed.language ? parsed.normalizedLanguage : undefined}
 		{copy}
-		rule="dimension"
+		rule="line"
 		children={highlightedHtml ? highlighted : undefined}
 	/>
 {/if}

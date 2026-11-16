@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
 	import { topicLabel } from "#lib/utils/blog-topics.ts";
 	import '#lib/styles/article-body.css';
 	import { afterNavigate } from '$app/navigation';
@@ -248,7 +249,7 @@
     </div>
   {/snippet}
 
-  <PageSections>
+  <PageSections divider="hand-drawn">
   <PageSection>
   <DetailFrame
     {left}
@@ -257,7 +258,7 @@
     data-testid="blog-detail-page"
     class="reading-detail"
     style="--blog-accent: {accentColor};"
-    rule="dimension"
+    rule="none"
     measure="46rem"
     railScroll
     leftMobile
@@ -287,6 +288,7 @@
           <SectionsToggle activeEffect="none" />
         {/snippet}
       </ArticleHeader>
+      <Separator variant="hand-drawn" data-testid="detail-header-rule" />
     {/snippet}
 
     <div class="sections-column" data-testid="blog-sections" data-ripple-exempt>

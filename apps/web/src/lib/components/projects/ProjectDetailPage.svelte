@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
 	import '#lib/styles/article-body.css';
 	import { afterNavigate } from '$app/navigation';
 	import type { BlockEditorDoc, Project, Service } from '#lib/types.ts';
@@ -290,12 +291,12 @@
 		</div>
 	{/snippet}
 
-	<PageSections>
+	<PageSections divider="hand-drawn">
 	<PageSection>
 	<DetailFrame
 		data-testid="project-detail-page"
 		class="reading-detail"
-		rule="dimension"
+		rule="none"
 		measure={STORY_MEASURE}
 		{right}
 		{after}
@@ -329,6 +330,7 @@
 					<SectionsToggle activeEffect="none" />
 				{/snippet}
 			</ArticleHeader>
+			<Separator variant="hand-drawn" data-testid="detail-header-rule" />
 		{/snippet}
 
 		{#snippet left()}
