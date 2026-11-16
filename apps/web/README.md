@@ -11,7 +11,7 @@ schema, editorial rows, or the design-system packages.
 |---|---|
 | [`src/lib/catalog/`](src/lib/catalog/) | Synchronous generated-content catalog and shared availability rules used by routes and server helpers. |
 | [`src/lib/adapters/`](src/lib/adapters/) | Page SEO composition and route-specific SEO factories, using the catalog. |
-| [`src/lib/content/`](src/lib/content/) | Build-time content. The CMS exporter produces 21 ignored modules, including one server-only module; never edit those outputs by hand. |
+| [`src/lib/content/`](src/lib/content/) | Build-time content. The CMS exporter produces 23 ignored modules, including one server-only module; never edit those outputs by hand. |
 | [`src/lib/directus/assets.ts`](src/lib/directus/assets.ts) | The sanctioned media seam. File identities resolve through the generated `media-assets.ts` map: committed mirrors, plus images the live build publishes under `/images/cms/`. An identity in neither may use Directus only in development and fails loudly in production. |
 | [`../../packages/shared/`](../../packages/shared/) | Product types, validation schemas, asset contracts, and dependency-free stack-layer constants. |
 
@@ -50,7 +50,7 @@ sends its fields to Web3Forms. Plausible runs only when `PUBLIC_PLAUSIBLE_DOMAIN
 
 ## Failure behavior
 
-- A trusted live content export must validate the whole registry of 21 outputs
+- A trusted live content export must validate the whole registry of 23 outputs
   and pass legal-truth and SEO validators before emission.
 - The live export fails closed when it cannot fetch, validate or encode a
   referenced CMS image, and production rendering fails for an identity missing
