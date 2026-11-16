@@ -1,6 +1,7 @@
-// The Fun Facts card (owner live QA, DEV-43): one square two-by-two panel on phones and desktops,
-// with each value and its words gathering toward the panel's central intersection.
+// Owner correction: retain the compact card, with four clusters gathering toward the centre.
+// Enlarged text may grow the card; ordinary desktop text must not stretch the bento row.
 import { expect, test, type Page } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
 import { aboutPageContent } from '../src/lib/content/about-page';
 import { resolveLocale } from '../src/lib/utils/locale';
 import { sentenceCase } from '../src/lib/components/about/about-copy';
@@ -39,15 +40,16 @@ async function geometry(page: Page) {
 			}
 			return { ...rect(element), align: getComputedStyle(element).textAlign, fontSize: parseFloat(getComputedStyle(element).fontSize), words, lines };
 		};
-		const panel = card.querySelector<HTMLElement>('[data-testid="about-metrics-square"]')!;
+		const panel = card.querySelector<HTMLElement>('[data-testid="about-metrics-quadrants"]')!;
 		const facts = [...card.querySelectorAll('li')];
 		return {
 			card: rect(card),
 			cell: rect(card.closest('.area-metrics')!),
 			panel: rect(panel),
 			panelStyle: {
-				borderTopWidth: parseFloat(getComputedStyle(panel).borderTopWidth),
-				borderTopColor: getComputedStyle(panel).borderTopColor,
+				blockSize: getComputedStyle(panel).blockSize,
+				minBlockSize: getComputedStyle(panel).minBlockSize,
+				gridRows: getComputedStyle(panel).gridTemplateRows,
 			},
 			contentScroll: {
 				x: panel.scrollWidth - panel.clientWidth,
@@ -83,19 +85,19 @@ async function expectLayout(page: Page, locale: string) {
 		aboutPageContent.metrics.map((metric) => metric.value),
 	);
 
-	// The panel is the facts' visible surface, and it is actually square at every width.
-	expect(Math.abs(panel.width - panel.height), `${panel.width}x${panel.height} panel is square`).toBeLessThanOrEqual(1);
-	expect(panel.width, 'the square panel is large enough to read').toBeGreaterThan(140);
-	expect(state.panelStyle.borderTopWidth).toBeGreaterThanOrEqual(1);
-	expect(state.panelStyle.borderTopColor, 'the square panel has a visible edge').not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/);
+	// Retain the original compact footprint instead of making height follow the card's width.
+	if (page.viewportSize()!.width >= 1280) {
+		expect(card.height, 'ordinary facts must not enlarge the desktop bento row').toBeLessThanOrEqual(300);
+	}
 	// Fits inside the card it was given, centred, never exceeding the card's inner box.
 	expect(panel.left).toBeGreaterThanOrEqual(card.left);
 	expect(panel.right).toBeLessThanOrEqual(card.right + 0.5);
-	expect(Math.abs((panel.left - card.left) - (card.right - panel.right)), 'the square is centred in its card').toBeLessThanOrEqual(1);
-	expect(state.contentScroll.x, 'the facts never overflow the square horizontally').toBeLessThanOrEqual(1);
-	expect(state.contentScroll.y, 'the facts never overflow the square vertically').toBeLessThanOrEqual(1);
+	expect(Math.abs((panel.left - card.left) - (card.right - panel.right)), 'the quadrants are centred in the card').toBeLessThanOrEqual(1);
+	expect(state.contentScroll.x, 'the facts never overflow horizontally').toBeLessThanOrEqual(1);
+	expect(state.contentScroll.y, 'the facts never overflow vertically').toBeLessThanOrEqual(1);
+	expect(panel.bottom).toBeLessThanOrEqual(card.bottom + 0.5);
 
-	// The heading stays at the card top, clear of the square.
+	// The heading stays at the card top, clear of the facts.
 	expect(state.heading.bottom).toBeLessThanOrEqual(panel.top + 0.5);
 	expect(state.headingText).not.toBe('');
 
@@ -139,7 +141,36 @@ async function expectLayout(page: Page, locale: string) {
 }
 
 for (const locale of locales) {
-	test(`${locale} facts keep one square two-by-two panel at phone, tablet and desktop widths`, async ({ page }, testInfo) => {
+	test(`${locale} enlarged facts stay inside the panel and clear of adjacent content`, async ({ page }, testInfo) => {
+		const enlargedWidths = testInfo.project.name === 'phone' ? [320, 390] : [page.viewportSize()!.width];
+		for (const width of enlargedWidths) {
+			await page.setViewportSize({ width, height: 900 });
+			await openAbout(page, locale);
+			await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+			const state = await geometry(page);
+			const diagnosticPath = testInfo.outputPath(`${locale}-${width}-text200.json`);
+			await writeFile(diagnosticPath, JSON.stringify(state, null, 2));
+			await testInfo.attach(`${locale}-${width}-text200.json`, { path: diagnosticPath, contentType: 'application/json' });
+			expect(state.facts).toHaveLength(4);
+			expect(state.facts.map(fact => fact.figure.text)).toEqual(aboutPageContent.metrics.map(metric => metric.value));
+			expect(state.heading.bottom).toBeLessThanOrEqual(state.panel.top + 0.5);
+			expect(state.panel.bottom).toBeLessThanOrEqual(state.card.bottom + 0.5);
+			expect(state.card.bottom).toBeLessThanOrEqual(state.cell.bottom + 0.5);
+			expect(state.contentScroll.x).toBeLessThanOrEqual(1);
+			expect(state.contentScroll.y).toBeLessThanOrEqual(1);
+			for (const fact of state.facts) {
+				expect(fact.fontSize, 'the regression actually enlarges the text').toBeGreaterThanOrEqual(32);
+				for (const line of fact.lines) {
+					expect(line.left).toBeGreaterThanOrEqual(state.panel.left);
+					expect(line.right).toBeLessThanOrEqual(state.panel.right);
+					expect(line.top).toBeGreaterThanOrEqual(state.panel.top);
+					expect(line.bottom).toBeLessThanOrEqual(state.panel.bottom);
+				}
+			}
+		}
+	});
+
+	test(`${locale} facts keep compact two-by-two quadrants at phone, tablet and desktop widths`, async ({ page }, testInfo) => {
 		// Each project owns its range, avoiding triplicated boundary sweeps in CI.
 		const projectWidths = widths.filter(width => testInfo.project.name === 'phone' ? width < 640 : testInfo.project.name === 'tablet' ? width >= 640 && width < 1024 : width >= 1024);
 		await openAbout(page, locale);
