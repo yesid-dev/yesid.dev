@@ -52,7 +52,7 @@ for (const locale of ['en', 'fr', 'es']) {
 				samples.push(measured);
 			}
 			for (const sample of samples) expect(sample.type).toEqual(samples[0]!.type);
-			expect(samples.map(sample => sample.side)).toEqual(['left', 'right', 'right', 'left']);
+			expect(samples.map(sample => sample.side)).toEqual(['right', 'left', 'right', 'left']);
 			await testInfo.attach('title-geometry', { body: JSON.stringify({ locale, ...viewport, pillBottom, samples }, null, 2), contentType: 'application/json' });
 		});
 	}

@@ -580,7 +580,7 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		const section = container.querySelector('[data-slot="page-section"]');
 		expect(section).toHaveAttribute('aria-labelledby', 'contact-title');
 		const layout = container.querySelector('[data-slot="rail-title-layout"]') as HTMLElement;
-		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('9rem');
+		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('clamp(3rem, 4vw, 3.5rem)');
 		expect(
 			layout.querySelector('[data-slot="rail-title-content"] [data-testid="contact-form-terminal"]'),
 		).not.toBeNull();

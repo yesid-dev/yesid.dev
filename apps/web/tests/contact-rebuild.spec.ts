@@ -26,7 +26,7 @@ for (const path of ['/contact', '/fr/contact']) {
 	});
 }
 
-test('desktop: "Contact." is a sticky rail title at about 144px, clear of the header pill', async ({ page }) => {
+test('desktop: "Contact." is a listing-sized sticky rail title, clear of the header pill', async ({ page }) => {
 	test.skip(test.info().project.name !== 'desktop', 'One desktop pass covers the rail title.');
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await blockExternal(page);
@@ -38,8 +38,8 @@ test('desktop: "Contact." is a sticky rail title at about 144px, clear of the he
 	await expect(title).toHaveAttribute('data-slot', 'rail-title-text');
 	await expect.poll(() => title.evaluate((el) => getComputedStyle(el).writingMode)).toBe('vertical-rl');
 	const size = await title.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
-	expect(size).toBeGreaterThan(120);
-	expect(size).toBeLessThanOrEqual(144);
+	expect(size).toBeGreaterThanOrEqual(48);
+	expect(size).toBeLessThanOrEqual(56);
 	const rail = page.locator('[data-slot="rail-title"]');
 	expect(await rail.evaluate((el) => getComputedStyle(el).position)).toBe('sticky');
 	// It never overlaps the panels: the info panel starts right of the title.

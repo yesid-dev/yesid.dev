@@ -28,6 +28,7 @@
 		SectionIcon,
 		TocNav,
 		useSectionJump,
+		type SectionIconName,
 		type TocEntry,
 	} from '@yesid/ui/brand';
 	import { DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
@@ -73,6 +74,11 @@
 	const clickWidth = Math.ceil(clickStart.x + 30);
 	const clickArrow = `M${clickStart.x} ${clickStart.y} C${clickStart.x + 6} ${clickStart.y + 26} ${clickWidth - 26} 52 ${clickWidth - 2} 52`;
 	const clickTip = `M${clickWidth - 11} 47 L${clickWidth - 2} 52 L${clickWidth - 11} 57`;
+	// Phones: the same hand lettering above the 56px drawing, its arrow landing on the tile's top edge.
+	const clickMobileWidth = Math.ceil(clickMe.width + 14);
+	const clickMobileHeight = 42;
+	const clickMobileArrow = 'M56 26 C61 30 64 33 67 36';
+	const clickMobileTip = 'M60 33 L67 36 L63 40';
 
 	let backLinkLabel = $derived(resolveLocale(siteLabels.servicesChrome.detail.backToServicesLabel, locale));
 	let valuePropositionHeading = $derived(
@@ -111,15 +117,18 @@
 
 	// Contents: the sections in reading order. Each entry mirrors its card's icon (the shared
 	// SectionIcon registry); the story sections carry no number badge and there is no counter.
+	// The icons follow the section's role in the CMS order, never an English heading.
+	const FIT_ICON: SectionIconName = 'grid';
+	const APPROACH_ICON: SectionIconName = 'arrow';
 	const tocHeading = $derived(resolveLocale(siteLabels.navChrome.shared.tocHeading, locale));
 	const tocEntries = $derived.by((): TocEntry[] => {
 		const entries: TocEntry[] = [];
-		const add = (id: string, entryTitle: string, icon?: 'eye' | 'list' | 'briefcase' | 'layers', rail = false) =>
+		const add = (id: string, entryTitle: string, icon?: SectionIconName, rail = false) =>
 			entries.push({ id, title: entryTitle, level: 2, badge: icon ? { kind: 'icon', name: icon } : undefined, rail, children: [] });
-		if (fitSection) add(fitSection.anchor, fitSection.title);
+		if (fitSection) add(fitSection.anchor, fitSection.title, FIT_ICON);
 		if (service.valueProposition) add('svc-valueprop', valuePropositionHeading, 'eye');
 		if (service.deliverables && service.deliverables.length > 0) add('svc-deliverables', deliverablesHeading, 'list');
-		for (const section of laterSections) add(section.anchor, section.title);
+		for (const [i, section] of laterSections.entries()) add(section.anchor, section.title, i === 0 ? APPROACH_ICON : undefined);
 		if (relatedProjects.length > 0) add('svc-related', relatedProjectsHeading, 'briefcase', true);
 		if (hasStack) add('svc-stack', stackLabel, 'layers', true);
 		return entries;
@@ -131,6 +140,10 @@
 	const hasImpact = $derived(Boolean(metricValue) || tocEntries.length > 0);
 	const hasSidePanel = $derived(hasStack || relatedProjects.length > 0);
 </script>
+
+{#snippet approachIcon()}
+	<SectionIcon name={APPROACH_ICON} class="h-4 w-4 shrink-0 text-primary" />
+{/snippet}
 
 {#snippet sectionBody(content: string)}
 	<div class="section-body">
@@ -232,8 +245,21 @@
 					</h1>
 
 					{#if svgContent}
-						<!-- Phones: the drawing beside the title. -->
+						<!-- Phones: the drawing with its "click me" above it. -->
 						<div class="svg-mobile" data-ripple-exempt>
+							<span class="click-me click-me--mobile" style="width: {clickMobileWidth}px; height: {clickMobileHeight}px">
+								<HeroDotAnnotation
+									lettering={clickMe}
+									width={clickMobileWidth}
+									height={clickMobileHeight}
+									x={4}
+									y={8}
+									arrow={clickMobileArrow}
+									tip={clickMobileTip}
+									visible={!$prefersReducedMotion}
+									ready
+								/>
+							</span>
 							<ServiceSvgPanel {svgContent} variant="banner" />
 						</div>
 						<!-- From 768px: the drawing in its frame, "click me" to its left. -->
@@ -294,6 +320,9 @@
 					{#if fitSection}
 						<div>
 							<CollapsibleSection title={fitSection.title} anchor={fitSection.anchor} collapsible={false} textSize="inherit">
+								{#snippet icon()}
+									<SectionIcon name={FIT_ICON} class="h-4 w-4 shrink-0 text-primary" />
+								{/snippet}
 								{@render sectionBody(fitSection.content)}
 							</CollapsibleSection>
 						</div>
@@ -333,9 +362,14 @@
 						</div>
 					{/if}
 
-					{#each laterSections as section (section.anchor)}
+					{#each laterSections as section, index (section.anchor)}
 						<div>
-							<CollapsibleSection title={section.title} anchor={section.anchor} open={true}>
+							<CollapsibleSection
+								title={section.title}
+								anchor={section.anchor}
+								open={true}
+								icon={index === 0 ? approachIcon : undefined}
+							>
 								{@render sectionBody(section.content)}
 							</CollapsibleSection>
 						</div>
@@ -365,7 +399,7 @@
 	/* ── Opening ── */
 
 	.hero-area {
-		padding: 0.75rem var(--space-page-x) clamp(1.75rem, 3vw, 2.5rem);
+		padding: 0.5rem var(--space-page-x) clamp(1rem, 2vw, 1.75rem);
 	}
 
 	.back-link {
@@ -400,12 +434,13 @@
 		grid-area: title;
 		margin: 0;
 		font-family: var(--font-heading);
-		font-size: var(--text-title);
+		font-size: var(--text-display);
 		font-weight: 900;
-		line-height: 1.1;
+		line-height: 1.05;
 		letter-spacing: -0.02em;
 		color: var(--foreground);
 		overflow-wrap: break-word;
+		text-wrap: balance;
 	}
 
 	.title-dot {
@@ -414,6 +449,10 @@
 
 	.svg-mobile {
 		grid-area: art;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.125rem;
 	}
 
 	.svg-mobile :global(.svg-panel--banner) {
@@ -445,11 +484,21 @@
 		pointer-events: none;
 	}
 
+	/* Phones: the same hand lettering, drawn above the 56px tile on its own line. */
+	.click-me--mobile {
+		position: relative;
+		top: auto;
+		right: auto;
+		display: block;
+		height: 42px;
+		margin-inline: auto;
+	}
+
 	.detail-description {
 		grid-area: desc;
 		max-width: 60ch;
 		margin: 0.75rem 0 0;
-		font-size: var(--text-body);
+		font-size: var(--text-reading);
 		line-height: 1.6;
 		color: var(--secondary-foreground);
 	}
@@ -457,7 +506,7 @@
 	.sections-slot {
 		grid-area: bulk;
 		display: flex;
-		margin-top: 1rem;
+		margin-top: 0.75rem;
 	}
 
 	@media (--tablet-min) {

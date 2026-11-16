@@ -127,6 +127,7 @@ export default defineConfig({
 						'src/lib/catalog/**/*.test.ts',
 						'src/lib/content/**/*.test.ts',
 						'src/lib/live/**/*.test.ts',
+						'src/lib/navigation/**/*.test.ts',
 						'src/lib/directus/**/*.test.ts',
 						'src/lib/schemas/**/*.test.ts',
 						'src/lib/server/**/*.test.ts',

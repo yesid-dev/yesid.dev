@@ -11,6 +11,7 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import LogIn from '@lucide/svelte/icons/log-in';
 	import { menuHref, visibleMenuItems, CLIENT_LOGIN_URL } from '#lib/navigation/menu.ts';
+	import { groupMenuItems } from '#lib/navigation/menu-groups.ts';
 	import { browser } from '$app/env';
 	import { afterNavigate, beforeNavigate, onNavigate } from '$app/navigation';
 	import { viewTransition } from '@yesid/motion/utils/viewTransition';
@@ -125,6 +126,20 @@
 		[CLIENT_LOGIN_URL]: LogIn,
 	};
 	const isCurrent = (href: string) => (href === '/' ? basePath === '/' : basePath.startsWith(href));
+	// The menu's organised groups, built from the same visible destinations the flat menu used: the
+	// links, current states, icons, subtitles, locale hrefs and external attributes are unchanged.
+	const menuGroups = $derived(
+		groupMenuItems(visibleMenuItems(menuItems, locale), locale).map((group) => ({
+			label: group.label,
+			items: group.items.map((item) => ({
+				href: menuHref(item.href, locale),
+				label: resolveLocale(item.label, locale),
+				subtitle: item.subtitle ? resolveLocale(item.subtitle, locale) : undefined,
+				current: isCurrent(item.href),
+				icon: MENU_ICONS[item.href],
+			})),
+		})),
+	);
 	const nextLocale = $derived(
 		PUBLISHED_LOCALES[(Math.max(0, PUBLISHED_LOCALES.indexOf(locale)) + 1) % PUBLISHED_LOCALES.length],
 	);
@@ -183,13 +198,7 @@
 				current: isCurrent(link.href),
 				priority: link.href === '/contact' ? 1 : Math.max(2, link.priority ?? 1) as 2 | 3,
 			}))}
-			menuItems={visibleMenuItems(menuItems, locale).map((item) => ({
-				href: menuHref(item.href, locale),
-				label: resolveLocale(item.label, locale),
-				subtitle: item.subtitle ? resolveLocale(item.subtitle, locale) : undefined,
-				current: isCurrent(item.href),
-				icon: MENU_ICONS[item.href],
-			}))}
+			menuGroups={menuGroups}
 			labels={{
 				openMenu: navChrome.openMenuAria,
 				closeMenu: navChrome.closeMenuAria,

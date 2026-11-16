@@ -258,7 +258,7 @@
 				level={1}
 				titleId="contact-title"
 				side="left"
-				size="9rem"
+				size="clamp(3rem, 4vw, 3.5rem)"
 				horizontalSize="2rem"
 				style="--rail-title-rail: clamp(4.5rem, 12vw, 10.5rem)"
 			>

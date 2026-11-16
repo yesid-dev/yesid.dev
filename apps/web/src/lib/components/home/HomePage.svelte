@@ -183,7 +183,7 @@
 	<!-- 2. Projects: the blueprint drawing behind, edge to edge; the cards in the centred measure. -->
 	<PageSection class="home-section home-section--projects" data-testid="home-section-projects" aria-labelledby="home-title-projects">
 		<div class="home-section-backdrop" aria-hidden="true"><ServicesBlueprint /></div>
-		<RailTitle heading={sectionProjects} side="left" titleId="home-title-projects">
+		<RailTitle heading={sectionProjects} side="right" titleId="home-title-projects">
 			<div class="home-measure">
 				<FeaturedProjects {proofReel} projects={carouselProjects} facts={featuredFacts} />
 			</div>
@@ -197,7 +197,7 @@
 
 	<!-- 4. Services. -->
 	<PageSection class="home-section" data-testid="home-section-services" aria-labelledby="home-title-services">
-		<RailTitle heading={sectionServices} side="right" titleId="home-title-services">
+		<RailTitle heading={sectionServices} side="left" titleId="home-title-services">
 			<div class="home-measure">
 				<HomeServices {servicesGrid} {services} />
 			</div>

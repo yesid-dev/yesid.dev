@@ -19,7 +19,7 @@ for (const locale of PUBLISHED_LOCALES) {
 			expect(bounds[i].top, `${sections[i]} follows ${sections[i - 1]} visually`).toBeGreaterThanOrEqual(bounds[i - 1].bottom - 1);
 		}
 		const titles = page.locator('[data-slot="rail-title"]');
-		expect(await titles.evaluateAll(nodes => nodes.map(node => node.getAttribute('data-side')))).toEqual(['left', 'right', 'right', 'left']);
+		expect(await titles.evaluateAll(nodes => nodes.map(node => node.getAttribute('data-side')))).toEqual(['right', 'left', 'right', 'left']);
 		await expect(page.getByTestId('closer-section').locator('[data-construction-prop]')).toHaveCount(4);
 		// Check real sequential focus across each moved boundary, including the CTA after About.
 		for (let i = 1; i < sections.length; i++) {

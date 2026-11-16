@@ -3,6 +3,9 @@ import { localeCopy } from '../src/lib/locales';
 import { expect, test, type Page } from '@playwright/test';
 
 import { menuItems } from '../src/lib/content/nav';
+import { menuGroupLabels } from '../src/lib/navigation/menu-groups';
+
+const CLIENT_LOGIN_URL = 'https://login.yesid.dev';
 import type { Locale } from '../src/lib/types';
 import { DEFAULT_LOCALE, resolveLocale } from '../src/lib/utils/locale';
 import { PUBLISHED_LOCALES } from '../src/lib/utils/published-locales';
@@ -204,6 +207,38 @@ for (const locale of PUBLISHED_LOCALES) {
 				await expectControlsInPill(page, locale);
 			}
 		});
+	});
+}
+
+// DEV-43: the menu is organised into named groups from the same visible destinations.
+for (const locale of PUBLISHED_LOCALES) {
+	test(`${locale}: the menu groups every destination once, keeps the current state and its locale href`, async ({ page }) => {
+		const labels = menuGroupLabels(locale);
+		await page.goto(localized('/projects', locale));
+		const list = await openMenu(page, locale);
+
+		const headings = list.getByRole('heading', { level: 3 });
+		expect(await headings.allTextContents()).toEqual([labels.work, labels.explore, labels.connect]);
+
+		const links = await list.locator('a[href]').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('href')));
+		const expected = menuItems.map((item) =>
+			item.href === CLIENT_LOGIN_URL
+				? `${CLIENT_LOGIN_URL}/?lang=${locale}`
+				: localized(item.href, locale),
+		);
+		expect([...links].sort()).toEqual([...expected].sort());
+		expect(new Set(links).size).toBe(links.length);
+
+		const projects = list.locator(`a[href="${localized('/projects', locale)}"]`);
+		await expect(projects).toHaveCount(1);
+		await expect(projects).toHaveAttribute('aria-current', 'page');
+		// Every other destination is not marked current.
+		await expect(list.locator('a[aria-current="page"]')).toHaveCount(1);
+
+		// The grouped menu keeps the dialog contract: Escape closes it and restores the trigger.
+		await page.keyboard.press('Escape');
+		await expect(list).toBeHidden();
+		await expect(toggle(page, locale)).toBeFocused();
 	});
 }
 

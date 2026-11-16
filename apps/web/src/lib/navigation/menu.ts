@@ -1,8 +1,9 @@
 import type { NavLink } from './types';
 import type { Locale } from '#lib/types.ts';
 import { localizeHref } from '#lib/utils/locale-routing.ts';
+import { CLIENT_LOGIN_URL } from './destinations.ts';
 
-export const CLIENT_LOGIN_URL = 'https://login.yesid.dev';
+export { CLIENT_LOGIN_URL } from './destinations.ts';
 
 export function menuHref(href: string, locale: Locale): string {
 	if (href.replace(/\/$/, '') === CLIENT_LOGIN_URL) return `${CLIENT_LOGIN_URL}/?lang=${locale}`;
