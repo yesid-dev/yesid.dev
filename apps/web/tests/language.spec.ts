@@ -185,7 +185,7 @@ function firstVisibleSectionTrigger(page: Page): Locator {
 		await page.goto('/fr/projects');
 		const firstCard = page.getByTestId('project-card').first();
 		await expect(firstCard).toBeVisible();
-		await firstCard.getByRole('link', { name: (await firstCard.getByRole('heading').innerText()).trim(), exact: true }).click({ position: { x: 16, y: 16 } });
+		await firstCard.getByTestId('project-card-case-study').click();
 		await expect(page.getByTestId('project-detail-page')).toBeVisible();
 
 		const trigger = firstVisibleSectionTrigger(page);
