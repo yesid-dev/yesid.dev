@@ -13,8 +13,8 @@ test('service illustrations keep their own keyboard and touch action', async ({ 
 	await page.emulateMedia({ reducedMotion: 'no-preference' });
 	await page.goto('/');
 	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
-	const card = page.locator('.services-card').first();
-	const panel = card.getByTestId('services-svg-panel');
+	const card = page.locator('.service-card').first();
+	const panel = card.locator('[data-testid="service-svg-panel"]:visible');
 	await panel.scrollIntoViewIfNeeded();
 	await expect(panel).toHaveRole('button');
 	await expect(panel).toHaveAccessibleName(/illustration/i);
@@ -32,7 +32,7 @@ test('service illustrations keep their own keyboard and touch action', async ({ 
 	if (isMobile) await panel.tap();
 	else await page.keyboard.press('Enter');
 	await expect.poll(distinctShapes).toBeGreaterThan(1);
-	const link = card.getByTestId('services-card');
+	const link = card.getByRole('link');
 	const destination = await link.getAttribute('href');
 	await link.click();
 	await expect.poll(() => new URL(page.url()).pathname).toBe(destination);
@@ -42,11 +42,30 @@ test('service illustration controls keep the still form under reduced motion', a
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/');
 	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
-	const panels = page.getByTestId('services-svg-panel');
+	const panels = page.locator('[data-testid="service-svg-panel"]:visible');
 	for (const panel of await panels.all()) {
 		await expect(panel).toHaveRole('button');
 		await expect(panel).toBeDisabled();
 	}
+});
+
+test('home shared card body navigates while selected text remains reading', async ({ page }) => {
+	await page.emulateMedia({ reducedMotion: 'reduce' });
+	await page.goto('/');
+	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+	const card = page.locator('.service-card').first();
+	const description = card.locator('.service-description');
+	await description.scrollIntoViewIfNeeded();
+	await description.evaluate(el => {
+		const range = document.createRange(); range.selectNodeContents(el);
+		getSelection()!.removeAllRanges(); getSelection()!.addRange(range);
+		el.dispatchEvent(new MouseEvent('click', { bubbles: true, button: 0 }));
+	});
+	expect(new URL(page.url()).pathname).toBe('/');
+	await page.evaluate(() => getSelection()!.removeAllRanges());
+	const destination = await card.getByRole('link').getAttribute('href');
+	await description.click();
+	await expect.poll(() => new URL(page.url()).pathname).toBe(destination);
 });
 
 /** Opt into the real polling path with a local, controllable Transit response. */
@@ -351,7 +370,7 @@ test.describe('projects carousel', () => {
 			await page.addInitScript(t => localStorage.setItem('theme', t), theme);
 			await page.goto('/');
 			await page.locator('html').evaluate((el, t) => el.setAttribute('data-theme', t), theme);
-			for (const card of [page.getByTestId('proof-card').first(), page.getByTestId('hero-transit-card'), page.locator('.services-card').first()]) {
+			for (const card of [page.getByTestId('proof-card').first(), page.getByTestId('hero-transit-card'), page.locator('.service-card').first()]) {
 				await card.scrollIntoViewIfNeeded();
 				await page.mouse.move(0, 0);
 				const read = () => card.evaluate(el => {

@@ -1,13 +1,11 @@
-<!--
-  Delimiter.svelte — renders Editor.js `delimiter` block (HR).
-  AM6: delimiter is in default Editor.js tool set; emits empty data object.
--->
-<hr />
+<script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
+</script>
+
+<div role="separator" aria-orientation="horizontal" class="delimiter">
+	<Separator variant="hand-drawn" />
+</div>
 
 <style>
-	hr {
-		border: none;
-		border-top: 1px solid var(--border-subtle);
-		margin: 2rem 0;
-	}
+	.delimiter { margin: 0; padding: 0; }
 </style>

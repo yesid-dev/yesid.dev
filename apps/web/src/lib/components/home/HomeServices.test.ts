@@ -23,108 +23,16 @@ describe('HomeServices', () => {
 		expect(anchor?.textContent).toContain('View all services');
 	});
 
-	it('keeps the static service icon and diagnoses an inline SVG fetch failure', async () => {
-		const originalFetch = globalThis.fetch;
-		globalThis.fetch = vi.fn().mockRejectedValue(new Error('no server'));
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		const oneService = [
-			serviceFactory.build({
-				id: 'diagnostic-service',
-				title: { en: 'Diagnostic service' },
-				station: 1,
-				visible: true,
-				svg: 'diagnostic-service.svg',
-			}),
-		];
-
-		try {
-			const { container, unmount } = render(HomeServices, {
-				props: { servicesGrid: servicesGridContent, services: oneService },
-			});
-			expect(container.querySelector('.svg-inline-wrapper img')).toHaveAttribute(
-				'src',
-				'/svg/services/diagnostic-service.svg',
-			);
-			await waitFor(() => {
-				expect(warn).toHaveBeenCalledWith(
-					'[home-services] Decorative SVG fetch failed; keeping the static image.',
-				);
-			});
-			unmount();
-		} finally {
-			warn.mockRestore();
-			globalThis.fetch = originalFetch;
-		}
-	});
-
-	it.each([401, 404, 500])(
-		'keeps the static service icon and diagnoses a resolved HTTP %s',
-		async (status) => {
-			const originalFetch = globalThis.fetch;
-			globalThis.fetch = vi.fn().mockResolvedValue(new Response('not svg', { status }));
-			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-			const oneService = [
-				serviceFactory.build({
-					id: 'diagnostic-service',
-					title: { en: 'Diagnostic service' },
-					station: 1,
-					visible: true,
-					svg: 'diagnostic-service.svg',
-				}),
-			];
-
-			try {
-				const { container, unmount } = render(HomeServices, {
-					props: { servicesGrid: servicesGridContent, services: oneService },
-				});
-				expect(container.querySelector('.svg-inline-wrapper img')).toHaveAttribute(
-					'src',
-					'/svg/services/diagnostic-service.svg',
-				);
-				await waitFor(() => {
-					expect(warn).toHaveBeenCalledWith(
-						'[home-services] Decorative SVG fetch failed; keeping the static image.',
-					);
-				});
-				unmount();
-			} finally {
-				warn.mockRestore();
-				globalThis.fetch = originalFetch;
-			}
-		},
-	);
-
-	it('keeps the static service icon when reading the response body rejects', async () => {
-		const originalFetch = globalThis.fetch;
-		const response = new Response('', { status: 200 });
-		vi.spyOn(response, 'text').mockRejectedValue(new Error('body unavailable'));
-		globalThis.fetch = vi.fn().mockResolvedValue(response);
-		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-		const oneService = [
-			serviceFactory.build({
-				id: 'diagnostic-service',
-				title: { en: 'Diagnostic service' },
-				station: 1,
-				visible: true,
-				svg: 'diagnostic-service.svg',
-			}),
-		];
-
-		try {
-			const { container, unmount } = render(HomeServices, {
-				props: { servicesGrid: servicesGridContent, services: oneService },
-			});
-			expect(container.querySelector('.svg-inline-wrapper img')).toBeInTheDocument();
-			await waitFor(() => {
-				expect(warn).toHaveBeenCalledWith(
-					'[home-services] Decorative SVG fetch failed; keeping the static image.',
-				);
-			});
-			unmount();
-		} finally {
-			warn.mockRestore();
-			globalThis.fetch = originalFetch;
-		}
+	it('renders shared cards with descriptions, h3 headings and server-supplied drawings without fetching', () => {
+		const fetchSpy = vi.spyOn(globalThis, 'fetch');
+		const service = serviceFactory.build({ id: 'shared', title: { en: 'Shared service' }, description: { en: 'Full description' }, station: 1, visible: true });
+		render(HomeServices, { servicesGrid: servicesGridContent, services: [service], serviceSvgContents: { shared: '<svg><circle r="10"/></svg>' } });
+		expect(screen.getByRole('heading', { level: 3 })).toHaveTextContent('Shared service');
+		expect(screen.getByText('Full description')).toBeInTheDocument();
+		expect(screen.getByRole('link', { name: /Deep dive/ })).toHaveAttribute('href', '/services/shared');
+		expect(screen.getAllByTestId('service-svg-panel')).toHaveLength(2);
+		expect(fetchSpy).not.toHaveBeenCalled();
+		fetchSpy.mockRestore();
 	});
 
 	it('go2/w4: hover glow unwired — pointermove writes NO --glow vars on the section', () => {
@@ -161,30 +69,11 @@ describe('HomeServices station ordering (GO-2)', () => {
 			serviceFactory.build({ id: 'svc-b', title: { en: 'B' }, station: 2, visible: true }),
 		];
 		render(HomeServices, { props: { servicesGrid: servicesGridContent, services: shuffled } });
-		const cards = screen.getAllByTestId('services-card');
+		const cards = screen.getAllByRole('link', { name: /Deep dive/ });
 		expect(cards.map((c) => c.getAttribute('href'))).toEqual([
 			'/services/svc-a',
 			'/services/svc-b',
 			'/services/svc-c',
 		]);
-	});
-});
-
-describe('GO2-W5 round 5 — fun service SVGs + 2×2 station grid', () => {
-	// R5-1 regression lock: the playful per-service SVG art must render in the
-	// home services surface. SSR contract = one icon panel per visible service,
-	// each carrying the /svg/services/{file} fallback <img> inside the
-	// .svg-inline-wrapper that the onMount fetch upgrades to inline SVG.
-	it('every services card renders its service SVG surface (wrapper + /svg/services fallback)', () => {
-		render(HomeServices, { props: { servicesGrid: servicesGridContent, services } });
-		const panels = screen.getAllByTestId('services-svg-panel');
-		expect(panels.length).toBe(services.length);
-		const sorted = [...services].sort((a, b) => a.station - b.station);
-		panels.forEach((panel, i) => {
-			const wrapper = panel.querySelector('.svg-inline-wrapper');
-			expect(wrapper, `card ${i} missing .svg-inline-wrapper`).toBeTruthy();
-			const img = wrapper?.querySelector('img');
-			expect(img?.getAttribute('src')).toBe(`/svg/services/${sorted[i].svg}`);
-		});
 	});
 });

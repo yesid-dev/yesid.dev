@@ -109,15 +109,15 @@ test.describe('SVG morphs always finish', () => {
 	test('a home service morphs on hover and returns after the pointer leaves', async ({ page }) => {
 		await page.goto('/');
 		// The card is one link (its title's link covers it, D-M1); its art sits in the card, not in the link.
-		const card = page.locator('.services-card').first();
+		const card = page.locator('.service-card').first();
 		await card.scrollIntoViewIfNeeded();
-		const icon = card.locator('.svg-inline-wrapper svg');
+		const icon = card.locator('[data-testid="service-svg-panel"]:visible svg');
 		await expect(icon).toBeVisible({ timeout: 10_000 });
 		// A finished morph gives every path the same target shape; the art's own paths all differ.
 		const distinctShapes = () =>
 			icon.evaluate((svg) => new Set(Array.from(svg.querySelectorAll('path'), (path) => path.getAttribute('d'))).size);
 
-		await card.hover();
+		await card.locator('[data-testid="service-svg-panel"]:visible').hover();
 		await expect.poll(distinctShapes, { timeout: 8_000 }).toBe(1);
 
 		await moveAway(page);

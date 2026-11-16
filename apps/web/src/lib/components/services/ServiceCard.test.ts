@@ -1,5 +1,5 @@
 import { siteLabels } from '#lib/content/site-labels.ts';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/svelte';
 import ServiceCard from './ServiceCard.svelte';
 import { serviceFactory } from '../../../tests/factories';
@@ -20,6 +20,16 @@ const mockService = serviceFactory.build({
 });
 
 describe('ServiceCard', () => {
+	it('keeps listing headings at h2 and does not activate the card while selecting text', async () => {
+		render(ServiceCard, { service: mockService, svgContent: '' });
+		expect(screen.getByRole('heading', { level: 2 })).toBeInTheDocument();
+		const click = vi.fn((event: Event) => event.preventDefault());
+		screen.getByRole('link').addEventListener('click', click);
+		const selection = vi.spyOn(window, 'getSelection').mockReturnValue({ toString: () => 'selected' } as Selection);
+		await fireEvent.click(screen.getByText('Queries that run in seconds, not minutes'));
+		expect(click).not.toHaveBeenCalled();
+		selection.mockRestore();
+	});
 	it('shows only the metric value and label even when proof is supplied', () => {
 		render(ServiceCard, { service: { ...mockService, impactMetric: { ...mockService.impactMetric!, sourceUrl: 'https://example.org/evidence', asOf: '2026-11-04' } }, svgContent: '' });
 		expect(screen.getByText('3x')).toBeTruthy();

@@ -31,9 +31,12 @@ for (const theme of ['light', 'dark']) {
   await page.locator('html').evaluate((el, theme) => el.setAttribute('data-theme', theme), theme);
   const evidence: Record<string, unknown> = {};
   evidence.regenerate = await checkHover(page, page.getByTestId('hero-regenerate'), undefined, true);
-  evidence.home = await checkHover(page, page.locator('.services-card').first());
-  // The card's title link covers the card (D-M1); hovering the card lights its illustration panel.
-  evidence.panel = await checkHover(page, page.locator('.services-card').first(), page.locator('.services-svg-panel').first());
+  evidence.home = await checkHover(page, page.locator('.service-card').first());
+  // The shared card keeps its lift while its drawing owns the morph interaction.
+  const panel = page.locator('[data-testid="service-svg-panel"]:visible').first();
+  await page.mouse.move(0, 0);
+  await panel.hover();
+  await expect.poll(() => panel.locator('svg').evaluate(svg => new Set([...svg.querySelectorAll('path')].map(path => path.getAttribute('d'))).size)).toBe(1);
   await page.goto('/projects');
   await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
   evidence.project = await checkHover(page, page.locator('.project-card').first(), page.locator('.project-card .card-surface').first());

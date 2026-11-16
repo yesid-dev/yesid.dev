@@ -65,6 +65,7 @@
 		services,
 		featuredProjects,
 		featuredFacts = {},
+		serviceSvgContents = {},
 		siteMeta,
 		bookingHref,
 	}: Props = $props();
@@ -199,7 +200,7 @@
 	<PageSection class="home-section" data-testid="home-section-services" aria-labelledby="home-title-services">
 		<RailTitle clipAtHeader={false} heading={sectionServices} side="left" titleId="home-title-services">
 			<div class="home-measure">
-				<HomeServices {servicesGrid} {services} />
+				<HomeServices {servicesGrid} {services} {serviceSvgContents} />
 			</div>
 		</RailTitle>
 	</PageSection>
