@@ -182,7 +182,7 @@ export function assertTrimmedExportData(source: ExportData, trimmed: ExportData)
 	// Fixture mode supplies both derived maps before building configs. The source
 	// cache already has them; hermetic fixture validation can use empty maps.
 	const configs = buildEmitConfigs({ ...trimmed, mediaAssets: mediaAssets ?? {}, mediaVariants: mediaVariants ?? {} }, '/fixture');
-	if (configs.length !== 21) throw new Error(`Expected 21 emit configs, received ${configs.length}`);
+	if (configs.length !== 23) throw new Error(`Expected 23 emit configs, received ${configs.length}`);
 }
 
 if (import.meta.main) {

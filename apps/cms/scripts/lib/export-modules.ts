@@ -482,15 +482,33 @@ export const EXPORT_MODULES = [
 		'site-labels',
 		z.object({ siteLabels: schemas.SiteLabelsSchema }),
 		async (context) => ({ siteLabels: await fetchSiteLabels(context) }),
-		(data) => [
-			{
-				fileName: 'site-labels.ts',
-				description:
-					'Global UI microcopy from the site_labels singleton, including accessibility, navigation, project, blog, service, footer, email, and live-dashboard labels.',
-				imports: [typeImport('#lib/types.ts', 'SiteLabels')],
-				exports: [declaration('siteLabels', 'SiteLabels', data.siteLabels)],
-			},
-		],
+		(data) => {
+			const { navChrome, footerChrome, ...pageLabels } = data.siteLabels;
+			return [
+				{
+					fileName: 'site-page-labels.ts',
+					description: 'Page UI microcopy, loaded independently of persistent navigation.',
+					imports: [typeImport('#lib/types.ts', 'SiteLabels')],
+					exports: [declaration('sitePageLabels', "Omit<SiteLabels, 'navChrome' | 'footerChrome'>", pageLabels)],
+				},
+				{
+					fileName: 'site-navigation-labels.ts',
+					description: 'Shared navigation and footer microcopy for the persistent layout.',
+					imports: [typeImport('#lib/types.ts', 'SiteLabels')],
+					exports: [declaration('siteNavigationLabels', "Pick<SiteLabels, 'navChrome' | 'footerChrome'>", { navChrome, footerChrome })],
+				},
+				{
+					fileName: 'site-labels.ts',
+					description: 'Complete site UI microcopy assembled without duplicating navigation values.',
+					imports: [
+						typeImport('#lib/types.ts', 'SiteLabels'),
+						{ symbols: ['sitePageLabels'], from: './site-page-labels.ts' },
+						{ symbols: ['siteNavigationLabels'], from: './site-navigation-labels.ts' },
+					],
+					exports: [{ name: 'siteLabels', typeName: 'SiteLabels', spread: ['sitePageLabels', 'siteNavigationLabels'] }],
+				},
+			];
+		},
 	),
 	defineModule(
 		'blog-page',

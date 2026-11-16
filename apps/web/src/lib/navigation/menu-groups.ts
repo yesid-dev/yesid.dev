@@ -11,7 +11,7 @@
 
 import type { Locale } from '#lib/types.ts';
 import { resolveLocale } from '#lib/utils/locale.ts';
-import { siteLabels } from '#lib/content/index.ts';
+import { siteNavigationLabels } from '#lib/content/site-navigation-labels.ts';
 import type { NavLink } from './types.ts';
 import { CLIENT_LOGIN_URL } from './destinations.ts';
 
@@ -36,9 +36,9 @@ const hrefKey = (href: string): string => href.trim().replace(/\/+$/, '').toLowe
  * the footer's own localized group names.
  */
 export function menuGroupLabels(locale: Locale): Record<MenuGroupKey, string> {
-	const footer = siteLabels.footerChrome.footer;
+	const footer = siteNavigationLabels.footerChrome.footer;
 	return {
-		work: resolveLocale(siteLabels.navChrome.menuGroupWork, locale),
+		work: resolveLocale(siteNavigationLabels.navChrome.menuGroupWork, locale),
 		explore: resolveLocale(footer.exploreLabel, locale),
 		connect: resolveLocale(footer.connectLabel, locale),
 	};
