@@ -1,8 +1,9 @@
 <!--
-  Interests: Style A, diagonal strips with background images.
+  Interests (owner live QA, DEV-43): Style A, diagonal strips with background images.
   B&W by default, turns color on hover (desktop) / tap toggle (mobile).
   Comic/manga panel energy. Skewed strips with thin diagonal orange dividers.
-  Stop label always top-left.
+  The plain sentence-case heading sits inside the card's top-left, over the first strip, where the
+  old "STOP 0n · NAME" badge stood: no number, lamp or glow, and the photos keep the full height.
 -->
 <script lang="ts">
 	import type { AboutInterest } from '#lib/types.ts';
@@ -11,23 +12,13 @@
 	import { variantImage } from '#lib/utils/variant-image.ts';
 
 	const locale = getLocale();
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
 	import { Popover } from 'bits-ui';
 	import { Info } from '@lucide/svelte';
 	import { siteLabels } from '#lib/content/index.ts';
 	import AboutCardHeading from './AboutCardHeading.svelte';
 
-	// The home's About block passes `stop` and `label` and renders as it always has. About passes
-	// `heading` (D-M6): a plain heading above the strip, so nothing covers the photos, and a static
-	// card without glow. The strip itself is the same in both.
-	let {
-		interests,
-		stop = '',
-		label = '',
-		heading,
-	}: { interests: readonly AboutInterest[]; stop?: string; label?: string; heading?: string } = $props();
+	let { interests, heading }: { interests: readonly AboutInterest[]; heading: string } = $props();
 
 	// Cover-cropped photo width tracks card height: about 800px on the tall tablet card
 	// (snapshots sets a 380px row min-height below 1024px), about 340px on phones.
@@ -57,9 +48,6 @@
 		// Immediate touch clicks can precede the primitive's deferred outside-pointer listener.
 		if (creditOpen && target instanceof Node && !creditContent?.contains(target) && !creditTrigger?.contains(target)) creditOpen = false;
 	}
-
-
-
 </script>
 
 <svelte:document onclick={dismissCredit} />
@@ -133,32 +121,12 @@
 			</div>
 		{/each}
 	</div>
-
 {/snippet}
 
-{#if heading !== undefined}
 <Card class="interests-plain relative h-full !gap-0 !py-0" data-testid="about-interests">
 	<AboutCardHeading text={heading} class="interests-heading" />
-	<div class="relative flex min-h-0 flex-1 flex-col">
-		{@render strips()}
-	</div>
-</Card>
-{:else}
-<div
-	class="group h-full"
-	use:cursorGlow
->
-<Card class="relative h-full !gap-0 !py-0" data-testid="about-interests">
-	<!-- Stop label: top-left, always -->
-	<div class="absolute top-3 left-4 z-20">
-		<StopLabel {stop} {label} as="h2" />
-	</div>
-
 	{@render strips()}
-
 </Card>
-</div>
-{/if}
 
 <style>
 	/* The unlayered global media rule outranks @layer utilities. */
@@ -186,7 +154,6 @@
 		color: var(--foreground);
 		text-shadow: 0 1px 4px color-mix(in srgb, var(--background) 80%, transparent);
 	}
-
 
 	/* Light theme: whitening equivalent of the dark treatment. */
 	:global([data-theme='light']) .strip-bg,
@@ -241,10 +208,20 @@
 		border: 1px solid var(--border); border-radius: var(--radius-sm);
 		background: var(--card); color: var(--foreground); font-size: 14px; line-height: 1.5;
 	}
-	/* About (D-M6): the heading above the strip, in the card's padding. */
-	:global(.interests-plain) :global(.interests-heading) {
-		padding: 0.75rem 0.75rem 0.625rem;
+
+	/* The heading sits on the first strip, in the card's top-left, above every photo and never
+	   clipped by them. A halo in the card ink keeps it legible over any photo, in both themes. */
+	:global(.interests-heading) {
+		position: absolute;
+		z-index: 20;
+		inset-block-start: 0.75rem;
+		inset-inline-start: 1rem;
+		max-inline-size: calc(100% - 2rem);
+		text-shadow:
+			0 1px 2px var(--background),
+			0 0 10px color-mix(in srgb, var(--background) 88%, transparent);
 	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.interest-strip, .interest-select, .strip-bg, .strip-overlay { transition: none; }
 	}

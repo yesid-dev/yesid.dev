@@ -1,25 +1,21 @@
+<!--
+  Languages (owner live QA, DEV-43): the card is its imagery again. The plain sentence-case heading
+  sits inside the top-left of the photo stack, where the old "STOP 0n · NAME" badge stood, so the
+  photos keep the card's whole height; no number, lamp or glow. The readable names, the flag
+  hover/tap and the shared About/Home behaviour stay as they are.
+-->
 <script lang="ts">
 	import type { AboutLanguage } from '#lib/types.ts';
 	import { asset } from '#lib/directus/assets.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
-	import { cursorGlow } from '@yesid/motion/actions';
-	import StopLabel from '#lib/components/brand/StopLabel.svelte';
 	import { Card } from '@yesid/ui/card';
 	import LanguageFlag, { isFlagId } from './LanguageFlag.svelte';
 	import AboutCardHeading from './AboutCardHeading.svelte';
 
 	const locale = getLocale();
 
-	// The home's About block passes `stop` and `label` and renders as it always has. About passes
-	// `heading` (D-M6): a plain heading above the flags, so nothing covers them, readable names
-	// and a static card without glow.
-	let {
-		languages,
-		stop = '',
-		label = '',
-		heading,
-	}: { languages: readonly AboutLanguage[]; stop?: string; label?: string; heading?: string } = $props();
+	let { languages, heading }: { languages: readonly AboutLanguage[]; heading: string } = $props();
 
 	let activeIndex = $state(-1);
 
@@ -70,25 +66,12 @@
 	</div>
 {/snippet}
 
-{#if heading !== undefined}
-	<Card class="languages-plain relative h-full !gap-0 overflow-hidden !py-0" data-testid="about-languages">
-		<AboutCardHeading text={heading} class="languages-heading" />
-		<div class="relative flex min-h-0 flex-1 flex-col">
-			{@render flags()}
-		</div>
-	</Card>
-{:else}
-<div class="group h-full" use:cursorGlow>
-	<Card class="relative h-full !gap-0 overflow-hidden !py-0" data-testid="about-languages">
-		<div class="language-stop-badge absolute top-3 left-4 z-20">
-			<StopLabel {stop} {label} as="h2" />
-		</div>
-		<div class="relative flex h-full flex-col">
-			{@render flags()}
-		</div>
-	</Card>
-</div>
-{/if}
+<Card class="languages-plain relative h-full !gap-0 overflow-hidden !py-0" data-testid="about-languages">
+	<AboutCardHeading text={heading} class="languages-heading" />
+	<div class="relative flex h-full flex-col">
+		{@render flags()}
+	</div>
+</Card>
 
 <style>
 	.language-strip {
@@ -104,15 +87,6 @@
 		.language-strip {
 			min-height: 18rem;
 		}
-	}
-
-	.language-stop-badge {
-		border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
-		border-radius: var(--radius-sm);
-		background: color-mix(in srgb, var(--background) 72%, transparent);
-		box-shadow: 0 8px 24px color-mix(in srgb, var(--background) 45%, transparent);
-		padding: 0.22rem 0.42rem;
-		backdrop-filter: blur(5px);
 	}
 
 	button.language-flag {
@@ -145,36 +119,35 @@
 		background: color-mix(in srgb, var(--background) 12%, transparent);
 	}
 
+	/* The readable name on a firmer chip at 13px in every card width and on both surfaces. */
 	.flag-label {
 		right: clamp(0.35rem, 1.8cqw, 0.7rem);
 		bottom: clamp(0.2rem, 1cqw, 0.45rem);
-		padding: 0.1rem 0.35rem;
+		padding: 0.1rem 0.4rem;
 		border: 1px solid color-mix(in srgb, var(--primary) 42%, transparent);
 		border-radius: var(--radius-sm);
-		background: color-mix(in srgb, var(--background) 62%, transparent);
-		backdrop-filter: blur(4px);
-		color: var(--foreground);
-		font-size: clamp(0.5rem, 2.65cqw, var(--text-caption));
-		letter-spacing: clamp(0.04em, 0.7cqw, 0.22em);
-		text-shadow: 0 1px 4px color-mix(in srgb, var(--background) 82%, transparent);
-		text-transform: uppercase;
-		white-space: nowrap;
-	}
-
-	/* About (D-M6): the heading sits above the flags, and each name stays readable at 13px on a
-	   firmer chip in every card width. */
-	:global(.languages-plain) :global(.languages-heading) {
-		padding: 0.75rem 0.75rem 0.625rem;
-	}
-
-	:global(.languages-plain) .flag-label {
-		padding: 0.1rem 0.4rem;
 		background: color-mix(in srgb, var(--background) 72%, transparent);
+		color: var(--foreground);
 		font-size: var(--text-caption);
 		letter-spacing: 0.12em;
 		line-height: 1.5;
 		backdrop-filter: none;
 		text-shadow: none;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	/* The heading sits on the imagery, in the card's top-left, above the flags and never clipped by
+	   them. A halo in the card ink keeps it legible over any flag, in both themes, with no plate. */
+	:global(.languages-heading) {
+		position: absolute;
+		z-index: 20;
+		inset-block-start: 0.75rem;
+		inset-inline-start: 1rem;
+		max-inline-size: calc(100% - 2rem);
+		text-shadow:
+			0 1px 2px var(--background),
+			0 0 10px color-mix(in srgb, var(--background) 88%, transparent);
 	}
 
 	:global([data-theme="light"]) .language-flag :global(.flag-image),

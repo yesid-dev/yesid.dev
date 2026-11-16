@@ -1,7 +1,9 @@
 <!--
-  Fun facts: four short sentences in reading ink, each figure in bold (D-M6: no metric styling
-  on jokes). Narrow cards keep the two-by-two corners with their faint cross; roomy cards set
-  the four facts in one row. A static card.
+  Fun facts (owner live QA, DEV-43): four short sentences in reading ink, each figure in bold
+  (D-M6: no metric styling on jokes), inside a square two-by-two quadrant panel on phones and
+  desktops alike. Each value and its words gather toward the panel's central intersection
+  (top-left to its bottom-right, top-right to its bottom-left, and mirrored below), with the gap
+  and the panel padding as breathing space. A static card.
 -->
 <script lang="ts">
 	import type { AboutMetric } from '#lib/types.ts';
@@ -19,11 +21,15 @@
 	<div class="metrics-shell relative flex h-full flex-col">
 		<AboutCardHeading text={heading} />
 
-		<ul class="metrics-grid">
-			{#each metrics as metric}
-				<li class="fact"><b class="fact-figure">{metric.value}</b> {resolveLocale(metric.label, locale)}</li>
-			{/each}
-		</ul>
+		<div class="facts-frame">
+			<div class="facts-square" data-testid="about-metrics-square">
+				<ul class="metrics-grid">
+					{#each metrics as metric}
+						<li class="fact"><b class="fact-figure">{metric.value}</b> {resolveLocale(metric.label, locale)}</li>
+					{/each}
+				</ul>
+			</div>
+		</div>
 	</div>
 </Card>
 
@@ -32,23 +38,47 @@
 		container: about-facts / inline-size;
 	}
 
+	/* The square panel sits centred in whatever its bento cell gives the card. It takes the card's
+	   full inner width and keeps a one-to-one ratio, so the panel itself is square on every width
+	   (the cell may be wider or shorter than it). */
+	.facts-frame {
+		display: flex;
+		flex: 1;
+		align-items: center;
+		justify-content: center;
+		min-block-size: 0;
+		margin-block-start: 0.75rem;
+	}
+
+	.facts-square {
+		inline-size: 100%;
+		max-inline-size: 100%;
+		aspect-ratio: 1;
+		border: 1px solid var(--border);
+		border-radius: var(--radius-sm);
+	}
+
 	.metrics-grid {
 		display: grid;
 		position: relative;
-		flex: 1;
+		block-size: 100%;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-		grid-template-rows: 1fr 1.5rem 1fr;
-		gap: 0.5rem 1rem;
-		margin: 0.75rem 0 0;
-		padding: 0;
+		grid-template-rows: repeat(2, minmax(0, 1fr));
+		gap: clamp(0.75rem, 6%, 1.75rem);
+		margin: 0;
+		padding: clamp(0.5rem, 3.5%, 1rem);
 		list-style: none;
-		text-align: left;
 	}
 
-	/* The corner rules, as today (decorative, outside the reading order). */
-	.metrics-grid::before {
+	/* The faint cross through the panel's centre, behind the words (decorative, outside reading order). */
+	.metrics-grid::before,
+	.metrics-grid::after {
 		content: '';
 		position: absolute;
+		pointer-events: none;
+	}
+
+	.metrics-grid::before {
 		inset-block: 0;
 		inset-inline-start: 50%;
 		width: 1px;
@@ -56,10 +86,8 @@
 	}
 
 	.metrics-grid::after {
-		content: '';
-		grid-column: 1 / -1;
-		grid-row: 2;
-		align-self: center;
+		inset-inline: 0;
+		inset-block-start: 50%;
 		height: 1px;
 		background: linear-gradient(90deg, transparent, var(--border), transparent);
 	}
@@ -74,34 +102,15 @@
 		hyphens: none;
 	}
 
-	.fact:nth-child(1) { grid-area: 1 / 1; align-self: end; }
-	.fact:nth-child(2) { grid-area: 1 / 2; align-self: end; }
-	.fact:nth-child(3) { grid-area: 3 / 1; align-self: start; }
-	.fact:nth-child(4) { grid-area: 3 / 2; align-self: start; }
+	/* Each cluster gathers to the corner nearest the intersection. */
+	.fact:nth-child(1) { align-self: end; text-align: end; }
+	.fact:nth-child(2) { align-self: end; text-align: start; }
+	.fact:nth-child(3) { align-self: start; text-align: end; }
+	.fact:nth-child(4) { align-self: start; text-align: start; }
 
 	.fact-figure {
 		font-weight: 700;
 		color: var(--foreground);
 		font-variant-numeric: tabular-nums;
-	}
-
-	/* Four facts in a row once the card has room; phones always keep the corners. */
-	@media (min-width: 640px) {
-		@container about-facts (min-width: 560px) {
-			.metrics-grid {
-				grid-template-columns: repeat(4, minmax(0, 1fr));
-				grid-template-rows: 1fr;
-			}
-
-			.fact:nth-child(n) {
-				grid-area: auto;
-				align-self: center;
-			}
-
-			.metrics-grid::before,
-			.metrics-grid::after {
-				display: none;
-			}
-		}
 	}
 </style>

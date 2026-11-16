@@ -222,7 +222,7 @@ describe('AboutPage', () => {
 		expect(container.querySelector('[data-slot="stop-label"]')).toBeNull();
 		expect(container.textContent).not.toMatch(/\b(STOP|ARRÊT|PARADA)\s*\d/);
 		const headings = [...container.querySelectorAll('h2')].map((el) => el.textContent?.trim());
-		expect(headings).toEqual(['Fun facts', 'Quote', 'Core beliefs', 'Education', 'Languages', 'Interests', 'Snapshots', 'Weather', 'Get in touch']);
+		expect(headings).toEqual(['Fun facts', 'Quotes', 'Core beliefs', 'Education', 'Languages', 'Interests', 'Snapshots', 'Weather', 'Get in touch']);
 		// No hazard tape: the only rule on the page is the dimension line under the terminal title bar.
 		const rules = [...container.querySelectorAll('[data-slot="separator"]')];
 		expect(rules).toHaveLength(1);

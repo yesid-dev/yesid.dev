@@ -80,18 +80,41 @@ test('weather card under reduced motion: still scene, no pause control', { tag: 
 });
 
 for (const locale of LOCALES)
-	test(`interests: heading above the photos, Transit first, one choice at a time (${locale})`, async ({ page }) => {
+	test(`interests: the heading sits on the photos, Transit first, one choice at a time (${locale})`, async ({ page }) => {
 		test.skip(test.info().project.name === 'tablet', 'Phone and desktop cover both layouts.');
 		await open(page, locale);
 		const card = page.getByTestId('about-interests');
 		await card.scrollIntoViewIfNeeded();
 		const heading = card.getByRole('heading', { level: 2 });
 		await expect(heading).toHaveText(sentenceCase(resolveLocale(aboutPageContent.stopLabels.interests, locale), locale));
+		await expect(card.locator('[data-slot="stop-label"]')).toHaveCount(0);
 		const strips = card.locator('button[aria-pressed]');
-		const headingBox = (await heading.boundingBox())!;
-		for (const box of await strips.evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()))) {
-			expect(box.top, 'the heading never covers a photo').toBeGreaterThanOrEqual(headingBox.y + headingBox.height - 1);
+		const geometry = await card.evaluate((node) => {
+			const box = node.getBoundingClientRect();
+			const heading = node.querySelector('h2')!.getBoundingClientRect();
+			const strip = node.querySelector('button[aria-pressed]')!.getBoundingClientRect();
+			const labels = [...node.querySelectorAll('.strip-label')].map((label) => label.getBoundingClientRect().toJSON());
+			return { box: box.toJSON(), heading: heading.toJSON(), strip: strip.toJSON(), labels };
+		});
+		// The photos fill the card: no padded band was taken from them for the heading.
+		expect(geometry.strip.top - geometry.box.top, 'the photo stack starts at the card edge').toBeLessThanOrEqual(3);
+		// The heading returns inside the imagery it belongs to, and stays inside the card.
+		expect(geometry.heading.top).toBeGreaterThanOrEqual(geometry.box.top);
+		expect(geometry.heading.left).toBeGreaterThanOrEqual(geometry.box.left);
+		expect(geometry.heading.right).toBeLessThanOrEqual(geometry.box.right);
+		expect(geometry.heading.bottom, 'the heading overlaps the photo area').toBeGreaterThan(geometry.strip.top);
+		expect(geometry.heading.bottom, 'the heading stays in the card').toBeLessThanOrEqual(geometry.box.bottom);
+		// No photo label ever cuts the heading, and the heading is painted above the strips.
+		for (const label of geometry.labels) {
+			const overlaps = geometry.heading.left < label.right && geometry.heading.right > label.left && geometry.heading.top < label.bottom && geometry.heading.bottom > label.top;
+			expect(overlaps, 'a photo label never sits on the heading').toBe(false);
 		}
+		const paintedOnTop = await heading.evaluate((node) => {
+			const box = node.getBoundingClientRect();
+			const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+			return hit === node || node.contains(hit);
+		});
+		expect(paintedOnTop, 'the heading paints above the photos').toBe(true);
 		const ids = aboutPageContent.interests.map((interest) => interest.id);
 		await expect(strips.nth(ids.indexOf('transit'))).toHaveAttribute('aria-pressed', 'true');
 		await expect(card.getByRole('button', { pressed: true })).toHaveCount(1);
@@ -106,13 +129,38 @@ for (const locale of LOCALES)
 	});
 
 for (const locale of LOCALES)
-	test(`languages: heading above the flags, readable names (${locale})`, async ({ page }) => {
+	test(`languages: the heading sits on the flags, readable names (${locale})`, async ({ page }) => {
 		await open(page, locale);
 		const card = page.getByTestId('about-languages');
-		const heading = (await card.getByRole('heading', { level: 2 }).boundingBox())!;
+		await card.scrollIntoViewIfNeeded();
+		await expect(card.locator('[data-slot="stop-label"]')).toHaveCount(0);
+		const heading = card.getByRole('heading', { level: 2 });
+		await expect(heading).toHaveText(sentenceCase(resolveLocale(aboutPageContent.stopLabels.clients, locale), locale));
 		const flags = card.getByTestId('about-language-flag');
-		const first = (await flags.first().boundingBox())!;
-		expect(first.y).toBeGreaterThanOrEqual(heading.y + heading.height - 1);
+		const geometry = await card.evaluate((node) => {
+			const box = node.getBoundingClientRect();
+			const heading = node.querySelector('h2')!.getBoundingClientRect();
+			const flag = node.querySelector('[data-testid="about-language-flag"]')!.getBoundingClientRect();
+			const labels = [...node.querySelectorAll('.flag-label')].map((label) => label.getBoundingClientRect().toJSON());
+			return { box: box.toJSON(), heading: heading.toJSON(), flag: flag.toJSON(), labels };
+		});
+		// The flags fill the card again; the heading sits over the first one, inside the card.
+		expect(geometry.flag.top - geometry.box.top, 'the flags start at the card edge').toBeLessThanOrEqual(3);
+		expect(geometry.heading.top).toBeGreaterThanOrEqual(geometry.box.top);
+		expect(geometry.heading.left).toBeGreaterThanOrEqual(geometry.box.left);
+		expect(geometry.heading.right).toBeLessThanOrEqual(geometry.box.right);
+		expect(geometry.heading.bottom, 'the heading overlaps the flag area').toBeGreaterThan(geometry.flag.top);
+		expect(geometry.heading.bottom, 'the heading stays in the card').toBeLessThanOrEqual(geometry.box.bottom);
+		for (const label of geometry.labels) {
+			const overlaps = geometry.heading.left < label.right && geometry.heading.right > label.left && geometry.heading.top < label.bottom && geometry.heading.bottom > label.top;
+			expect(overlaps, 'a flag name never sits on the heading').toBe(false);
+		}
+		const paintedOnTop = await heading.evaluate((node) => {
+			const box = node.getBoundingClientRect();
+			const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+			return hit === node || node.contains(hit);
+		});
+		expect(paintedOnTop, 'the heading paints above the flags').toBe(true);
 		for (const size of await card.locator('.flag-label').evaluateAll((nodes) => nodes.map((node) => parseFloat(getComputedStyle(node).fontSize)))) {
 			expect(size, 'flag names stay at 13px').toBeGreaterThanOrEqual(13);
 		}

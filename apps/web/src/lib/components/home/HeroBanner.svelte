@@ -703,6 +703,10 @@
 		.hero-grid {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 			gap: clamp(2.5rem, 4vw, 5rem);
+			/* Owner live QA (DEV-43): the heading, lead and both actions read as one left-aligned
+			   block centred beside the Transit card. `safe` keeps the top of that block under the
+			   header pill when 200% text or a short window makes it taller than the opening. */
+			align-items: safe center;
 		}
 	}
 </style>

@@ -6,6 +6,7 @@
 	import AboutEducation from '#lib/components/about/AboutEducation.svelte';
 	import AboutWeather from '#lib/components/about/AboutWeather.svelte';
 	import AboutInterests from '#lib/components/about/AboutInterests.svelte';
+	import { aboutLabels } from '#lib/components/about/about-copy.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
@@ -19,32 +20,17 @@
 	const bio = $derived(resolveLocale(about.bio, locale));
 	const moreLink = $derived(resolveLocale(about.moreLink, locale));
 
-	// The badges read the same generated About content as /about itself, so
-	// a CMS edit lands in both places from one publish. Weather self-refreshes
-	// from /api/weather after hydration (the widget's own behavior).
+	// The cards read the same generated About content as /about itself, so a CMS edit lands in both
+	// places from one publish. They pass the same headings About computes (owner live QA, DEV-43),
+	// so both surfaces render the identical shared cards: no STOP numbers, no lamp, no glow. Weather
+	// self-refreshes from /api/weather after hydration (the widget's own behavior).
 	const c = aboutPageContent;
-	const badges = $derived([
-		{
-			area: 'languages',
-			stop: '01',
-			label: resolveLocale(c.stopLabels.clients, locale),
-		},
-		{
-			area: 'education',
-			stop: '02',
-			label: resolveLocale(c.stopLabels.stack, locale),
-		},
-		{
-			area: 'weather',
-			stop: '03',
-			label: resolveLocale(c.stopLabels.location, locale),
-		},
-		{
-			area: 'interests',
-			stop: '04',
-			label: resolveLocale(c.stopLabels.interests, locale),
-		},
-	]);
+	const headings = $derived({
+		languages: resolveLocale(c.stopLabels.clients, locale),
+		education: resolveLocale(c.stopLabels.stack, locale),
+		weather: resolveLocale(aboutLabels.weatherHeading, locale),
+		interests: resolveLocale(c.stopLabels.interests, locale),
+	});
 </script>
 
 <div class="about-teaser reading-detail" data-testid="home-about-teaser">
@@ -61,19 +47,18 @@
 	     seams, so the cards render at their true About size. -->
 	<div class="teaser-badges-bleed">
 		<div class="teaser-badges" data-testid="home-about-badges">
-			{#each badges as badge (badge.area)}
-				<div class="badge-cell badge-cell--{badge.area}">
-					{#if badge.area === 'languages'}
-						<AboutLanguages languages={c.languages} stop={badge.stop} label={badge.label} />
-					{:else if badge.area === 'education'}
-						<AboutEducation education={c.education} stop={badge.stop} label={badge.label} />
-					{:else if badge.area === 'weather'}
-						<AboutWeather config={c.weather} weather={null} stop={badge.stop} label={badge.label} />
-					{:else}
-						<AboutInterests interests={c.interests} stop={badge.stop} label={badge.label} />
-					{/if}
-				</div>
-			{/each}
+			<div class="badge-cell badge-cell--languages">
+				<AboutLanguages languages={c.languages} heading={headings.languages} />
+			</div>
+			<div class="badge-cell badge-cell--education">
+				<AboutEducation education={c.education} heading={headings.education} />
+			</div>
+			<div class="badge-cell badge-cell--weather">
+				<AboutWeather config={c.weather} weather={null} heading={headings.weather} />
+			</div>
+			<div class="badge-cell badge-cell--interests">
+				<AboutInterests interests={c.interests} heading={headings.interests} />
+			</div>
 		</div>
 	</div>
 </div>
