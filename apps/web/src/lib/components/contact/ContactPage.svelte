@@ -259,6 +259,7 @@
 				titleId="contact-title"
 				side="left"
 				size="9rem"
+				horizontalSize="2rem"
 				style="--rail-title-rail: clamp(4.5rem, 12vw, 10.5rem)"
 			>
 				<div class="contact-content">
