@@ -15,7 +15,11 @@ const completeExportData = {
 	blogBodies: {},
 	services: [],
 	projects: [],
-	siteLabels: {},
+	siteLabels: { ui: {
+		errorSuggestionsLabel: { en: 'Suggestions' },
+		errorStatusNote: { en: 'Status' },
+		errorSignLabel: { en: 'Error' },
+	} },
 	blogPage: {},
 	projectsPage: {},
 	contactPage: {},

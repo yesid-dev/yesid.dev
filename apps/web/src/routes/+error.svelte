@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { errorPageContent as staticErrorPageContent, siteLabels } from '#lib/content/index.ts';
+	import { errorPageContent as staticErrorPageContent } from '#lib/content/nav.ts';
+	import { siteErrorLabels } from '#lib/content/site-navigation-labels.ts';
 	import type { ErrorPageContent } from '#lib/navigation/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { pathLocale, localizeHref } from '#lib/utils/locale-routing.ts';
@@ -24,8 +25,8 @@
 		label: resolveLocale(suggestion.label, locale),
 		href: localizeHref(suggestion.href, locale),
 	}))}
-	suggestionsLabel={resolveLocale(siteLabels.ui.errorSuggestionsLabel, locale)}
-	statusNote={resolveLocale(siteLabels.ui.errorStatusNote, locale) ||
+	suggestionsLabel={resolveLocale(siteErrorLabels.errorSuggestionsLabel, locale)}
+	statusNote={resolveLocale(siteErrorLabels.errorStatusNote, locale) ||
 		'// requested path not in service'}
-	signLabel={resolveLocale(siteLabels.ui.errorSignLabel, locale)}
+	signLabel={resolveLocale(siteErrorLabels.errorSignLabel, locale)}
 />

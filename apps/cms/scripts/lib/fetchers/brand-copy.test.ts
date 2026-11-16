@@ -288,6 +288,29 @@ describe('row-scoped project copy', () => {
 		sections,
 	});
 
+	for (const locale of ['fr', 'es'] as const) {
+		for (const [slug, sectionId] of [['transit-data-pipeline', 280], ['cafe-arona', 240]] as const) {
+			it(`keeps disabled ${locale} on ${slug} falling back to English for migrated copy`, () => {
+				const row = project(slug, 'Editor card line', [{
+					id: sectionId, sort: 1,
+					translations: [
+						{ languages_code: 'en', title: 'For developers', content: DOC, summary: 'Editor summary' },
+						{ languages_code: locale, title: 'Hidden title', content: DOC, summary: 'Hidden summary' },
+					],
+				}]);
+				row.translations!.push({ languages_code: locale, show_on_site: false, card_line: 'Hidden card' });
+				const out = toProject(row);
+				expect(out.cardLine).not.toHaveProperty(locale);
+				expect(out.cardLine?.en).toBe('Editor card line');
+				expect(out.sections[0]?.summary).not.toHaveProperty(locale);
+				expect(out.sections[0]?.summary?.en).toBe('Editor summary');
+				const otherLocale = locale === 'fr' ? 'es' : 'fr';
+				expect(out.sections[0]?.summary?.[otherLocale]?.trim()).toBeTruthy();
+				if (slug === 'transit-data-pipeline') expect(out.cardLine?.[otherLocale]?.trim()).toBeTruthy();
+			});
+		}
+	}
+
 	it('gives card_line to Transit only and keeps other projects untouched', () => {
 		const transit = toProject(project('transit-data-pipeline'));
 		expect(transit.cardLine).toEqual({

@@ -1,4 +1,4 @@
-import { siteMeta } from '#lib/content/index.ts';
+import { siteMeta } from '#lib/content/site-meta.ts';
 import { pathLocale } from '#lib/utils/locale-routing.ts';
 import type { AnalyticsEventName, AnalyticsEventProps } from './preset';
 import { trackAnalyticsEvent } from './client';

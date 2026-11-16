@@ -68,9 +68,9 @@ Content moves through one interface:
 Directus or shared fixture -> export-fallbacks.ts -> 23 ignored typed modules -> SvelteKit
 ```
 
-Navigation and footer labels have a separate generated module, so the persistent
-layout does not load page-only copy. The complete `siteLabels` export composes
-both groups for existing page consumers without duplicating their values.
+Navigation, footer and error recovery labels have a separate generated module,
+so the persistent shell does not load page-only copy. The complete `siteLabels`
+export composes the page and navigation groups for existing page consumers.
 
 Web dev, test, check and build generate ignored content modules from the shared
 fixture by default, without credentials or network. Only Vercel production uses

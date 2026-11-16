@@ -493,9 +493,16 @@ export const EXPORT_MODULES = [
 				},
 				{
 					fileName: 'site-navigation-labels.ts',
-					description: 'Shared navigation and footer microcopy for the persistent layout.',
+					description: 'Shared navigation, footer and error recovery microcopy for the persistent shell.',
 					imports: [typeImport('#lib/types.ts', 'SiteLabels')],
-					exports: [declaration('siteNavigationLabels', "Pick<SiteLabels, 'navChrome' | 'footerChrome'>", { navChrome, footerChrome })],
+					exports: [
+						declaration('siteNavigationLabels', "Pick<SiteLabels, 'navChrome' | 'footerChrome'>", { navChrome, footerChrome }),
+						declaration('siteErrorLabels', "Pick<SiteLabels['ui'], 'errorSuggestionsLabel' | 'errorStatusNote' | 'errorSignLabel'>", {
+							errorSuggestionsLabel: data.siteLabels.ui.errorSuggestionsLabel,
+							errorStatusNote: data.siteLabels.ui.errorStatusNote,
+							errorSignLabel: data.siteLabels.ui.errorSignLabel,
+						}),
+					],
 				},
 				{
 					fileName: 'site-labels.ts',
