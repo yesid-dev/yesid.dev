@@ -43,7 +43,7 @@ test.describe('small-device fit', () => {
 		const headTop = (await line1.boundingBox())!.y;
 		expect(headTop, 'headline top vs hero box top').toBeGreaterThanOrEqual(boxTop - 2);
 		expect(headTop, 'headline clears the floating nav').toBeGreaterThanOrEqual(await pillBottom(page));
-		for (const id of ['hero-cta-projects', 'hero-cta-contact']) {
+		for (const id of ['hero-cta-project', 'hero-cta-contact']) {
 			await page.getByTestId(id).scrollIntoViewIfNeeded();
 			await expect(page.getByTestId(id)).toBeInViewport();
 		}

@@ -18,6 +18,7 @@
 			initialHeroData={data.initialHeroData}
 			services={data.services}
 			featuredProjects={data.featuredProjects}
+			featuredFacts={data.featuredFacts}
 			serviceSvgContents={data.serviceSvgContents}
 			siteMeta={data.siteMeta}
 			bookingHref={data.bookingHref}

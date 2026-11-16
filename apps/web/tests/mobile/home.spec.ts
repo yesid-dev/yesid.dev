@@ -11,9 +11,9 @@ test('home page loads + primary CTA is tappable', async ({ page }) => {
 	// info-terminal's one-shot /api/weather fetch + clock interval never settle).
 	await expect(page.locator('[data-testid="hero-banner"]')).toBeVisible();
 
-	// Primary CTA: data-testid added in Task 22 (hero-cta-projects → /projects)
+	// Primary CTA (D-M1): "Tell me about your project", to Contact.
 	const primaryCta = page
-		.locator('[data-testid="hero-cta-projects"]')
+		.locator('[data-testid="hero-cta-project"]')
 		.or(page.locator('[data-testid="hero-cta-contact"]'))
 		.first();
 	await expect(primaryCta).toBeVisible();

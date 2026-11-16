@@ -3,6 +3,8 @@ import { catalog } from '#lib/catalog/index.ts';
 import { bookingHref } from '#lib/utils/high-intent-links.ts';
 import { fetchServiceSvgContents } from '#lib/utils/service-svg.ts';
 import { localeEntries } from '#lib/server/prerender-entries.ts';
+import { keyGlanceFacts } from '#lib/utils/glance-facts.ts';
+import { HOME_CARD_KEY_FACTS } from '#lib/components/home/home-labels.ts';
 
 export const entries = localeEntries;
 
@@ -42,7 +44,16 @@ export async function load({ fetch, params = {} }: { fetch: typeof globalThis.fe
 		fetchServiceSvgContents(fetch, services),
 	]);
 
+	// The home cards show three key "At a glance" facts; the summaries omit the case study body.
+	const featuredFacts = Object.fromEntries(
+		featuredProjects.map((project) => {
+			const description = catalog.projects.bySlug(project.slug)?.description;
+			return [project.slug, description ? keyGlanceFacts(description, locale, HOME_CARD_KEY_FACTS[project.slug]) : []];
+		}),
+	);
+
 	return {
+		featuredFacts,
 		metroSvg,
 		hero,
 		heroAnim,

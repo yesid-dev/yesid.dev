@@ -34,7 +34,8 @@ async function expectBand(page: Page, prefix: string) {
 
 	await expect(art).toHaveAttribute('aria-hidden', 'true');
 	await expect(art.locator('a, button, input, select, textarea, [tabindex]')).toHaveCount(0);
-	for (const suffix of ['contact', 'github']) {
+	// The home's band offers its pair (D-M1): the project conversation and booking a call.
+	for (const suffix of ['contact', prefix === 'home-cta-band' ? 'booking' : 'github']) {
 		const action = page.getByTestId(`${prefix}-${suffix}`);
 		await expect(action).toBeVisible();
 		const target = (await action.boundingBox())!;

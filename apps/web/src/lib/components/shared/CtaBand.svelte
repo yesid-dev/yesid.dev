@@ -1,6 +1,8 @@
 <!-- Shared conversion band with localized content and per-surface test IDs. -->
 <script lang="ts">
-	import { ctaContent, siteMeta } from '#lib/content/index.ts';
+	import { ctaContent, heroContent, siteMeta } from '#lib/content/index.ts';
+	import { homeLabels } from '#lib/components/home/home-labels.ts';
+	import { trackLinkActivation } from '#lib/analytics/site-events.ts';
 	import { Button } from '@yesid/ui/button';
 	import { Separator } from '@yesid/ui/separator';
 	import { resolveLocale } from '#lib/utils/locale.ts';
@@ -10,18 +12,33 @@
 
 	const locale = getLocale();
 
-	let { testidPrefix = 'cta-band' }: { testidPrefix?: string } = $props();
+	let {
+		testidPrefix = 'cta-band',
+		leadingRule = true,
+		bookingHref,
+	}: {
+		testidPrefix?: string;
+		/** False inside the kit's PageSections, which draws the boundary itself (D22). */
+		leadingRule?: boolean;
+		/**
+		 * With a booking link the band offers the home's pair (D-M1): "Tell me about your project"
+		 * (the one yellow button) and "Book a call" (outlined), instead of Contact and GitHub.
+		 */
+		bookingHref?: string;
+	} = $props();
 
 	// The CMS heading carries a deliberate \n line break.
 	const headingLines = $derived(resolveLocale(ctaContent.heading, locale).split('\n'));
 	const subtitle = $derived(resolveLocale(ctaContent.subtitle, locale));
 	const contactLabel = $derived(resolveLocale(ctaContent.ctaContact, locale));
 	const githubLabel = $derived(resolveLocale(ctaContent.ctaGithub, locale));
+	const projectLabel = $derived(resolveLocale(homeLabels.hero.ctaProject, locale));
+	const bookingLabel = $derived(resolveLocale(heroContent.ctaContact, locale));
+	const newTabLabel = $derived(resolveLocale(homeLabels.hero.newTab, locale));
 </script>
 
-<!-- Its own top edge until the page adopts PageSections; inside a registered PageSection the
-     kit hides it (data-edge-rule) and the section boundary draws the divider (D22). -->
-<Separator variant="hazard" data-edge-rule />
+<!-- Registered sections suppress this edge rule; legacy callers retain their own divider. -->
+{#if leadingRule}<Separator variant="hazard" data-edge-rule />{/if}
 <section class="cta-band-shell" data-testid={testidPrefix}>
 	<CtaBlueprintBackground />
 	<div class="cta-band">
@@ -32,24 +49,43 @@
 		</h2>
 		<p class="band-subtitle">{subtitle}</p>
 		<div class="band-actions">
-			<Button
-				variant="conversion"
-				size="cta-lg"
-				href={localizeHref('/contact', locale)}
-				data-testid="{testidPrefix}-contact"
-			>
-				{contactLabel}
-			</Button>
-			<Button
-				variant="default"
-				size="cta-lg"
-				href={siteMeta.links.github}
-				target="_blank"
-				rel="noopener"
-				data-testid="{testidPrefix}-github"
-			>
-				{githubLabel}
-			</Button>
+			{#if bookingHref}
+				<Button variant="conversion" size="cta-lg" href={localizeHref('/contact', locale)} data-testid="{testidPrefix}-contact">
+					{projectLabel}
+				</Button>
+				<Button
+					variant="outline"
+					size="cta-lg"
+					href={bookingHref}
+					target="_blank"
+					rel="noopener"
+					aria-label="{bookingLabel}{newTabLabel}"
+					data-testid="{testidPrefix}-booking"
+					onclick={(event) => trackLinkActivation(event, 'booking_click')}
+					onauxclick={(event) => trackLinkActivation(event, 'booking_click')}
+				>
+					{bookingLabel}
+				</Button>
+			{:else}
+				<Button
+					variant="conversion"
+					size="cta-lg"
+					href={localizeHref('/contact', locale)}
+					data-testid="{testidPrefix}-contact"
+				>
+					{contactLabel}
+				</Button>
+				<Button
+					variant="default"
+					size="cta-lg"
+					href={siteMeta.links.github}
+					target="_blank"
+					rel="noopener"
+					data-testid="{testidPrefix}-github"
+				>
+					{githubLabel}
+				</Button>
+			{/if}
 		</div>
 	</div>
 </section>

@@ -3,7 +3,7 @@ import { HeroDataSchema } from './hero-data';
 import { INITIAL_HERO_DATA } from '#lib/live/index.ts';
 
 // Regression guard: the dashboard card LABEL/SUB copy is CMS truth now
-// (siteLabels.heroDashboard, resolved in HeroMetrics by metric key). The metric
+// (siteLabels.heroDashboard; the home Transit card reads total for "of {total}"). The metric
 // only carries code-owned dynamic data, including the numbers the CMS
 // sub-templates interpolate: {coverage} (delay card) and {total} (routes card).
 // The static adapter validates the SSR heroData through HeroDataSchema

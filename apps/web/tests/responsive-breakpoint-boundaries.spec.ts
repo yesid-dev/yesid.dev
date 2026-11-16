@@ -16,12 +16,12 @@ async function settleLayout(page: Page) {
 async function responsiveState(page: Page) {
 	return page.evaluate(() => {
 		const nav = document.querySelector<HTMLElement>('[data-testid="nav-pill"]')!;
-		const rotatedTitle = document.querySelector<HTMLElement>('.rotated-title')!;
-		const section = document.querySelector<HTMLElement>('.home-section--left')!;
+		const railTitle = document.querySelector<HTMLElement>('[data-slot="rail-title"] h2')!;
+		const layout = document.querySelector<HTMLElement>('[data-slot="rail-title-layout"]')!;
 		return {
 			navPaddingInline: getComputedStyle(nav).paddingInline,
-			rotatedTitleDisplay: getComputedStyle(rotatedTitle).display,
-			gridTracks: getComputedStyle(section).gridTemplateColumns.split(' ').length,
+			railTitleWriting: getComputedStyle(railTitle).writingMode,
+			gridTracks: getComputedStyle(layout).display === 'grid' ? getComputedStyle(layout).gridTemplateColumns.split(' ').length : 1,
 		};
 	});
 }
@@ -31,7 +31,7 @@ async function expectWholeProjectCards(page: Page, width: number) {
 	let stableSince = 0;
 	await expect.poll(async () => {
 		const cards = await page.getByTestId('proof-reel-section').evaluate(section => {
-			const frame = section.querySelector('.embla')!.getBoundingClientRect();
+			const frame = section.querySelector('[data-testid="proof-track"]')!.getBoundingClientRect();
 			return Array.from(section.querySelectorAll('[data-testid="proof-card"]'), card => {
 				const box = card.getBoundingClientRect();
 				const visible = Math.max(0, Math.min(frame.right, box.right) - Math.max(frame.left, box.left));
@@ -51,21 +51,16 @@ async function expectWholeProjectCards(page: Page, width: number) {
 async function heroBoundaryState(page: Page) {
 	return page.evaluate(() => {
 		const heroGrid = document.querySelector<HTMLElement>('.hero-grid')!;
-		const tabletMetrics = heroGrid.querySelector<HTMLElement>(
-			'[data-testid="hero-metrics-desktop"]',
-		)!;
 		const metricCards = Array.from(
-			tabletMetrics.querySelectorAll<HTMLElement>('[data-testid="metric-card"]'),
+			heroGrid.querySelectorAll<HTMLElement>('[data-testid="hero-transit-figure"]'),
 		);
 		const noSplitText = [
 			...Array.from(
 				heroGrid.querySelectorAll<HTMLElement>(
-					'[data-testid="hero-line1"], [data-testid="hero-line2"], [data-testid="hero-subheadline"], [data-testid="hero-subtitle"]',
+					'[data-testid="hero-line1"], [data-testid="hero-subtitle"]',
 				),
 			),
-			...Array.from(
-				tabletMetrics.querySelectorAll<HTMLElement>('.metric-label-text, [data-slot="metric-display"] > .metric-value, [data-slot="metric-display"] > span:last-child'),
-			),
+			...Array.from(heroGrid.querySelectorAll<HTMLElement>('[data-testid="hero-transit-figure"] dd')),
 		];
 		const elements = [
 			{ name: '.hero-grid', element: heroGrid, includeTextOverflow: false },
@@ -75,8 +70,8 @@ async function heroBoundaryState(page: Page) {
 				includeTextOverflow: false,
 			})),
 			{
-				name: '[data-testid="sql-panel"]',
-				element: document.querySelector<HTMLElement>('[data-testid="hero-mobile-sql"] [data-testid="sql-panel"]')!,
+				name: '[data-testid="hero-transit-card"]',
+				element: document.querySelector<HTMLElement>('[data-testid="hero-transit-card"]')!,
 				includeTextOverflow: false,
 			},
 			...noSplitText.map((element, index) => ({
@@ -143,7 +138,6 @@ async function d1bBoundaryState(page: Page) {
 			);
 
 		return {
-			metricFontSize: fontSize('.metric-value.text-title'),
 			beckDisplay: getComputedStyle(beckLine).display,
 			beckWidth: beckRect.width,
 			beckHeight: beckRect.height,
@@ -169,7 +163,6 @@ test('canonical aliases preserve the 767/768 and 1023/1024 layout boundaries', a
 	expect(at767.navPaddingInline).toBe('16px');
 	await expectWholeProjectCards(page, 767);
 	const d1bAt767 = await d1bBoundaryState(page);
-	expect(d1bAt767.metricFontSize).toBeLessThan(26);
 	expect(d1bAt767.beckDisplay).toBe('none');
 	expect(d1bAt767.roundelFontSize).toBe(7);
 	expect(d1bAt767.badgeFontSize).toBe(6);
@@ -188,7 +181,6 @@ test('canonical aliases preserve the 767/768 and 1023/1024 layout boundaries', a
 	}
 	expectTabletHeroColumnFit(heroAt768, 768);
 	const d1bAt768 = await d1bBoundaryState(page);
-	expect(d1bAt768.metricFontSize).toBeGreaterThan(26);
 	expect(d1bAt768.beckDisplay).not.toBe('none');
 	expect(d1bAt768.beckWidth).toBeGreaterThan(0);
 	expect(d1bAt768.beckHeight).toBeGreaterThan(0);
@@ -199,7 +191,7 @@ test('canonical aliases preserve the 767/768 and 1023/1024 layout boundaries', a
 	await settleLayout(page);
 	const at1023 = await responsiveState(page);
 	await expectWholeProjectCards(page, 1023);
-	expect(at1023.rotatedTitleDisplay).toBe('none');
+	expect(at1023.railTitleWriting).toBe('horizontal-tb');
 	expect(at1023.gridTracks).toBe(1);
 	const heroAt1023 = await heroBoundaryState(page);
 	for (const rect of heroAt1023.rects) {
@@ -214,14 +206,14 @@ test('canonical aliases preserve the 767/768 and 1023/1024 layout boundaries', a
 	await settleLayout(page);
 	const at1024 = await responsiveState(page);
 	await expectWholeProjectCards(page, 1024);
-	expect(at1024.rotatedTitleDisplay).toBe('flex');
-	expect(at1024.gridTracks).toBe(2);
+	expect(at1024.railTitleWriting).toBe('vertical-rl');
+	expect(at1024.gridTracks).toBe(3);
 
 	for (const width of [767, 768]) {
 		await page.setViewportSize({ width, height: 660 });
 		await settleLayout(page);
 		expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-		for (const id of ['hero-cta-projects', 'hero-cta-contact']) {
+		for (const id of ['hero-cta-project', 'hero-cta-contact']) {
 			await page.getByTestId(id).scrollIntoViewIfNeeded();
 			await expect(page.getByTestId(id)).toBeInViewport();
 		}

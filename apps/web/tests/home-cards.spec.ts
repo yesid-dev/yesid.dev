@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { expectCardContentInside, expectCardRowsForLayout, hasMultipleCardColumns } from './lib/project-card-geometry.js';
+import { HOME_CARD_ROWS, LISTING_CARD_ROWS, expectCardContentInside, expectCardRowsForLayout, hasMultipleCardColumns } from './lib/project-card-geometry.js';
 
 test.beforeEach(async ({ page }) => {
 	await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -12,13 +12,14 @@ for (const locale of ['en', 'fr', 'es']) {
 			const prefix = locale === 'en' ? '' : `/${locale}`;
 			await page.goto(`${prefix}${placement === 'proof' ? '/' : '/projects'}`, { waitUntil: 'domcontentloaded' });
 			const cards = page.getByTestId(placement === 'proof' ? 'proof-card' : 'project-card');
+			const rows = placement === 'proof' ? HOME_CARD_ROWS : LISTING_CARD_ROWS;
 			await expect(cards.first()).toBeVisible();
 			await cards.first().scrollIntoViewIfNeeded();
 			await page.evaluate(() => document.fonts.ready);
-			await expectCardRowsForLayout(cards);
+			await expectCardRowsForLayout(cards, rows);
 			const original = page.viewportSize()!;
 			await page.setViewportSize({ width: original.width < 768 ? 1280 : 390, height: original.height });
-			await expectCardRowsForLayout(cards);
+			await expectCardRowsForLayout(cards, rows);
 			if (placement === 'listing') {
 				// Removing and restoring cards must trigger alignment with the new tallest row.
 				await page.setViewportSize({ width: 1280, height: original.height });
@@ -26,15 +27,15 @@ for (const locale of ['en', 'fr', 'es']) {
 				await search.fill((await cards.first().getByRole('heading').innerText()).trim());
 				await expect(cards).toHaveCount(1);
 				await page.setViewportSize({ width: 390, height: original.height });
-				await expectCardRowsForLayout(cards);
+				await expectCardRowsForLayout(cards, rows);
 				await page.setViewportSize({ width: 1280, height: original.height });
 				await search.fill('');
-				await expectCardRowsForLayout(cards);
+				await expectCardRowsForLayout(cards, rows);
 				await page.setViewportSize({ width: 390, height: original.height });
-				await expectCardRowsForLayout(cards);
+				await expectCardRowsForLayout(cards, rows);
 			}
 			await page.setViewportSize(original);
-			await expectCardRowsForLayout(cards);
+			await expectCardRowsForLayout(cards, rows);
 		});
 	}
 }
@@ -48,12 +49,17 @@ test('home project cards size to their columns and show title, excerpt and links
 	const cards = section.getByTestId('proof-card');
 	expect(await cards.count()).toBeGreaterThan(0);
 	await expect(section.locator('[data-testid$="metric-item"]')).toHaveCount(0);
-	await expect(cards.first().getByTestId('project-card-service').first()).toBeVisible();
+	// The lighter card (owner, 15 November): no service chips, at most three facts.
+	await expect(section.getByTestId('project-card-service')).toHaveCount(0);
 	await expect(section.locator('[data-testid="proof-card-links"] li').first()).toBeVisible();
 	for (const card of await cards.all()) {
-		const link = card.getByRole('link', { name: (await card.getByRole('heading').innerText()).trim(), exact: true });
+		await expect(card).toHaveAttribute('data-interactive', 'true');
+		expect(await card.locator('[data-testid="proof-card-facts"] > div').count()).toBeLessThanOrEqual(3);
+		const link = card.getByTestId('home-project-case-study');
 		await expect(link).toHaveAttribute('href', /^\/(?:fr\/|es\/)?projects\/[^/?#]+\/?$/);
-		await expect(link).toHaveAccessibleName((await card.getByTestId('proof-card-title').textContent())!.trim());
+		// Named with its project ("Café Arona case study", "Étude de cas de Café Arona").
+		const title = (await card.getByTestId('proof-card-title').textContent())!.trim();
+		expect(await link.evaluate(el => el.getAttribute('aria-label'))).toContain(title);
 		await expect(card.getByTestId('proof-card-title')).toHaveText(/\S/);
 		await expect(card.getByTestId('proof-card-title')).toBeVisible();
 		await expect(card.getByTestId('proof-excerpt')).toHaveText(/\S/);
@@ -69,7 +75,7 @@ test('home project cards size to their columns and show title, excerpt and links
 		expect(new Set(sizes), 'side-by-side home cards share one size and media split').toEqual(new Set([sizes[0]]));
 	} else {
 		expect(new Set(sizes.map(size => size.split('x')[0])).size, 'single-card slides share the viewport width').toBe(1);
-		await expectCardRowsForLayout(cards);
+		await expectCardRowsForLayout(cards, HOME_CARD_ROWS);
 	}
 	const viewAll = section.getByTestId('proof-view-all');
 	await expect(viewAll).toHaveAttribute('href', /^\/(?:fr\/|es\/)?projects\/?$/);
@@ -87,10 +93,10 @@ test('project reel controls expose state and visible keyboard focus', async ({ p
 		await expect(control).toHaveAccessibleName(/\S/);
 		expect(await control.evaluate(element => element.tagName)).toBe('BUTTON');
 	}
-	const counter = section.getByTestId('proof-count');
+	const counter = section.getByTestId('proof-position');
 	await expect(counter).toHaveText(/\d/);
-	await expect(counter).toHaveAttribute('aria-live', 'polite');
-	const hasOffscreenCards = await section.locator('.embla').evaluate(viewport => {
+	await expect(section.getByTestId('proof-announcement')).toHaveAttribute('aria-live', 'polite');
+	const hasOffscreenCards = await section.getByTestId('proof-track').evaluate(viewport => {
 		const bounds = viewport.getBoundingClientRect();
 		return Array.from(viewport.querySelectorAll('[data-testid="proof-card"]')).some(card => {
 			const box = card.getBoundingClientRect();

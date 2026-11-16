@@ -20,7 +20,7 @@ for (const locale of ['en', 'fr', 'es']) {
 			await page.setViewportSize(viewport);
 			await page.emulateMedia({ reducedMotion: 'no-preference' });
 			await page.goto(locale === 'en' ? '/' : `/${locale}`);
-			await expect(page.locator('.home-section').first()).toHaveAttribute('style', /--rotated-title-size:/);
+			await expect(page.locator('[data-slot="rail-title"]').first()).toBeAttached();
 			await page.evaluate(() => document.fonts.ready);
 			const section = page.getByTestId('closer-section');
 			const board = page.getByTestId('closer-board');
@@ -35,25 +35,21 @@ for (const locale of ['en', 'fr', 'es']) {
 				await mkdir(process.env.S8_EVIDENCE, { recursive: true });
 				await writeFile(join(process.env.S8_EVIDENCE, `${locale}-${viewport.width}x${viewport.height}-dividers.json`), JSON.stringify(dividerGeometry, null, 2));
 			}
-			expect.soft(dividerGeometry.ctaGap, 'reference CTA heading begins 4rem after its hazard edge').toBeCloseTo(64, 1);
+			expect.soft(dividerGeometry.ctaGap, 'reference CTA heading begins 4rem after its dimension line').toBeCloseTo(64, 1);
 			expect.soft(dividerGeometry.terminusGap, 'Terminus uses the measured CTA gap, including the divider edge').toBeCloseTo(dividerGeometry.ctaGap, 1);
 			expect.soft(dividerGeometry.terminusGap, 'both gaps stay pinned to the intended value').toBeCloseTo(64, 1);
 			if (viewport.width < 1024) {
-				expect.soft(dividerGeometry.sharedHeadingGap, 'board follows the shared heading spacing').toBeCloseTo(14, 1);
-				for (const control of dividerGeometry.otherHeadings) {
-					expect(control.paddingTop, `${control.text} keeps its existing top padding`).toBe('32px');
-					expect(control.topGap, `${control.text} stays in place`).toBeCloseTo(32, 1);
-				}
+				expect.soft(dividerGeometry.sharedHeadingGap, 'board follows the kit rail title spacing').toBeCloseTo(dividerGeometry.railTitleGap, 1);
 			}
 			const geometry = await section.evaluate(el => {
 				const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
 				const content = el.parentElement!;
-				const heading = content.parentElement!.querySelector('.home-section-heading-mobile')!;
+				const heading = el.closest('[data-slot="page-section"]')!.querySelector('[data-slot="rail-title"]')!;
+				const stacked = getComputedStyle(heading.querySelector('h2')!).writingMode === 'horizontal-tb';
 				return {
 					gap: box('[data-closer-board]').top - content.getBoundingClientRect().top,
 					wrapperGap: el.getBoundingClientRect().top - content.getBoundingClientRect().top,
-					headingGap: getComputedStyle(heading).display === 'none' ? null : box('[data-closer-board]').top - heading.getBoundingClientRect().bottom,
-					headingTextGap: getComputedStyle(heading).display === 'none' ? null : box('[data-closer-board]').top - heading.querySelector('.section-heading-text')!.getBoundingClientRect().bottom,
+					headingGap: stacked ? box('[data-closer-board]').top - heading.getBoundingClientRect().bottom - parseFloat(getComputedStyle(heading.parentElement!).marginBottom) : null,
 					sectionHeight: el.getBoundingClientRect().height,
 				};
 			});

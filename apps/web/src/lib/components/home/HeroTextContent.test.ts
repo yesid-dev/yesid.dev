@@ -8,7 +8,6 @@ const analyticsMocks = vi.hoisted(() => ({
 vi.mock('#lib/analytics/client.ts', () => analyticsMocks);
 
 import HeroTextContent from './HeroTextContent.svelte';
-import { generateHeroData } from '#lib/live/index.ts';
 
 beforeEach(() => {
 	analyticsMocks.trackAnalyticsEvent.mockClear();
@@ -16,16 +15,13 @@ beforeEach(() => {
 
 function baseProps(overrides: Record<string, unknown> = {}) {
 	return {
-		headlineLine1: 'SYSTEMS WE BUILD',
-		headlineLine2: 'STAY AVAILABLE.',
-		headlineAriaSuffix: 'stay available.',
-		subheadlineText: 'sub',
-		subtitleText: 'subtitle',
-		ctaWorkLabel: 'See the work',
-		ctaContactLabel: 'Contact',
-		ctaWorkHref: '/projects',
+		heading: 'Websites and data tools for your business',
+		lead: 'I build websites.',
+		ctaProjectLabel: 'Tell me about your project',
+		ctaProjectHref: '/contact',
+		bookingLabel: 'Book a call',
 		bookingHref: 'https://cal.com/fixture',
-		heroData: generateHeroData(),
+		newTabLabel: ' (opens in a new tab)',
 		replayAriaLabel: 'Replay intro',
 		...overrides,
 	};
@@ -51,16 +47,25 @@ describe('HeroTextContent — hero dot replay affordance (go2/w5)', () => {
 	});
 
 	it.each([
-		['BUILD WITH CONFIDENCE', 'KEEP MOVING', 'keep moving.'],
-		['DES SYSTÈMES DURABLES', 'TOUJOURS DISPONIBLES', 'toujours disponibles.'],
-		['SISTEMAS PARA CRECER', 'SIGUEN FUNCIONANDO', 'siguen funcionando.'],
-	])('renders supplied headline and action copy: %s', (headlineLine1, headlineLine2, headlineAriaSuffix) => {
-		const props = baseProps({ headlineLine1, headlineLine2, headlineAriaSuffix });
+		['Websites and data tools for your business'],
+		['Des sites web et des outils de données pour votre entreprise'],
+		['Sitios web y herramientas de datos para empresas'],
+	])('renders the supplied heading and actions: %s', (heading) => {
+		const props = baseProps({ heading });
 		render(HeroTextContent, { props });
-		expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(`${headlineLine1} ${headlineAriaSuffix}`);
-		expect(screen.getByTestId('hero-line2')).toHaveTextContent(headlineLine2);
-		expect(screen.getByTestId('hero-cta-projects')).toHaveTextContent(props.ctaWorkLabel);
-		expect(screen.getByTestId('hero-cta-contact')).toHaveTextContent(props.ctaContactLabel);
+		expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(heading);
+		expect(screen.getByTestId('hero-heading')).toHaveTextContent(heading);
+		expect(screen.getByTestId('hero-subtitle')).toHaveTextContent(props.lead);
+		expect(screen.getByTestId('hero-cta-project')).toHaveTextContent(props.ctaProjectLabel);
+		expect(screen.getByTestId('hero-cta-project')).toHaveAttribute('href', '/contact');
+		expect(screen.getByTestId('hero-cta-contact')).toHaveTextContent(props.bookingLabel);
+		expect(screen.getByTestId('hero-cta-contact')).toHaveAccessibleName(`${props.bookingLabel}${props.newTabLabel}`);
+	});
+
+	it('glues the dot to the last letter so the two never part', () => {
+		render(HeroTextContent, { props: baseProps({ replayEnabled: true }) });
+		const tail = screen.getByTestId('hero-dot-replay').closest('.hero-title-tail');
+		expect(tail?.textContent).toBe('s');
 	});
 
 	it('provides nonempty, distinct annotation content for each locale', () => {
@@ -78,9 +83,9 @@ describe('HeroTextContent — hero dot replay affordance (go2/w5)', () => {
 		expect(new Set(labels).size).toBe(locales.length);
 	});
 
-	it('does not track the projects CTA as a booking click', async () => {
+	it('does not track the project CTA as a booking click', async () => {
 		render(HeroTextContent, { props: baseProps() });
-		await clickWithoutNavigating(screen.getByTestId('hero-cta-projects'));
+		await clickWithoutNavigating(screen.getByTestId('hero-cta-project'));
 
 		expect(analyticsMocks.trackAnalyticsEvent).not.toHaveBeenCalled();
 	});
@@ -118,14 +123,10 @@ describe('HeroTextContent — hero dot replay affordance (go2/w5)', () => {
 		expect(onReplay).not.toHaveBeenCalled();
 	});
 
-	it('keeps the headline text hidden from AT while exposing the armed button', () => {
+	it('names the heading by its words while exposing the armed button', () => {
 		render(HeroTextContent, { props: baseProps({ replayEnabled: true }) });
-		const line2 = screen.getByTestId('hero-line2');
-		// Decorative text span stays aria-hidden (h1 carries the aria-label)…
-		const textSpan = line2.querySelector('[data-hero-stagger="1"]');
-		expect(textSpan).toHaveAttribute('aria-hidden', 'true');
-		// …but the button must NOT sit inside an aria-hidden ancestor, or AT
-		// could never reach "Replay intro".
+		expect(screen.getByRole('heading', { level: 1 })).toHaveAccessibleName(baseProps().heading);
+		// The button must NOT sit inside an aria-hidden ancestor, or AT could never reach "Replay intro".
 		const btn = screen.getByTestId('hero-dot-replay');
 		let node: HTMLElement | null = btn.parentElement;
 		while (node) {

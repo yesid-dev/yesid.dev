@@ -53,12 +53,13 @@ test('reload during a visitor-started intro returns to the idle hero', async ({ 
 
 test('Back and Forward return to the idle hero without starting an intro', async ({ page }) => {
 	await page.goto('/');
-	await page.getByTestId('hero-cta-projects').click();
-	await expect(page.getByTestId('project-listing')).toBeVisible();
+	// Leave from the opening's Transit card, then come back.
+	await page.getByTestId('hero-transit-card').getByTestId('home-project-case-study').click();
+	await expect(page.getByTestId('project-detail-page')).toBeVisible();
 	await page.goBack();
 	await expectIdleHero(page);
 	await page.goForward();
-	await expect(page.getByTestId('project-listing')).toBeVisible();
+	await expect(page.getByTestId('project-detail-page')).toBeVisible();
 	await page.goBack();
 	await expectIdleHero(page);
 	await expect(page.getByTestId('hero-dot-replay')).toBeEnabled();
@@ -83,17 +84,17 @@ test('Back before the view-transition swap keeps the home URL and content togeth
 	});
 	await page.goto('/');
 	await page.getByTestId('hero-dot-replay').waitFor({ state: 'visible' });
-	await page.getByTestId('hero-cta-projects').click();
+	await page.getByTestId('hero-transit-card').getByTestId('home-project-case-study').click();
 	await page.waitForFunction(() => document.documentElement.dataset.transitionHeld === 'true');
-	await expect(page).toHaveURL(/\/projects$/);
+	await expect(page).toHaveURL(/\/projects\/transit-data-pipeline$/);
 	await page.goBack();
 	await expect(page).toHaveURL(/\/$/);
 	await expectIdleHero(page);
 	await page.evaluate(() => window.dispatchEvent(new Event('test:release-transition')));
 	await page.waitForFunction(() => document.documentElement.dataset.transitionHeld !== 'true');
 	await expectIdleHero(page);
-	await expect(page.getByTestId('project-listing')).toHaveCount(0);
+	await expect(page.getByTestId('project-detail-page')).toHaveCount(0);
 	await page.goForward();
-	await expect(page).toHaveURL(/\/projects$/);
-	await expect(page.getByTestId('project-listing')).toBeVisible();
+	await expect(page).toHaveURL(/\/projects\/transit-data-pipeline$/);
+	await expect(page.getByTestId('project-detail-page')).toBeVisible();
 });
