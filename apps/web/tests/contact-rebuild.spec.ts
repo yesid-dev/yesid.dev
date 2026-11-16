@@ -74,6 +74,37 @@ test('phone: horizontal title, then the details, then the form', async ({ page }
 	expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
+// The Contact slice asks for a 32px horizontal title (the v0.45.0 default was 40px). v0.46.0's
+// RailTitle `horizontalSize` option sizes the phone and tablet form only; the rotated desktop
+// title keeps its own size, which the desktop test above measures.
+for (const path of ['/contact', '/fr/contact', '/es/contact']) {
+	test(`horizontal title renders at 32px in EN, FR and ES on ${path}`, async ({ page }, testInfo) => {
+		test.skip(
+			!['phone', 'tablet'].includes(testInfo.project.name),
+			'The horizontal title is measured below the desktop breakpoint.',
+		);
+		await blockExternal(page);
+		const widths = testInfo.project.name === 'phone' ? [390, 360] : [768];
+		for (const width of widths) {
+			await page.setViewportSize({ width, height: 844 });
+			await page.goto(path);
+			await expect(visibleContactTerminal(page).getByTestId('contact-submit')).toBeEnabled();
+			await page.evaluate(() => document.fonts.ready);
+			const title = page.getByRole('heading', { level: 1 });
+			await expect(title).toBeVisible();
+			expect(await title.evaluate((el) => getComputedStyle(el).writingMode)).toBe('horizontal-tb');
+			// Geometry first: one 32px line paints about 34px tall, where the 40px default painted 42px.
+			const box = (await title.boundingBox())!;
+			expect(box.height, `${width}px ${path}`).toBeGreaterThan(31);
+			expect(box.height, `${width}px ${path}`).toBeLessThan(35);
+			expect(await title.evaluate((el) => getComputedStyle(el).fontSize), `${width}px ${path}`).toBe('32px');
+			// The title still sits above the panels, details first.
+			const info = (await page.getByTestId('contact-info-terminal').boundingBox())!;
+			expect(box.y + box.height).toBeLessThanOrEqual(info.y);
+		}
+	});
+}
+
 for (const width of [390, 1440]) {
 	test(`the dimension line sits under both title bars, and no divider before the footer at ${width}`, async ({ page }) => {
 		await page.setViewportSize({ width, height: 900 });
