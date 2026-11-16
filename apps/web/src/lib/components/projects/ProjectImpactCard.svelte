@@ -33,6 +33,7 @@
             size="md"
             labelBelow
             tone="reading"
+            labelRole="reading"
           />
           </div>
         {/each}
