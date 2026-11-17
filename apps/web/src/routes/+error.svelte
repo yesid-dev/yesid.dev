@@ -18,6 +18,7 @@
 
 <ErrorPage
 	status={page.status}
+	illustration="small-after"
 	label={resolveLocale(errorPage.label, locale)}
 	heading={resolveLocale(errorPage.heading, locale)}
 	body={resolveLocale(errorPage.description, locale)}
