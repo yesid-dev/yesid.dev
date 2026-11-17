@@ -31,9 +31,11 @@ test('the page is one section without extra rulers or stop labels', async ({ pag
 	const about = page.getByTestId('page-about');
 	await expect(about).toHaveAttribute('data-slot', 'page-section');
 	await expect(page.locator('main [data-slot="page-section-boundary"]')).toHaveCount(0);
-	// The terminal's own yellow border replaces its separate ruler element.
+	// Ordinary content uses drawn strokes; the terminal keeps only its yellow border.
 	const rules = page.locator('main [data-slot="separator"]');
-	await expect(rules).toHaveCount(0);
+	await expect(rules).toHaveCount(aboutPageContent.methodology.length + 1);
+	for (const rule of await rules.all()) await expect(rule).toHaveAttribute('data-variant', 'hand-drawn');
+	await expect(page.locator('[data-testid="about-cta"] [data-slot="separator"]')).toHaveCount(0);
 	await expect(page.locator('main [data-slot="terminal-panel"]')).toHaveClass(/terminal-rule-line/);
 	await expect(page.locator('main [data-slot="stop-label"]')).toHaveCount(0);
 	await expect(page.locator('main')).not.toContainText(/\bSTOP\s+\d/);
