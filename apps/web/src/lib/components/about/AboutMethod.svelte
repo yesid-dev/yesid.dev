@@ -10,6 +10,7 @@
 
 	const locale = getLocale();
 	import { Card } from '@yesid/ui/card';
+	import { Separator } from '@yesid/ui/separator';
 	import AboutCardHeading from './AboutCardHeading.svelte';
 	import { sentenceCase } from './about-copy.ts';
 
@@ -27,6 +28,7 @@
 		<ul class="beliefs">
 			{#each steps as step}
 				<li class="belief">
+					<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 					<p class="belief-title">{sentenceCase(resolveLocale(step.label, locale), locale)}</p>
 					<p class="belief-text">{resolveLocale(step.description, locale)}</p>
 				</li>
@@ -57,9 +59,9 @@
 	}
 
 	.belief {
+		position: relative;
 		min-width: 0;
 		padding-top: 0.75rem;
-		border-top: 1px solid var(--border);
 	}
 
 	.belief-title {

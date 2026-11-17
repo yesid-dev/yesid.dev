@@ -10,6 +10,7 @@
 
 	const locale = getLocale();
 	import { Card } from '@yesid/ui/card';
+	import { Separator } from '@yesid/ui/separator';
 	import { variantImage } from '#lib/utils/variant-image.ts';
 
 	let { identity }: { identity: AboutIdentity } = $props();
@@ -52,8 +53,9 @@
 			<!-- Text block: the identity title is /about's single h1, in sentence case and reading ink. -->
 			<div class="text-center md:pt-1 md:text-left">
 				<h1 class="about-title">{title}</h1>
-				<!-- The short orange rule under the title, kept from today. -->
-				<div class="mx-auto mt-4 h-px w-10 md:mx-0" style="background: linear-gradient(90deg, var(--primary), transparent);" aria-hidden="true"></div>
+				<div class="relative mx-auto mt-4 h-px w-10 md:mx-0">
+					<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
+				</div>
 				<p class="about-intro mt-4 max-w-md text-body leading-relaxed text-[var(--secondary-foreground)]">
 					{valueProp}
 				</p>

@@ -4,6 +4,7 @@
   failure) and Refresh. HeroBanner owns the reading and the requests; this card draws them.
 -->
 <script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
 	import { Card } from '@yesid/ui/card';
 	import { Button } from '@yesid/ui/button';
 	import type { HeroData, HeroMetric } from '#lib/live/index.ts';
@@ -96,6 +97,7 @@
 		{#if project}<p class="hero-transit__text">{resolveLocale(project.oneLiner, locale)}</p>{/if}
 
 		<div class="hero-transit__proof" data-testid="hero-transit-proof" data-state={readingState} aria-busy={refreshing}>
+			<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 			<div class="hero-transit__top">
 				<p class="hero-transit__state" data-testid="hero-transit-state" id="{titleId}-state">
 					{#if stateLine.word}<span class="hero-transit__word">{stateLine.word}</span>{" · "}{/if}{stateLine.text}
@@ -121,7 +123,7 @@
 				{#each figures as fig (fig.label)}
 					<div class="hero-transit__fig" data-testid="hero-transit-figure">
 						<dt>{fig.label}</dt>
-						<dd>{fig.value}{#if fig.unit}<small>&nbsp;{fig.unit}</small>{/if}</dd>
+						<dd><Separator variant="hand-drawn" class="transit-figure-divider absolute inset-x-0 -top-[4px]" data-testid="content-divider" />{fig.value}{#if fig.unit}<small>&nbsp;{fig.unit}</small>{/if}</dd>
 					</div>
 				{/each}
 			</dl>
@@ -137,6 +139,7 @@
 
 	{#if project}
 		<div class="hero-transit__foot">
+			<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 			<ProjectCardLinks {project} />
 		</div>
 	{/if}
@@ -189,11 +192,11 @@
 
 	/* A ruled group inside the card, closed by the card's foot rule (never a second frame). */
 	.hero-transit__proof {
+		position: relative;
 		display: grid;
 		gap: 0.75rem;
 		margin-top: 0.5rem;
 		padding-top: 0.75rem;
-		border-top: 1px solid var(--border-subtle);
 	}
 
 	.hero-transit__top {
@@ -249,6 +252,7 @@
 	}
 
 	.hero-transit__fig {
+		position: relative;
 		display: flex;
 		flex-direction: column-reverse;
 		justify-content: flex-end;
@@ -281,13 +285,15 @@
 	}
 
 	.hero-transit__foot {
+		position: relative;
 		margin-top: auto;
 		padding: 0.25rem 1.5rem;
-		border-top: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 	}
 
 	/* A narrow card: one row per figure, the name beside its value. */
+	.hero-transit__fig :global(.transit-figure-divider) { display: none; }
 	@container hero-transit (max-width: 459px) {
+		.hero-transit__fig :global(.transit-figure-divider) { display: block; }
 		.hero-transit__figs {
 			grid-template-columns: minmax(0, 1fr);
 			gap: 0;
@@ -298,7 +304,6 @@
 			justify-content: space-between;
 			gap: 0.75rem;
 			padding-block: 0.5rem;
-			border-top: 1px solid var(--border-subtle);
 		}
 		.hero-transit__fig dt {
 			font-size: var(--text-body);

@@ -6,6 +6,7 @@
   Previous and next, the closing band. Sections end with the kit's divider, except the last.
 -->
 <script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
 	import '#lib/styles/article-body.css';
 	import { afterNavigate } from '$app/navigation';
 	import { registerDetailReadingPosition } from '#lib/state/detail-reading-position.ts';
@@ -182,7 +183,7 @@
 				{/if}
 			</div>
 			{#if benefitHeadline}
-				<div class="impact-separator" aria-hidden="true"></div>
+				<Separator variant="hand-drawn" data-testid="content-divider" />
 				<p class="benefit-headline">{benefitHeadline}</p>
 			{/if}
 		{/if}
@@ -308,6 +309,7 @@
 					<!-- Phones and tablets: the metric before the story. -->
 					{#if metricValue}
 						<div class="metric-inline">
+							<Separator variant="hand-drawn" class="absolute inset-x-0 -bottom-[4px]" data-testid="content-divider" />
 							<span class="metric-inline-value">{metricValue}</span>
 							{#if metricLabel}
 								<span class="metric-inline-label">{metricLabel}</span>
@@ -580,13 +582,6 @@
 		color: var(--secondary-foreground);
 	}
 
-	.impact-separator {
-		width: 2.5rem;
-		height: 2px;
-		background: color-mix(in srgb, var(--primary) 40%, transparent);
-		margin-block: 1.25rem;
-	}
-
 	.benefit-headline {
 		font-size: var(--text-body);
 		font-weight: 500;
@@ -597,12 +592,12 @@
 	/* ── Inline metric (below 1024px) ── */
 
 	.metric-inline {
+		position: relative;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: baseline;
 		gap: 0.25rem 0.625rem;
 		padding-bottom: 1rem;
-		border-bottom: 1px solid var(--border-subtle);
 		margin-bottom: 0.5rem;
 	}
 

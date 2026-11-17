@@ -12,6 +12,7 @@
 	import { articleMediaLabels, type ArticleMedia } from '#lib/media/article-media.svelte.ts';
 	import { Dialog as DialogPrimitive } from 'bits-ui';
 	import { SliderButton } from '@yesid/ui/brand';
+	import { Separator } from '@yesid/ui/separator';
 	import YouTubeVideoPlayer from '#lib/components/cms/blocks/YouTubeVideo.svelte';
 	let { media }: { media: ArticleMedia } = $props();
 	const locale = getLocale();
@@ -118,11 +119,13 @@
 						/>
 						</div>
 						{#if activeImage.data.caption || activeImage.captureTheme}
+							<Separator variant="hand-drawn" data-testid="content-divider" />
 							<p class="project-image-gallery__lightbox-caption">{#if activeImage.captureTheme}<span>{labels[activeImage.captureTheme]}:</span>{' '}{/if}{@html activeImage.data.caption}</p>
 						{/if}
 						{:else if activeVideo}
 							<div class="article-media-stage">{#key activeVideo.id}<YouTubeVideoPlayer video={activeVideo} active />{/key}</div>
 							{#if activeVideo.caption}
+								<Separator variant="hand-drawn" data-testid="content-divider" />
 								<p class="project-image-gallery__lightbox-caption">{activeVideo.caption}</p>
 							{/if}
 						{/if}
@@ -210,7 +213,6 @@
 		flex-shrink: 0;
 		max-height: 40dvh;
 		overflow-y: auto;
-		border-top: 1px solid color-mix(in srgb, var(--primary) 22%, transparent);
 		padding: 0.85rem 1rem 1rem;
 		color: color-mix(in srgb, var(--foreground) 70%, transparent);
 	}

@@ -23,6 +23,7 @@
   while one of its links has the focus, with no halo, shadow or image zoom.
 -->
 <script lang="ts">
+	import { Separator } from '@yesid/ui/separator';
 	import type { ProjectSummary, Service } from '#lib/types.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
@@ -205,6 +206,7 @@
 		{/if}
 
 		<div class="project-card-links" data-testid={v.linksTestId}>
+			<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 			<ProjectCardLinks {project} testIdPrefix={v.linkIdPrefix} {tabbable} />
 		</div>
 	</Card>
@@ -366,9 +368,9 @@
 	}
 
 	.project-card-links {
+		position: relative;
 		margin-top: auto;
 		padding: 0.25rem 1.5rem;
-		border-top: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 	}
 
 	.project-card-links:not(:has(li)) {
