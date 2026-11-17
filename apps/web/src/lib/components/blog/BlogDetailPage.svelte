@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Separator } from '@yesid/ui/separator';
 	import { topicLabel } from "#lib/utils/blog-topics.ts";
 	import '#lib/styles/article-body.css';
 	import { afterNavigate } from '$app/navigation';
@@ -288,8 +287,6 @@
           <SectionsToggle activeEffect="none" />
         {/snippet}
       </ArticleHeader>
-      <!-- Use the shared page-edge treatment on this DetailFrame header boundary. -->
-      <Separator variant="hand-drawn" class="page-section-boundary" data-testid="detail-header-rule" />
     {/snippet}
 
     <div class="sections-column" data-testid="blog-sections" data-ripple-exempt>

@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test';
 
 for (const theme of ['dark', 'light'])
-test(`${theme} ordinary content boundaries reuse the Home stroke at their edges`, async ({ page }) => {
+test(`${theme} standalone content rules reuse their shared stroke at the content edge`, async ({ page }) => {
 	await page.addInitScript((value) => localStorage.setItem('theme', value), theme);
-	await page.goto('/');
+	await page.goto('/services');
 	await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
-	const reference = await page.locator('[data-slot="page-section-boundary"] path').first().getAttribute('d');
+	const reference = await page.locator('[data-testid="content-divider"]:visible path').first().getAttribute('d');
 	expect(reference).toBeTruthy();
 
 	for (const path of ['/', '/services', '/services/data-pipeline', '/projects', '/about']) {

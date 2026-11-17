@@ -122,30 +122,30 @@ test.describe('header, counters and dividers', () => {
 	for (const [name, path, boundaries] of [['case study', transit, 1], ['article', article, 0]] as const) {
 		test(`the ${name} uses the drawn line and draws none before the footer`, async ({ page }) => {
 			await open(page, path, 1440);
-			const headerRule = page.getByTestId('detail-header-rule');
+			const headerRule = page.locator('[data-slot="article-header-boundary"]');
+			await expect(headerRule).toHaveCount(1);
 			await expect(headerRule.locator('svg')).toBeVisible();
 			await expect(headerRule).toHaveClass(/hand-drawn-line/);
-			if (name === 'article') {
-				const edge = await headerRule.evaluate((el) => {
-					const rule = el.getBoundingClientRect();
-					const art = el.querySelector('svg')!;
-					const ink = art.getBoundingClientRect();
-					return {
-						ruleHeight: rule.height,
-						headerGap: rule.top - el.previousElementSibling!.getBoundingClientRect().bottom,
-						bodyGap: el.nextElementSibling!.getBoundingClientRect().top - rule.top,
-						inkHeight: ink.height,
-						inkOffset: rule.top - ink.top,
-						clip: getComputedStyle(art).clipPath,
-					};
-				});
-				expect(edge.ruleHeight).toBe(0);
-				expect(edge.headerGap).toBeCloseTo(0, 0);
-				expect(edge.bodyGap).toBeCloseTo(0, 0);
-				expect(edge.inkHeight).toBe(20);
-				expect(edge.inkOffset).toBeCloseTo(10, 0);
-				expect(edge.clip).toContain('50%');
-			}
+			await expect(headerRule).toHaveAttribute('data-stroke-segments', '4');
+			const edge = await headerRule.evaluate((el) => {
+				const rule = el.getBoundingClientRect();
+				const art = el.querySelector('svg')!;
+				const ink = art.getBoundingClientRect();
+				return {
+					ruleHeight: rule.height,
+					headerGap: rule.top - el.previousElementSibling!.getBoundingClientRect().bottom,
+					bodyGap: el.nextElementSibling!.getBoundingClientRect().top - rule.top,
+					inkHeight: ink.height,
+					inkOffset: rule.top - ink.top,
+					clip: getComputedStyle(art).clipPath,
+				};
+			});
+			expect(edge.ruleHeight).toBe(0);
+			expect(edge.headerGap).toBeCloseTo(0, 0);
+			expect(edge.bodyGap).toBeCloseTo(0, 0);
+			expect(edge.inkHeight).toBe(20);
+			expect(edge.inkOffset).toBeCloseTo(10, 0);
+			expect(edge.clip).toContain('50%');
 			expect(await visibleHazards(page)).toBe(0);
 			const boundary = page.locator('[data-slot="page-section-boundary"]');
 			await expect(boundary).toHaveCount(boundaries);
@@ -161,6 +161,7 @@ test.describe('header, counters and dividers', () => {
 			// The last section closes the page: no divider follows it before the footer's street edge.
 			expect(geometry).toEqual({ linesBelowLast: 0, lastIsTheEnd: true });
 			if (boundaries) {
+				await expect(boundary).toHaveAttribute('data-stroke-segments', '5');
 				const line = await box(boundary);
 				const band = await box(page.getByTestId('project-cta'));
 				expect(line.bottom).toBeLessThanOrEqual(band.top + 1);

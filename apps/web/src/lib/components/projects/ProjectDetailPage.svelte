@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { Separator } from '@yesid/ui/separator';
 	import '#lib/styles/article-body.css';
 	import { afterNavigate } from '$app/navigation';
 	import type { BlockEditorDoc, Project, Service } from '#lib/types.ts';
@@ -325,7 +324,6 @@
 					<SectionsToggle activeEffect="none" />
 				{/snippet}
 			</ArticleHeader>
-			<Separator variant="hand-drawn" data-testid="detail-header-rule" />
 		{/snippet}
 
 		{#snippet left()}
