@@ -1,7 +1,7 @@
 <!--
   Contact page (page type: contact, D20), rebuilt from the owner-reviewed preview D-M4 (DEV-40).
-  One page section: the rotated "Contact." is the kit's RailTitle (the page's h1, sticky on the left
-  rail from 1024px, horizontal below), then two TerminalPanels with a solid yellow rule under
+  One page section: Projects' shared ListingRail owns the page's h1, left rail and two dot clusters.
+  The heading is horizontal below 1024px. Two TerminalPanels have a solid yellow rule under
   their title bars: the info panel (location, weather, local time, reply time, languages, best fit,
   connect) and the form panel. Phones stack the details first. No divider before the footer.
   The form follows yesid.design's labelled-field recipe: visible labels, the required line and
@@ -16,8 +16,8 @@
 	import { siteLabels, siteMeta } from '#lib/content/index.ts';
 	import { clock, persisted } from '@yesid/ui/state';
 	import type { ContactContent } from '#lib/types.ts';
-	import { RailTitle, TerminalPanel } from '@yesid/ui/brand';
-	import { PageSection, PageSections } from '@yesid/ui/layout';
+	import { TerminalPanel } from '@yesid/ui/brand';
+	import { ListingRail, PageSection, PageSections } from '@yesid/ui/layout';
 	import { Button } from '@yesid/ui/button';
 	import type { WeatherData } from '#lib/utils/weather.ts';
 	import { fetchFreshWeather } from '#lib/utils/weather-refresh.ts';
@@ -249,22 +249,13 @@
 <div class="contact-page" data-testid="page-contact" data-register="task">
 	<PageSections divider="hand-drawn">
 		<PageSection class="contact-section" aria-labelledby="contact-title">
-			<RailTitle clipAtHeader={false}
-				heading={pageTitle}
-				level={1}
-				titleId="contact-title"
-				side="left"
-				size="clamp(3rem, 4vw, 3.5rem)"
-				horizontalSize="2rem"
-				style="--rail-title-rail: clamp(4.5rem, 12vw, 10.5rem)"
-			>
-				<div class="contact-content">
-					<div class="contact-panels">
-						{@render infoTerminal()}
-						{@render formTerminal()}
-					</div>
+			<ListingRail heading={pageTitle} titleId="contact-title" clipAtHeader={false} />
+			<div class="contact-content">
+				<div class="contact-panels">
+					{@render infoTerminal()}
+					{@render formTerminal()}
 				</div>
-			</RailTitle>
+			</div>
 		</PageSection>
 	</PageSections>
 
@@ -496,6 +487,12 @@
 		min-width: 0;
 		padding-inline: var(--space-page-x);
 	}
+	@media (--desktop-max) {
+		/* Contact keeps its 32px horizontal heading. This ID belongs to the page. */
+		.contact-page :global(#contact-title) {
+			font-size: 2rem;
+		}
+	}
 	/* Phones and tablets: the details first, then the form (owner answer 1A). */
 	.contact-panels {
 		display: flex;
@@ -507,10 +504,9 @@
 		.contact-page {
 			padding-block: var(--space-card-gap);
 		}
-		/* Today's orange accent line along the rail, kept with the rotated title. */
-		.contact-content {
-			min-height: 100%;
-			border-inline-start: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+		.contact-page :global(.contact-section) {
+			display: grid;
+			grid-template-columns: auto 2px minmax(0, 1fr);
 		}
 		/* Today's split, a third and two thirds, fixed: no resize handle. */
 		.contact-panels {

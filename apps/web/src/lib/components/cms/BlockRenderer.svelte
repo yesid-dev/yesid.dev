@@ -13,11 +13,16 @@
 	let {
 		doc,
 		codeHighlights,
+		headingIds,
+		headingAliases,
 	}: {
 		doc: BlockEditorDoc;
 		/** block.id → server-highlighted HTML ($lib/server/code-highlights).
 		 *  Absent entries render as plain escaped <pre> inside CodeBlock. */
 		codeHighlights?: Readonly<Record<string, string>>;
+		/** Explicit body-section keys for callers with a matching contents navigation. */
+		headingIds?: Readonly<Record<string, string>>;
+		headingAliases?: Readonly<Record<string, string>>;
 	} = $props();
 	const groups = $derived(groupImageLayouts(doc.blocks));
 	const GRID_GAP = 24;
@@ -31,7 +36,7 @@
 
 {#snippet renderBlock(block: BlockEditorBlock, slot: number = ARTICLE_COLUMN)}
 	{#if block.type === 'header'}
-		<Heading data={block.data} />
+		<Heading data={block.data} id={headingIds?.[block.id]} aliasId={headingAliases?.[block.id]} />
 	{:else if block.type === 'paragraph'}
 		<Paragraph data={block.data} />
 	{:else if block.type === 'table'}

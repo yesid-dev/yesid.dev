@@ -1,4 +1,4 @@
-// The contact page rebuilt from the owner-reviewed preview D-M4 (DEV-40): the kit's RailTitle,
+// The contact page rebuilt from the owner-reviewed preview D-M4 (DEV-40): the shared listing rail,
 // solid yellow rule and hazard edge, the phone order, the hover without halo, and CSP.
 import { test, expect } from '@playwright/test';
 import { visibleContactTerminal } from './_support/helpers';
@@ -20,14 +20,14 @@ for (const path of ['/contact', '/fr/contact']) {
 		await page.goto(path);
 		await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
 		await expect(visibleContactTerminal(page).getByTestId('contact-submit')).toBeEnabled();
-		// The rail title sets its fitted size and clip after hydration; scroll so the clip runs too.
+		// Exercise the hydrated title while scrolling.
 		await page.evaluate(() => window.scrollBy(0, 400));
 		await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 		expect(await page.evaluate(() => Reflect.get(window, 'cspViolations'))).toEqual([]);
 	});
 }
 
-test('desktop: "Contact." is a listing-sized sticky rail title, clear of the header pill', async ({ page }) => {
+test('desktop: "Contact." stays centered in the sticky Projects rail, clear of the header pill', async ({ page }) => {
 	test.skip(test.info().project.name !== 'desktop', 'One desktop pass covers the rail title.');
 	await page.setViewportSize({ width: 1440, height: 900 });
 	await blockExternal(page);
@@ -41,22 +41,23 @@ test('desktop: "Contact." is a listing-sized sticky rail title, clear of the hea
 	const size = await title.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
 	expect(size).toBeGreaterThanOrEqual(48);
 	expect(size).toBeLessThanOrEqual(56);
-	const rail = page.locator('[data-slot="rail-title"]');
+	const rail = page.locator('[data-slot="listing-edge-title"]');
 	expect(await rail.evaluate((el) => getComputedStyle(el).position)).toBe('sticky');
 	// It never overlaps the panels: the info panel starts right of the title.
 	const titleBox = (await title.boundingBox())!;
 	const info = (await page.getByTestId('contact-info-terminal').boundingBox())!;
 	expect(titleBox.x + titleBox.width).toBeLessThanOrEqual(info.x);
-	// Sticky: while its section still has room below it, a scroll leaves it pinned below the pill;
-	// it leaves with the section's end, never before the footer.
+	// The column sticks as a unit, keeping its title centered below the header pill.
 	const pill = (await page.getByTestId('nav-pill').boundingBox())!;
-	const stickyTop = await rail.evaluate((el) => parseFloat(getComputedStyle(el).top));
-	expect(stickyTop).toBeGreaterThanOrEqual(pill.y + pill.height);
-	const section = (await page.locator('main [data-slot="page-section"]').boundingBox())!;
-	const slack = section.y + section.height - (titleBox.y + titleBox.height);
-	expect(slack).toBeGreaterThan(40);
-	await page.evaluate((by) => window.scrollBy(0, by), Math.round(slack / 2) + Math.max(0, titleBox.y - stickyTop));
-	await expect.poll(async () => Math.round((await title.boundingBox())!.y)).toBe(Math.round(stickyTop));
+	const railBox = (await rail.boundingBox())!;
+	expect(titleBox.y).toBeGreaterThanOrEqual(pill.y + pill.height);
+	const scrollBy = Math.max(1, Math.ceil(railBox.y));
+	await page.evaluate((by) => window.scrollBy(0, by), scrollBy);
+	await expect.poll(async () => {
+		const titleBox = (await title.boundingBox())!;
+		const railBox = (await rail.boundingBox())!;
+		return Math.abs(titleBox.y + titleBox.height / 2 - railBox.y - railBox.height / 2);
+	}).toBeLessThanOrEqual(1);
 });
 
 test('phone: horizontal title, then the details, then the form', async ({ page }) => {
@@ -75,9 +76,7 @@ test('phone: horizontal title, then the details, then the form', async ({ page }
 	expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
 });
 
-// The Contact slice asks for a 32px horizontal title (the v0.45.0 default was 40px). v0.46.0's
-// RailTitle `horizontalSize` option sizes the phone and tablet form only; the rotated desktop
-// title keeps its own size, which the desktop test above measures.
+// The 32px horizontal Contact heading is part of the accepted phone and tablet layout.
 for (const path of ['/contact', '/fr/contact', '/es/contact']) {
 	test(`horizontal title renders at 32px in EN, FR and ES on ${path}`, async ({ page }, testInfo) => {
 		test.skip(
