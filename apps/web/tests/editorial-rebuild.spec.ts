@@ -122,8 +122,30 @@ test.describe('header, counters and dividers', () => {
 	for (const [name, path, boundaries] of [['case study', transit, 1], ['article', article, 0]] as const) {
 		test(`the ${name} uses the drawn line and draws none before the footer`, async ({ page }) => {
 			await open(page, path, 1440);
-			await expect(page.getByTestId('detail-header-rule')).toBeVisible();
-			await expect(page.getByTestId('detail-header-rule')).toHaveClass(/hand-drawn-line/);
+			const headerRule = page.getByTestId('detail-header-rule');
+			await expect(headerRule.locator('svg')).toBeVisible();
+			await expect(headerRule).toHaveClass(/hand-drawn-line/);
+			if (name === 'article') {
+				const edge = await headerRule.evaluate((el) => {
+					const rule = el.getBoundingClientRect();
+					const art = el.querySelector('svg')!;
+					const ink = art.getBoundingClientRect();
+					return {
+						ruleHeight: rule.height,
+						headerGap: rule.top - el.previousElementSibling!.getBoundingClientRect().bottom,
+						bodyGap: el.nextElementSibling!.getBoundingClientRect().top - rule.top,
+						inkHeight: ink.height,
+						inkOffset: rule.top - ink.top,
+						clip: getComputedStyle(art).clipPath,
+					};
+				});
+				expect(edge.ruleHeight).toBe(0);
+				expect(edge.headerGap).toBeCloseTo(0, 0);
+				expect(edge.bodyGap).toBeCloseTo(0, 0);
+				expect(edge.inkHeight).toBe(20);
+				expect(edge.inkOffset).toBeCloseTo(10, 0);
+				expect(edge.clip).toContain('50%');
+			}
 			expect(await visibleHazards(page)).toBe(0);
 			const boundary = page.locator('[data-slot="page-section-boundary"]');
 			await expect(boundary).toHaveCount(boundaries);

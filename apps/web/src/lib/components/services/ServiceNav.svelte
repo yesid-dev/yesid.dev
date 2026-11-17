@@ -13,7 +13,6 @@
 	import { siteLabels } from '#lib/content/index.ts';
 	import { boop } from '@yesid/motion/actions';
 	import { SectionLabel } from '@yesid/ui/brand';
-	import { Separator } from '@yesid/ui/separator';
 
 	let {
 		prev,
@@ -33,7 +32,6 @@
 </script>
 
 <nav class="service-nav" aria-label={navAria}>
-	<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 	{#if prev}
 		<a
 			href={localizeHref(`/services/${prev.id}`, locale)}

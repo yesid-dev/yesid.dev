@@ -288,7 +288,8 @@
           <SectionsToggle activeEffect="none" />
         {/snippet}
       </ArticleHeader>
-      <Separator variant="hand-drawn" data-testid="detail-header-rule" />
+      <!-- Use the shared page-edge treatment on this DetailFrame header boundary. -->
+      <Separator variant="hand-drawn" class="page-section-boundary" data-testid="detail-header-rule" />
     {/snippet}
 
     <div class="sections-column" data-testid="blog-sections" data-ripple-exempt>

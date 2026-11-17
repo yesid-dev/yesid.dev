@@ -502,11 +502,21 @@
 
 	@media (--desktop-min) {
 		.contact-page {
-			padding-block: var(--space-card-gap);
+			/* Like ListingFrame, begin the rails at the top of the page. */
+			margin-block-start: calc(-1 * var(--chrome-offset, 0px));
+			padding-block: 0;
 		}
 		.contact-page :global(.contact-section) {
 			display: grid;
 			grid-template-columns: auto 2px minmax(0, 1fr);
+		}
+		/* The ListingRail title slot stretches with the panels instead of setting the row height. */
+		.contact-page :global([data-slot='listing-edge-title']) {
+			block-size: auto;
+		}
+		.contact-content {
+			padding-block-start: calc(var(--chrome-offset, 0px) + var(--space-card-gap));
+			padding-block-end: var(--space-card-gap);
 		}
 		/* Today's split, a third and two thirds, fixed: no resize handle. */
 		.contact-panels {
