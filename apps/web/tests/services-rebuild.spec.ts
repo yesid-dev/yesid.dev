@@ -255,10 +255,16 @@ test.describe('the service page', () => {
 	});
 
 	test('phone: title, "click me" and the 56px drawing share one row', async ({ page }) => {
-		for (const width of [320, 390]) {
-			for (const locale of ['en', 'fr', 'es']) {
+		const cases = [
+			[320, ['en', 'fr', 'es'], DETAIL],
+			[390, ['en', 'fr', 'es'], DETAIL],
+			[360, ['en'], '/services/analytics-reporting'],
+			[412, ['en'], '/services/analytics-reporting'],
+		] as const;
+		for (const [width, locales, path] of cases) {
+			for (const locale of locales) {
 				await page.setViewportSize({ width, height: 844 });
-				await open(page, locale === 'en' ? DETAIL : `/${locale}${DETAIL}`);
+				await open(page, locale === 'en' ? path : `/${locale}${path}`);
 				await page.evaluate(() => document.fonts.ready);
 				await expect(page.locator('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeVisible();
 				await expect(page.locator('.svg-desktop')).toBeHidden();
@@ -313,7 +319,7 @@ test.describe('the service page', () => {
 						sideBySide: titleBox.right <= frame.left + 1 && frame.right <= panel.left + 1,
 					};
 				});
-				expect(legibility, `${locale} opening at ${width}px`).toEqual({ wholeWords: true, dotOnTextLine: true, wordWrapsWithDot: true, labelInside: true, sameRow: true, sideBySide: true });
+				expect(legibility, `${locale} ${path} opening at ${width}px`).toEqual({ wholeWords: true, dotOnTextLine: true, wordWrapsWithDot: true, labelInside: true, sameRow: true, sideBySide: true });
 				// The annotation is a pointer-transparent overlay, never a control.
 				const annotation = page.locator('.svg-mobile [data-testid="hero-dot-annotation"]');
 				expect(await css(annotation, 'pointer-events')).toBe('none');
