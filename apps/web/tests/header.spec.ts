@@ -74,7 +74,7 @@ for (const locale of PUBLISHED_LOCALES) {
 		const list = await openMenu(page, locale);
 
 		for (const item of menuItems) {
-			await expect(list.getByText(resolveLocale(item.label, locale), { exact: true })).toBeVisible();
+			await expect(list.getByRole('link').getByText(resolveLocale(item.label, locale), { exact: true })).toBeVisible();
 		}
 		// The open menu holds destinations only; both controls stay in the pill, once each.
 		const { theme, language } = pillControls(page);
@@ -95,7 +95,7 @@ for (const locale of PUBLISHED_LOCALES) {
 		const target = menuItems.at(-1)!;
 		await page.goto(start(locale));
 		const list = await openMenu(page, locale);
-		await list.getByText(resolveLocale(target.label, locale), { exact: true }).click();
+		await list.getByRole('link').getByText(resolveLocale(target.label, locale), { exact: true }).click();
 
 		await expect(page).toHaveURL(samePath(localized(target.href, locale)));
 		await expect(list).toBeHidden();
