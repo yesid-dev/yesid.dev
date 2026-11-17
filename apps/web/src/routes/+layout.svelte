@@ -205,7 +205,7 @@
 				openMenu: navChrome.openMenuAria,
 				closeMenu: navChrome.closeMenuAria,
 				menu: navChrome.menuOverlayAria,
-				menuFooter: navChrome.menuOverlayFooterLabel,
+				menuFooter: '',
 				skipToContent: navChrome.skipToContentLabel,
 				theme: navChrome.themeToggleAria,
 			}}

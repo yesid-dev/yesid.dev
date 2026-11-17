@@ -6,6 +6,24 @@ import frSeeds from '../../../fixtures/content/site-labels.fr.json';
 import esSeeds from '../../../fixtures/content/site-labels.es.json';
 
 describe('site-labels transform', () => {
+	it('restores the owner’s Elsewhere social heading from exact legacy values in each locale', () => {
+		const out = toSiteLabels({ id: 'labels', translations: [
+			{ languages_code: 'en', ...seeds, footer_chrome_footer_connect_label: 'CONNECT' },
+			{ languages_code: 'fr', ...frSeeds, footer_chrome_footer_connect_label: 'CONNEXION' },
+			{ languages_code: 'es', ...esSeeds, footer_chrome_footer_connect_label: 'CONECTA' },
+		] });
+		expect(out.footerChrome.footer.connectLabel).toEqual({ en: 'Elsewhere', fr: 'Ailleurs', es: 'En otros lugares' });
+	});
+	it('preserves independently authored social headings and does not manufacture missing locales', () => {
+		const out = toSiteLabels({ id: 'labels', translations: [
+			{ languages_code: 'en', ...seeds, footer_chrome_footer_connect_label: 'Elsewhere' },
+			{ languages_code: 'fr', ...frSeeds, footer_chrome_footer_connect_label: 'Mes liens' },
+			{ languages_code: 'es', ...esSeeds, footer_chrome_footer_connect_label: 'Mis enlaces' },
+		] });
+		expect(out.footerChrome.footer.connectLabel).toEqual({ en: 'Elsewhere', fr: 'Mes liens', es: 'Mis enlaces' });
+		const english = toSiteLabels({ id: 'labels', translations: [{ languages_code: 'en', ...seeds }] });
+		expect(english.footerChrome.footer.connectLabel).toEqual({ en: 'Elsewhere' });
+	});
  it('allows legacy exports before the photo-credit label is populated', () => {
   const { a11y_photo_credit: omitted, ...legacy } = seeds;
   const out = toSiteLabels({ id: 'legacy', translations: [{ languages_code: 'en', ...legacy }] });

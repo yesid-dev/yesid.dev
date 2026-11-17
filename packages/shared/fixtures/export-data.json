@@ -20575,7 +20575,7 @@
 					"statusPrefix": {"en":"system online ·","fr":"système en ligne ·","es":"sistema en línea ·"},
 					"exploreLabel": {"en":"EXPLORE","fr":"EXPLORER","es":"EXPLORA"},
 					"legalLabel": {"en":"LEGAL","fr":"LÉGAL","es":"LEGAL"},
-					"connectLabel": {"en":"CONNECT","fr":"CONNEXION","es":"CONECTA"},
+					"connectLabel": {"en":"Elsewhere","fr":"Ailleurs","es":"En otros lugares"},
 					"liveLabel": {"en":"Live","fr":"En direct","es":"En vivo"}
 				}
 			},

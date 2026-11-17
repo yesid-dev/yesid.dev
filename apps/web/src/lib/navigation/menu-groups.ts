@@ -12,6 +12,7 @@
 import type { Locale } from '#lib/types.ts';
 import { resolveLocale } from '#lib/utils/locale.ts';
 import { siteNavigationLabels } from '#lib/content/site-navigation-labels.ts';
+import { menuItems } from '#lib/content/nav.ts';
 import type { NavLink } from './types.ts';
 import { CLIENT_LOGIN_URL } from './destinations.ts';
 
@@ -32,15 +33,17 @@ const CONNECT_HREFS: readonly string[] = [CLIENT_LOGIN_URL, '/contact'];
 const hrefKey = (href: string): string => href.trim().replace(/\/+$/, '').toLowerCase();
 
 /**
- * The group headings: Work from site_labels (CMS-primary, DEV-28 G28), Explore and Connect from
- * the footer's own localized group names.
+ * Work and Explore keep their CMS labels. The contact group takes its destination's
+ * own label, independently of the footer's social-links heading.
  */
-export function menuGroupLabels(locale: Locale): Record<MenuGroupKey, string> {
+export function menuGroupLabels(locale: Locale, items: readonly NavLink[] = menuItems): Record<MenuGroupKey, string> {
 	const footer = siteNavigationLabels.footerChrome.footer;
+	const contact = items.find(item => hrefKey(item.href) === '/contact')
+		?? items.find(item => hrefKey(item.href) === CLIENT_LOGIN_URL);
 	return {
 		work: resolveLocale(siteNavigationLabels.navChrome.menuGroupWork, locale),
 		explore: resolveLocale(footer.exploreLabel, locale),
-		connect: resolveLocale(footer.connectLabel, locale),
+		connect: resolveLocale(contact?.label ?? footer.connectLabel, locale),
 	};
 }
 
@@ -59,7 +62,7 @@ export function groupMenuItems(items: readonly NavLink[], locale: Locale): MenuG
 		// Reading and everything not named above: the general group, never dropped.
 		else explore.push(item);
 	}
-	const labels = menuGroupLabels(locale);
+	const labels = menuGroupLabels(locale, items);
 	return [
 		{ key: 'work' as const, label: labels.work, items: work },
 		{ key: 'explore' as const, label: labels.explore, items: explore },
