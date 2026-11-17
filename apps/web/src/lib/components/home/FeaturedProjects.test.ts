@@ -21,6 +21,14 @@ const expectedCount = resolvedProjects.length;
 const renderProps = { proofReel: proofReelContent, projects: resolvedProjects };
 
 describe('FeaturedProjects', () => {
+	it.each([0, 1])('keeps a %i-project reel static without navigation or duplicate cards', (count) => {
+		render(FeaturedProjects, { props: { ...renderProps, projects: resolvedProjects.slice(0, count) } });
+		expect(screen.queryAllByTestId('proof-card')).toHaveLength(count);
+		expect(screen.getByTestId('proof-controls')).not.toBeVisible();
+		expect(screen.getByTestId('proof-announcement')).toHaveTextContent(/^$/);
+		expect(screen.getByTestId('proof-view-all')).toHaveAttribute('href', '/projects');
+	});
+
 	it('renders one interactive card per project, with no hidden loop copies', () => {
 		render(FeaturedProjects, { props: renderProps });
 		expect(screen.getByTestId('proof-reel-section')).toBeInTheDocument();

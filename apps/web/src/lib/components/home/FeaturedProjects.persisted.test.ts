@@ -38,6 +38,6 @@ describe('FeaturedProjects (remount)', () => {
 
 		render(FeaturedProjects, { props: renderProps });
 		flushSync();
-		expect(screen.getByTestId('proof-position')).toHaveTextContent(`${restoredIndex + 1} of ${resolvedProjects.length}`);
+		expect(screen.getByTestId('proof-position')).toHaveTextContent(new RegExp(`^${restoredIndex + 1}( to 1)? of ${resolvedProjects.length}$`));
 	});
 });

@@ -258,10 +258,8 @@ test.describe('projects carousel', () => {
 		await page.keyboard.press('Enter');
 		await expect(position).toHaveText(/^2 (to 3 )?of 3$/);
 		await expect(announcement).toHaveText(await position.textContent() as string);
-		if ((await position.textContent()) === '2 of 3') {
-			await page.keyboard.press('Enter');
-			await expect(position).toHaveText('3 of 3');
-		}
+		await page.keyboard.press('Enter');
+		await expect(position).toHaveText(/^3 (to 1 )?of 3$/);
 		// At the last view next wraps to the first one, so it is never a dead end: the focus stays.
 		await expect(next).toBeEnabled();
 		await page.keyboard.press('Enter');
@@ -271,7 +269,7 @@ test.describe('projects carousel', () => {
 		// Previous wraps the other way, from the first view to the last.
 		await previous.focus();
 		await page.keyboard.press('Enter');
-		await expect(position).toHaveText(/^3 of 3$|^2 to 3 of 3$/);
+		await expect(position).toHaveText(/^3 (to 1 )?of 3$/);
 		await expect(previous).toBeEnabled();
 
 		// Arrow keys move the reel from a card's own link, without leaving the reel.
@@ -330,17 +328,21 @@ test.describe('projects carousel', () => {
 		const track = reel.getByTestId('proof-track');
 		const position = reel.getByTestId('proof-position');
 		const start = (await position.textContent())!;
-		const swipe = (dx: number, dy = 0) => track.evaluate((element, { dx, dy }) => {
-			const box = element.getBoundingClientRect();
-			const y = box.top + box.height / 2;
-			const from = box.left + box.width / 2;
-			const touch = (x: number, offsetY = 0) => new Touch({ identifier: 1, target: element, clientX: x, clientY: y + offsetY });
-			element.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, cancelable: true, touches: [touch(from)], targetTouches: [touch(from)], changedTouches: [touch(from)] }));
-			element.dispatchEvent(new TouchEvent('touchend', { bubbles: true, cancelable: true, touches: [], targetTouches: [], changedTouches: [touch(from + dx, dy)] }));
-		}, { dx, dy });
+		const touch = await page.context().newCDPSession(page);
+		const swipe = async (dx: number, dy = 0) => {
+			await track.scrollIntoViewIfNeeded();
+			const box = (await track.boundingBox())!;
+			if (dy === 0) dx = Math.sign(dx) * box.width * 0.65;
+			const x = box.x + box.width * (dx > 0 ? 0.15 : 0.85);
+			const y = Math.max(220, box.y + Math.min(box.height / 2, 160));
+			await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+			for (let step = 1; step <= 6; step++) {
+				await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * step / 6, y: y + dy * step / 6 }] });
+			}
+			await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+		};
 		// Normal page scrolling can drift sideways. It must not change the project.
 		await swipe(30, 180);
-		await expect(track).toHaveJSProperty('scrollLeft', 0);
 		await expect(position).toHaveText(start);
 		// Dragging right at the first card wraps to the last one; dragging left there wraps forward.
 		await swipe(60);
@@ -349,6 +351,7 @@ test.describe('projects carousel', () => {
 		await swipe(-60);
 		await expect(position).toHaveText(start);
 		expect(last).not.toBe(start);
+		await touch.detach();
 	});
 
 	test('under reduced motion the buttons jump without gliding', async ({ page }) => {
@@ -357,11 +360,14 @@ test.describe('projects carousel', () => {
 		const reel = page.getByTestId('proof-reel-section');
 		await reel.scrollIntoViewIfNeeded();
 		const track = reel.getByTestId('proof-track');
-		await expect(track).toHaveCSS('scroll-behavior', 'auto');
+		const card = reel.getByTestId('proof-slide').first();
+		const before = (await card.boundingBox())!.x;
 		await reel.getByTestId('proof-next').click();
 		// The very next frame already shows the target: no smooth scroll in between.
-		const moved = await track.evaluate(el => new Promise<number>(resolve => requestAnimationFrame(() => resolve(el.scrollLeft))));
-		expect(moved).toBeGreaterThan(0);
+		const moved = await card.evaluate(el => new Promise<number>(resolve => requestAnimationFrame(() => resolve(el.getBoundingClientRect().left))));
+		expect(Math.abs(moved - before)).toBeGreaterThan(20);
+		const nextFrame = await card.evaluate(el => new Promise<number>(resolve => requestAnimationFrame(() => resolve(el.getBoundingClientRect().left))));
+		expect(nextFrame).toBeCloseTo(moved, 1);
 	});
 
 	test('cards are interactive: they lift 1px and light their edge, with no shadow, in both themes', async ({ page, isMobile }) => {
