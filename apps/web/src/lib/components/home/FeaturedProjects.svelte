@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import EmblaCarousel, { type EmblaCarouselType } from 'embla-carousel';
+	import { WheelGesturesPlugin } from 'embla-carousel-wheel-gestures';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
@@ -39,6 +40,7 @@
 	/** The first card in view. */
 	let first = $state(0);
 	let overflows = $state(false);
+	let ready = $state(false);
 	let announcement = $state('');
 	const stored = persisted<number>('featured-card', 0);
 
@@ -108,9 +110,25 @@
 		}
 	}
 
-	function reelKeys(node: HTMLElement) {
+	function shiftWheel(event: WheelEvent): void {
+		if (!ready || !overflows || !track || !event.shiftKey || event.ctrlKey || event.deltaX !== 0 || event.deltaY === 0) return;
+		if (!(event.target instanceof Node) || !track.contains(event.target)) return;
+		// Browsers deliver Shift+wheel as deltaY. Give the horizontal gesture to the same engine.
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		track.dispatchEvent(new WheelEvent('wheel', {
+			bubbles: true, cancelable: true, deltaX: event.deltaY, deltaMode: event.deltaMode,
+			clientX: event.clientX, clientY: event.clientY,
+		}));
+	}
+
+	function reelInputs(node: HTMLElement) {
 		node.addEventListener('keydown', onKeydown);
-		return { destroy: () => node.removeEventListener('keydown', onKeydown) };
+		node.addEventListener('wheel', shiftWheel, { capture: true, passive: false });
+		return { destroy() {
+			node.removeEventListener('keydown', onKeydown);
+			node.removeEventListener('wheel', shiftWheel, true);
+		} };
 	}
 
 	onMount(() => {
@@ -118,11 +136,13 @@
 		first = Number.isInteger(stored.value) && stored.value >= 0 && stored.value < total ? stored.value : 0;
 		// No layout (including DOM unit tests): retain the restored logical position.
 		if (!track || track.clientWidth === 0 || total === 0) return;
+		track.scrollLeft = 0;
 		carousel = EmblaCarousel(track, {
 			align: 'start', loop: true, startIndex: first,
 			watchFocus: revealFocusedCard,
 			breakpoints: { '(prefers-reduced-motion: reduce)': { duration: 0 } },
-		});
+		}, [WheelGesturesPlugin()]);
+		ready = true;
 		carousel.on('select', syncPosition).on('reInit', syncPosition).on('settle', announce);
 		carousel.on('pointerDown', () => { moved = true; });
 		syncPosition(carousel);
@@ -135,13 +155,14 @@
 	data-testid="proof-reel-section"
 	class="proof-reel-section"
 	style="--proof-total: {Math.max(1, total)}"
-	use:reelKeys
+	use:reelInputs
 >
 	<div
 		bind:this={track}
 		id="home-proof-track"
 		class="proof-track"
 		data-testid="proof-track"
+		data-loop-ready={ready ? '' : undefined}
 		data-ripple-exempt
 	>
 		<div class="proof-slides" use:equalizeRows={['.home-card__title', '.home-card__text', '.home-card__facts']}>
@@ -186,9 +207,18 @@
 	.proof-track {
 		--proof-gap: 1.25rem;
 		--proof-per-view: 1;
-		overflow: hidden;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scroll-padding-inline: 4px;
+		scrollbar-width: none;
 		padding: 6px 4px;
 		margin: -6px -4px;
+	}
+
+	.proof-track[data-loop-ready] {
+		overflow: hidden;
+		scroll-snap-type: none;
 		touch-action: pan-y pinch-zoom;
 	}
 
@@ -202,6 +232,7 @@
 		display: flex;
 		flex: 0 0 calc((100% - (var(--proof-per-view) - 1) * var(--proof-gap)) / var(--proof-per-view));
 		min-width: 0;
+		scroll-snap-align: start;
 	}
 
 	/* A looping flex gap needs its trailing seam too; fitted views have no trailing gap. */

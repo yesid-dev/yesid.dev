@@ -46,3 +46,49 @@ test('last and first projects move continuously in the chosen direction', async 
 	await expect(reel.getByTestId('proof-position')).toHaveText(/^1 (to 2 )?of 3$/);
 	await expect(reel.getByTestId('proof-card')).toHaveCount(3);
 });
+
+test('horizontal trackpad gestures browse projects and vertical wheel keeps page scrolling', async ({ page, isMobile }) => {
+	test.skip(isMobile, 'Pointer input on desktop.');
+	await page.goto('/');
+	const reel = page.getByTestId('proof-reel-section');
+	await reel.scrollIntoViewIfNeeded();
+	const position = reel.getByTestId('proof-position');
+	const initial = await position.textContent();
+	await reel.getByTestId('proof-track').hover({ position: { x: 200, y: 150 } });
+	await page.mouse.wheel(500, 0);
+	await expect(position).not.toHaveText(initial!);
+	await expect.poll(async () => {
+		const card = (await reel.getByTestId('proof-slide').nth(1).boundingBox())!;
+		const frame = (await reel.getByTestId('proof-track').boundingBox())!;
+		return Math.abs(card.x - frame.x - 4);
+	}).toBeLessThan(1);
+	const beforeShift = await position.textContent();
+	await page.keyboard.down('Shift');
+	await page.mouse.wheel(0, 500);
+	await page.keyboard.up('Shift');
+	await expect(position).not.toHaveText(beforeShift!);
+	const beforeY = await page.evaluate(() => scrollY);
+	await page.mouse.wheel(0, 160);
+	await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(beforeY);
+});
+
+test('without JavaScript a phone can still swipe to later projects', async ({ browser, baseURL }, info) => {
+	test.skip(info.project.name !== 'phone', 'One native phone fallback journey.');
+	const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+	try {
+		const page = await context.newPage();
+		await page.goto(baseURL + '/');
+		const track = page.getByTestId('proof-track');
+		await track.scrollIntoViewIfNeeded();
+		const box = (await track.boundingBox())!;
+		const y = Math.max(220, box.y + 160);
+		const touch = await context.newCDPSession(page);
+		await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 320, y }] });
+		for (let step = 1; step <= 6; step++) {
+			await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 320 - step * 40, y }] });
+		}
+		await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+		await expect.poll(() => track.evaluate(el => el.scrollLeft)).toBeGreaterThan(100);
+		await touch.detach();
+	} finally { await context.close(); }
+});
