@@ -42,7 +42,9 @@ describe('ServiceCard', () => {
 		render(ServiceCard, {
 			props: { service: mockService, svgContent: '' }
 		});
-		expect(screen.getByText('SQL Development & Optimization')).toBeTruthy();
+		const heading = screen.getByRole('heading', { level: 2 });
+		expect(heading.textContent).toBe('SQL Development & Optimization.');
+		expect(heading.querySelector('[data-slot="dotted-title-word"]')?.textContent).toBe('Optimization.');
 	});
 
 	it('renders the benefit headline', () => {

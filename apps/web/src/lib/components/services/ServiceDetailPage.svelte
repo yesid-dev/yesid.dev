@@ -35,6 +35,7 @@
 	import { DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
 	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import SectionsToggle from '#lib/components/shared/SectionsToggle.svelte';
+	import TitleWithDot from '#lib/components/shared/TitleWithDot.svelte';
 
 	const locale = getLocale();
 
@@ -55,6 +56,7 @@
 	} = $props();
 
 	let title = $derived(resolveLocale(service.title, locale));
+	const longestTitleWord = $derived(Math.max(1, ...title.split(/\s+/).map(word => word.length)));
 	let description = $derived(resolveLocale(service.description, locale));
 	let svgContent = $derived(serviceSvgContents[service.id] ?? '');
 	let benefitHeadline = $derived(
@@ -76,12 +78,14 @@
 	const clickWidth = Math.ceil(clickStart.x + 30);
 	const clickArrow = `M${clickStart.x} ${clickStart.y} C${clickStart.x + 6} ${clickStart.y + 26} ${clickWidth - 26} 52 ${clickWidth - 2} 52`;
 	const clickTip = `M${clickWidth - 11} 47 L${clickWidth - 2} 52 L${clickWidth - 11} 57`;
-	// Phones: the same hand lettering above the 56px drawing, its arrow landing on the tile's top edge.
-	const clickMobileWidth = Math.ceil(clickMe.width + 14);
-	const clickMobileHeight = 60;
-	const clickMobileTarget = clickMobileWidth / 2;
-	const clickMobileArrow = `M${clickStart.x} ${clickStart.y} C${clickStart.x + 6} ${clickStart.y + 14} ${clickMobileTarget + 18} 40 ${clickMobileTarget} 54`;
-	const clickMobileTip = `M${clickMobileTarget - 5} 49 L${clickMobileTarget} 54 L${clickMobileTarget + 5} 49`;
+	// Phones: the same hand lettering points across the title row.
+	const clickMobileBaseline = 24;
+	const clickMobileStartY = clickMobileBaseline + clickMe.end.y;
+	const clickMobileWidth = Math.ceil(clickStart.x + 19);
+	const clickMobileHeight = 36;
+	const clickMobileTarget = clickMobileWidth - 2;
+	const clickMobileArrow = `M${clickStart.x} ${clickMobileStartY} Q${clickMobileTarget - 11} ${clickMobileStartY + 4} ${clickMobileTarget} 18`;
+	const clickMobileTip = `M${clickMobileTarget - 5} 14 L${clickMobileTarget} 18 L${clickMobileTarget - 5} 22`;
 
 	let backLinkLabel = $derived(resolveLocale(siteLabels.servicesChrome.detail.backToServicesLabel, locale));
 	let valuePropositionHeading = $derived(
@@ -243,20 +247,21 @@
 				</a>
 
 				<header class="hero-grid">
-					<h1 class="detail-title" id="service-detail-title">
-						{title}<span class="title-dot">.</span>
-					</h1>
+					<div class="title-cell" style:--longest-title-word={longestTitleWord}>
+						<h1 class="detail-title" id="service-detail-title">
+							<TitleWithDot text={title} />
+						</h1>
+					</div>
 
 					{#if svgContent}
-						<!-- Phones: the drawing with its "click me" above it. -->
-						<div class="svg-mobile" style="--click-mobile-height: {clickMobileHeight}px" data-ripple-exempt>
-							<span class="click-me click-me--mobile" style="width: {clickMobileWidth}px; height: {clickMobileHeight}px">
+						<div class="svg-mobile" data-ripple-exempt>
+							<span class="click-me click-me--mobile" style:aspect-ratio={`${clickMobileWidth} / ${clickMobileHeight}`}>
 								<HeroDotAnnotation
 									lettering={clickMe}
 									width={clickMobileWidth}
 									height={clickMobileHeight}
 									x={4}
-									y={clickBaseline}
+									y={clickMobileBaseline}
 									arrow={clickMobileArrow}
 									tip={clickMobileTip}
 									visible={!$prefersReducedMotion}
@@ -422,23 +427,27 @@
 		text-decoration: underline;
 	}
 
-	/* Phones: the title keeps the full measure; the drawing sits beside the description. */
+	/* Phones: the title, annotation and drawing share one row. */
 	.hero-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) auto;
 		grid-template-areas:
-			'title title'
-			'desc art'
+			'title art'
+			'desc desc'
 			'bulk bulk';
-		column-gap: 1rem;
-		align-items: start;
+		column-gap: 0.5rem;
+		align-items: center;
+	}
+
+	.title-cell {
+		grid-area: title;
+		container-type: inline-size;
 	}
 
 	.detail-title {
-		grid-area: title;
 		margin: 0;
 		font-family: var(--font-heading);
-		font-size: clamp(var(--text-title), 10vw, var(--text-display));
+		font-size: max(1.125rem, min(clamp(var(--text-title), 10vw, var(--text-display)), calc(100cqi / (var(--longest-title-word) * 0.62))));
 		font-weight: 900;
 		line-height: 1.05;
 		letter-spacing: -0.02em;
@@ -447,22 +456,17 @@
 		text-wrap: balance;
 	}
 
-	.title-dot {
-		color: var(--primary);
-	}
-
 	.svg-mobile {
 		grid-area: art;
-		position: relative;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		gap: 0.125rem;
-		padding-block-start: calc(var(--click-mobile-height) + 2px);
 	}
 
 	.svg-mobile :global(.svg-panel--banner) {
-		padding: 0.5rem;
+		flex: none;
+		width: auto;
+		padding: 0.25rem;
 	}
 
 	/* !important outranks SvgIcon's inline size, as in ServiceSvgPanel. */
@@ -490,18 +494,17 @@
 		pointer-events: none;
 	}
 
-	/* Phones: the same hand lettering, drawn above the 56px tile on its own line. */
 	.click-me--mobile {
-		position: absolute;
-		top: 0;
-		right: auto;
-		left: 50%;
-		transform: translateX(-50%);
+		position: relative;
+		inset: auto;
 		display: block;
+		flex: none;
+		inline-size: clamp(3rem, 15vw, 4.75rem);
+		height: auto;
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.svg-mobile { padding-block-start: 0; }
+		.click-me--mobile { display: none; }
 	}
 
 	.detail-description {

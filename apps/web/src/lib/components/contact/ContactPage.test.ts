@@ -574,7 +574,7 @@ describe('ContactPage rebuild (DEV-40)', () => {
 	const fr = () => new Map([[Symbol.for('@yesid/ui/locale'), () => 'fr']]);
 	const es = () => new Map([[Symbol.for('@yesid/ui/locale'), () => 'es']]);
 
-	it('draws "Contact." as the kit RailTitle: the one h1, ending on the orange dot', () => {
+	it('gives the Contact section one heading and contains both panels', () => {
 		const { container } = render(ContactPage, { props: { contactPage: contactContent } });
 		const headings = screen.getAllByRole('heading', { level: 1 });
 		expect(headings).toHaveLength(1);
@@ -584,14 +584,11 @@ describe('ContactPage rebuild (DEV-40)', () => {
 		expect(rail).not.toBeNull();
 		expect(rail).toHaveAttribute('data-side', 'left');
 		expect(headings[0].querySelector('[data-slot="rail-title-dot"]')).toHaveAttribute('aria-hidden', 'true');
-		// The page's one section is named by the title; the panels sit in the rail layout's content.
+		// The title names the section containing both panels.
 		const section = container.querySelector('[data-slot="page-section"]');
 		expect(section).toHaveAttribute('aria-labelledby', 'contact-title');
-		const layout = container.querySelector('[data-slot="rail-title-layout"]') as HTMLElement;
-		expect(layout.style.getPropertyValue('--rail-title-size')).toBe('clamp(3rem, 4vw, 3.5rem)');
-		expect(
-			layout.querySelector('[data-slot="rail-title-content"] [data-testid="contact-form-terminal"]'),
-		).not.toBeNull();
+		expect(section).toContainElement(screen.getByTestId('contact-info-terminal'));
+		expect(section).toContainElement(screen.getByTestId('contact-form-terminal'));
 	});
 
 	it('uses solid terminal rules without extra separator elements or a rule before the footer', () => {

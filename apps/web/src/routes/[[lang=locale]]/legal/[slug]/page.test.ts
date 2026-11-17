@@ -7,6 +7,8 @@ import { PUBLISHED_LOCALES } from '#lib/utils/published-locales.ts';
 import { resolveLocale } from '#lib/utils/locale.ts';
 import { catalog } from '#lib/catalog/index.ts';
 import { resolvePageSeo } from '#lib/adapters/page-seo.ts';
+import { siteNavigationLabels } from '#lib/content/site-navigation-labels.ts';
+import { kebabSlug, stripHtml } from '@repo/shared';
 
 for (const locale of PUBLISHED_LOCALES) {
 	describe(`${locale} legal loader and renderer`, () => {
@@ -32,6 +34,25 @@ for (const locale of PUBLISHED_LOCALES) {
 					return template.content.textContent ?? '';
 				});
 			const body = screen.getByTestId('legal-body');
+			const contents = screen.getByRole('navigation', { name: resolveLocale(siteNavigationLabels.navChrome.shared.tocHeading, locale) });
+			const links = within(contents).getAllByRole('link');
+			expect(links.length).toBeGreaterThan(0);
+			for (const link of links) {
+				expect(link.getAttribute('href')).toMatch(/^#[a-z0-9]+(?:-[a-z0-9]+)*$/);
+				const id = link.getAttribute('href')!.slice(1);
+				const target = [...body.querySelectorAll('[id]')].find(element => element.id === id);
+				expect(target, `contents target ${id}`).toBeDefined();
+				expect(target).toHaveAttribute('tabindex', '-1');
+			}
+			const elementsWithIds = [...body.querySelectorAll('[id]')];
+			const ids = new Set(elementsWithIds.map(element => element.id));
+			expect(ids.size).toBe(elementsWithIds.length);
+			for (const block of resolveLocale(expected.body, locale).blocks) {
+				if (block.type !== 'header') continue;
+				const legacy = kebabSlug(stripHtml(block.data.text));
+				if (legacy) expect(ids.has(legacy), `existing fragment ${legacy}`).toBe(true);
+			}
+			expect(screen.getByTestId('page-legal').querySelector('header time')).toBeNull();
 			expect(within(body).getAllByRole('paragraph').map(p => p.textContent)).toEqual(paragraphs);
 			expect(body).toHaveTextContent('contact@yesid.dev');
 			expect(body).not.toHaveTextContent('admin@yesid.dev');

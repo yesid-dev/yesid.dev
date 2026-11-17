@@ -254,11 +254,12 @@ test.describe('the service page', () => {
 		await expect(page.getByTestId('toc-pill')).toHaveCount(0);
 	});
 
-	test('phone: the 56px drawing keeps its "click me", the desktop panel stays away', async ({ page }) => {
+	test('phone: title, "click me" and the 56px drawing share one row', async ({ page }) => {
 		for (const width of [320, 390]) {
 			for (const locale of ['en', 'fr', 'es']) {
 				await page.setViewportSize({ width, height: 844 });
-				await open(page, locale === 'en' ? DETAIL : `/fr${DETAIL}`);
+				await open(page, locale === 'en' ? DETAIL : `/${locale}${DETAIL}`);
+				await page.evaluate(() => document.fonts.ready);
 				await expect(page.locator('.svg-mobile [data-testid="hero-dot-annotation"]')).toBeVisible();
 				await expect(page.locator('.svg-desktop')).toBeHidden();
 				const tile = await page.locator('.svg-mobile [data-testid="service-svg-panel"] [data-slot="svg-icon"]').evaluate((el) => {
@@ -271,6 +272,19 @@ test.describe('the service page', () => {
 					const svg = document.querySelector('.svg-mobile [data-testid="hero-dot-annotation"]')!;
 					const frame = svg.getBoundingClientRect(), label = svg.querySelector('g')!.getBoundingClientRect();
 					const heading = document.querySelector('h1')!;
+					const titleBox = heading.getBoundingClientRect();
+					const dot = heading.querySelector('[data-slot="title-dot"]')!;
+					const dottedWord = heading.querySelector('[data-slot="dotted-title-word"]')!;
+					const wordRange = document.createRange();
+					wordRange.selectNodeContents(dottedWord);
+					const wordTogether = () => {
+						const y = dot.getBoundingClientRect().top;
+						const letters = [...wordRange.getClientRects()];
+						return letters.length > 0 && letters.every(rect => Math.abs(rect.top - y) <= 1);
+					};
+					const dotOnTextLine = wordTogether();
+					const panel = document.querySelector('.svg-mobile [data-testid="service-svg-panel"]')!.getBoundingClientRect();
+					const center = (box: DOMRect) => box.top + box.height / 2;
 					const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
 					let wholeWords = true;
 					while (walker.nextNode()) for (const match of walker.currentNode.textContent!.matchAll(/\p{L}{2,}/gu)) {
@@ -279,9 +293,27 @@ test.describe('the service page', () => {
 						range.setEnd(walker.currentNode, match.index! + match[0].length);
 						wholeWords &&= range.getClientRects().length === 1;
 					}
-					return { wholeWords, labelInside: label.left >= frame.left - 1 && label.right <= frame.right + 1 && label.top >= frame.top - 1 && label.bottom <= frame.bottom + 1 };
+					const originalStyle = heading.getAttribute('style');
+					heading.style.fontSize = getComputedStyle(heading).fontSize;
+					heading.style.inlineSize = `${Math.ceil(dottedWord.getBoundingClientRect().width)}px`;
+					walker.currentNode = heading;
+					const firstText = walker.nextNode()!;
+					const firstLetter = document.createRange();
+					firstLetter.setStart(firstText, 0);
+					firstLetter.setEnd(firstText, 1);
+					const wordWrapsWithDot = wordTogether() && dot.getBoundingClientRect().top > firstLetter.getBoundingClientRect().top + 1;
+					if (originalStyle === null) heading.removeAttribute('style');
+					else heading.setAttribute('style', originalStyle);
+					return {
+						wholeWords,
+						dotOnTextLine,
+						wordWrapsWithDot,
+						labelInside: label.left >= frame.left - 1 && label.right <= frame.right + 1 && label.top >= frame.top - 1 && label.bottom <= frame.bottom + 1,
+						sameRow: Math.abs(center(titleBox) - center(frame)) <= 1 && Math.abs(center(frame) - center(panel)) <= 1,
+						sideBySide: titleBox.right <= frame.left + 1 && frame.right <= panel.left + 1,
+					};
 				});
-				expect(legibility, 'opening words stay whole and the handwritten label stays inside its SVG').toEqual({ wholeWords: true, labelInside: true });
+				expect(legibility, `${locale} opening at ${width}px`).toEqual({ wholeWords: true, dotOnTextLine: true, wordWrapsWithDot: true, labelInside: true, sameRow: true, sideBySide: true });
 				// The annotation is a pointer-transparent overlay, never a control.
 				const annotation = page.locator('.svg-mobile [data-testid="hero-dot-annotation"]');
 				expect(await css(annotation, 'pointer-events')).toBe('none');

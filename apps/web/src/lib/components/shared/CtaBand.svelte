@@ -8,6 +8,7 @@
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import CtaBlueprintBackground from './CtaBlueprintBackground.svelte';
+	import TitleWithDot from './TitleWithDot.svelte';
 
 	const locale = getLocale();
 
@@ -43,7 +44,7 @@
 	<div class="cta-band">
 		<h2 class="band-heading">
 			{#each headingLines as line, i}
-				<span class="band-line">{line}{#if i === headingLines.length - 1}<span class="band-dot">.</span>{/if}</span>
+				<span class="band-line">{#if i === headingLines.length - 1}<TitleWithDot text={line} />{:else}{line}{/if}</span>
 			{/each}
 		</h2>
 		<p class="band-subtitle">{subtitle}</p>
@@ -119,10 +120,6 @@
 
 	.band-line {
 		display: block;
-	}
-
-	.band-dot {
-		color: var(--primary);
 	}
 
 	.band-subtitle {

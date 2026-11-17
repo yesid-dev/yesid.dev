@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, within } from '@testing-library/svelte';
 import ServiceDetailPage from './ServiceDetailPage.svelte';
 import { projectFactory, serviceFactory } from '../../../tests/factories';
 
@@ -76,9 +76,11 @@ describe('ServiceDetailPage composition (D-M5)', () => {
 		expect(container.querySelector('.impact-label')).toHaveTextContent('checks/day');
 	});
 
-	it('names the previous and next links apart from the station strip', () => {
+	it('keeps the adjacent-service navigation separate from the station strip, without a divider', () => {
 		renderPage();
-		expect(screen.getByRole('navigation', { name: 'Other services' })).toContainElement(screen.getByTestId('service-nav-prev'));
+		const nav = screen.getByRole('navigation', { name: 'Other services' });
+		expect(nav).toContainElement(screen.getByTestId('service-nav-prev'));
+		expect(within(nav).queryByTestId('content-divider')).toBeNull();
 	});
 
 	it('ends every section with the divider except the closing band, so none sits before the footer', () => {
