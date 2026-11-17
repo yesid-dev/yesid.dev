@@ -27,3 +27,8 @@ export function pointerHover(node: HTMLElement, onChange: PointerHoverCallback) 
 		},
 	};
 }
+
+/** SVG toys inside a card react to the card's whole surface; standalone toys keep their own. */
+export function pointerCardHover(node: HTMLElement, onChange: PointerHoverCallback) {
+	return pointerHover(node.closest<HTMLElement>('[data-slot="card"]') ?? node, onChange);
+}

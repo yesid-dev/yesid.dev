@@ -9,7 +9,7 @@
 	import { siteLabels } from '#lib/content/index.ts';
 	import { getLenis } from '@yesid/motion/utils/lenis';
 	import { RailTitle } from '@yesid/ui/brand';
-	import { PageSection, PageSections } from '@yesid/ui/layout';
+	import { PageSection } from '@yesid/ui/layout';
 	import StationTabs from '#lib/components/shared/StationTabs.svelte';
 	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import ServiceCard from './ServiceCard.svelte';
@@ -102,15 +102,14 @@
 
 <!--
   /services (D-M5, DEV-39): the orange top strip, sticky, selects a service; "Services." on the
-  left rail; four alike service cards; the closing band. Sections end with the kit's divider,
-  except the last (none before the footer).
+  left rail; four alike service cards; the closing band. The owner omits a divider around
+  this page's closing band; its sections keep their semantics without registering a boundary.
 -->
 <div class="services-page" data-testid="service-listing-page" data-register="reading">
 	<div class="tabs-bar">
 		<StationTabs services={sorted} {activeId} mode="scroll" onSelect={handleStationSelect} />
 	</div>
 
-	<PageSections divider="hand-drawn">
 		<PageSection class="services-list-section" aria-labelledby="services-heading">
 			<RailTitle clipAtHeader={false}
 				{heading}
@@ -130,9 +129,8 @@
 		</PageSection>
 
 		<PageSection class="services-band" data-register="expressive" data-testid="services-cta">
-			<CtaBand testidPrefix="services-cta-band" />
+			<CtaBand testidPrefix="services-cta-band" leadingRule={false} />
 		</PageSection>
-	</PageSections>
 </div>
 
 <style>

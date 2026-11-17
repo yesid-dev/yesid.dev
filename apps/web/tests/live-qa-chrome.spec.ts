@@ -22,7 +22,8 @@ test('drawn page rules, yellow terminals and actual footer hazard tape @theme', 
 		await expect(footer.locator('[data-slot="footer-hazard-edge"]')).toHaveCSS('background-image', /repeating-linear-gradient/);
 		const boundaries = page.locator('main [data-slot="page-section-boundary"]');
 		const sections = await page.locator('main [data-slot="page-section"]').count();
-		await expect(boundaries).toHaveCount(Math.max(0, sections - 1));
+		// The owner explicitly omits the Services listing's closing divider.
+		await expect(boundaries).toHaveCount(path === '/services' ? 0 : Math.max(0, sections - 1));
 		for (const boundary of await boundaries.all()) {
 			await expect(boundary).toHaveClass(/hand-drawn-line/);
 			await expect(boundary.locator('svg path')).toHaveAttribute('vector-effect', 'non-scaling-stroke');

@@ -182,7 +182,7 @@ describe('ServiceListingPage composition (D-M5)', () => {
 		expect(document.body.textContent).not.toMatch(/Service\s*\d+\s*\/\s*\d+/i);
 	});
 
-	it('ends with the closing band, with one divider between the sections and none after the band', () => {
+	it('ends with the closing band without a divider around it', () => {
 		renderPage();
 		const sections = document.querySelectorAll('[data-slot="page-section"]');
 		expect(sections).toHaveLength(2);
@@ -191,8 +191,8 @@ describe('ServiceListingPage composition (D-M5)', () => {
 		expect(band).toHaveAttribute('data-register', 'expressive');
 		expect(screen.getByTestId('services-cta-band-contact')).toBeInTheDocument();
 		const dividers = document.querySelectorAll('[data-slot="page-section-boundary"]');
-		expect(dividers).toHaveLength(1);
-		expect(dividers[0].nextElementSibling).toBe(band);
+		expect(dividers).toHaveLength(0);
+		expect(document.querySelector('[data-edge-rule]')).toBeNull();
 		expect(band.nextElementSibling, 'nothing follows the last section before the footer').toBeNull();
 	});
 });

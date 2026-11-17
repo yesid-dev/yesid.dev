@@ -200,10 +200,10 @@ test.describe('dividers and the closing band', () => {
 	test.skip(({ viewport }) => viewport!.width < 1024, 'Viewport-independent.');
 
 	for (const [path, sections] of [[LISTING, 2], [DETAIL, 3]] as const)
-		test(`${path}: a divider ends every section but the last; none before the footer`, async ({ page }) => {
+		test(`${path}: closing-band divider follows the page's rule; none before the footer`, async ({ page }) => {
 			await open(page, path);
 			await expect(page.locator('main [data-slot="page-section"]')).toHaveCount(sections);
-			await expect(page.locator('main [data-slot="page-section-boundary"]')).toHaveCount(sections - 1);
+			await expect(page.locator('main [data-slot="page-section-boundary"]')).toHaveCount(path === LISTING ? 0 : sections - 1);
 			const last = page.locator('main [data-slot="page-section"]').last();
 			await expect(last.getByTestId(/cta-band$/)).toBeVisible();
 			await expect(last.getByRole('link', { name: /./ }).first()).toBeVisible();
