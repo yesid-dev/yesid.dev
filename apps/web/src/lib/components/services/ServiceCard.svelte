@@ -15,6 +15,7 @@
 	import { Card } from '@yesid/ui/card';
 	import { Button } from '@yesid/ui/button';
 	import { Separator } from '@yesid/ui/separator';
+	import TitleWithDot from '#lib/components/shared/TitleWithDot.svelte';
 	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
 
 	const locale = getLocale();
@@ -79,7 +80,7 @@
 			<div class="service-text">
 				<div class="title-row">
 					<svelte:element this={`h${headingLevel}`} class="service-title" id="svc-title-{service.id}" tabindex="-1">
-						{title}<span class="title-dot">.</span>
+						<TitleWithDot text={title} />
 					</svelte:element>
 					{#if svgContent}
 						<div class="svg-mobile-banner">
@@ -160,10 +161,6 @@
 		letter-spacing: -0.02em;
 		margin: 0 0 0.75rem;
 		scroll-margin-top: calc(var(--nav-clearance) + var(--strip-h) + 1rem);
-	}
-
-	.title-dot {
-		color: var(--primary);
 	}
 
 	.benefit-headline {

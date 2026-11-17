@@ -35,6 +35,7 @@
 	import { DetailFrame, PageSection, PageSections } from '@yesid/ui/layout';
 	import CtaBand from '#lib/components/shared/CtaBand.svelte';
 	import SectionsToggle from '#lib/components/shared/SectionsToggle.svelte';
+	import TitleWithDot from '#lib/components/shared/TitleWithDot.svelte';
 
 	const locale = getLocale();
 
@@ -248,7 +249,7 @@
 				<header class="hero-grid">
 					<div class="title-cell" style:--longest-title-word={longestTitleWord}>
 						<h1 class="detail-title" id="service-detail-title">
-							{title}<span class="title-dot">.</span>
+							<TitleWithDot text={title} />
 						</h1>
 					</div>
 
@@ -453,10 +454,6 @@
 		color: var(--foreground);
 		overflow-wrap: break-word;
 		text-wrap: balance;
-	}
-
-	.title-dot {
-		color: var(--primary);
 	}
 
 	.svg-mobile {

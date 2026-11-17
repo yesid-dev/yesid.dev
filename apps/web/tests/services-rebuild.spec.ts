@@ -273,6 +273,10 @@ test.describe('the service page', () => {
 					const frame = svg.getBoundingClientRect(), label = svg.querySelector('g')!.getBoundingClientRect();
 					const heading = document.querySelector('h1')!;
 					const titleBox = heading.getBoundingClientRect();
+					const dot = heading.querySelector('[data-slot="title-dot"]')!;
+					const lastLetter = document.createRange();
+					lastLetter.selectNodeContents(dot.previousSibling!);
+					const dotOnTextLine = Math.abs(dot.getBoundingClientRect().top - lastLetter.getBoundingClientRect().top) <= 1;
 					const panel = document.querySelector('.svg-mobile [data-testid="service-svg-panel"]')!.getBoundingClientRect();
 					const center = (box: DOMRect) => box.top + box.height / 2;
 					const walker = document.createTreeWalker(heading, NodeFilter.SHOW_TEXT);
@@ -285,12 +289,13 @@ test.describe('the service page', () => {
 					}
 					return {
 						wholeWords,
+						dotOnTextLine,
 						labelInside: label.left >= frame.left - 1 && label.right <= frame.right + 1 && label.top >= frame.top - 1 && label.bottom <= frame.bottom + 1,
 						sameRow: Math.abs(center(titleBox) - center(frame)) <= 1 && Math.abs(center(frame) - center(panel)) <= 1,
 						sideBySide: titleBox.right <= frame.left + 1 && frame.right <= panel.left + 1,
 					};
 				});
-				expect(legibility, `${locale} opening at ${width}px`).toEqual({ wholeWords: true, labelInside: true, sameRow: true, sideBySide: true });
+				expect(legibility, `${locale} opening at ${width}px`).toEqual({ wholeWords: true, dotOnTextLine: true, labelInside: true, sameRow: true, sideBySide: true });
 				// The annotation is a pointer-transparent overlay, never a control.
 				const annotation = page.locator('.svg-mobile [data-testid="hero-dot-annotation"]');
 				expect(await css(annotation, 'pointer-events')).toBe('none');

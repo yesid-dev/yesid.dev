@@ -6,6 +6,7 @@
 	import AboutEducation from '#lib/components/about/AboutEducation.svelte';
 	import AboutWeather from '#lib/components/about/AboutWeather.svelte';
 	import AboutInterests from '#lib/components/about/AboutInterests.svelte';
+	import TitleWithDot from '#lib/components/shared/TitleWithDot.svelte';
 	import { resolveLocale } from '#lib/utils/locale.ts';
 	import { getLocale } from '#lib/utils/locale-context.ts';
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
@@ -34,7 +35,7 @@
 
 <div class="about-teaser reading-detail" data-testid="home-about-teaser">
 	<div class="teaser-identity">
-		<p class="teaser-name">{name}<span class="teaser-dot">.</span></p>
+		<p class="teaser-name"><TitleWithDot text={name} /></p>
 		<p class="teaser-title">{title}</p>
 		<p class="teaser-bio article-body">{bio}</p>
 		<a href={localizeHref('/about', locale)} class="teaser-more tap-feedback" data-testid="home-about-more">
@@ -82,10 +83,6 @@
 		font-weight: 900;
 		line-height: 1.05;
 		color: var(--foreground);
-	}
-
-	.teaser-dot {
-		color: var(--primary);
 	}
 
 	.teaser-title {
