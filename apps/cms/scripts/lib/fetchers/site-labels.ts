@@ -310,14 +310,21 @@ export function toSiteLabels(raw: SiteLabelsRow): SiteLabels {
 			]),
 		},
 		footerChrome: {
-			footer: toLocalizedFields(tr, [
-				['tagline', 'footer_chrome_footer_tagline'], ['location', 'footer_chrome_footer_location'],
-				['statusPrefix', 'footer_chrome_footer_status_prefix'],
-				['exploreLabel', 'footer_chrome_footer_explore_label'],
-				['legalLabel', 'footer_chrome_footer_legal_label'],
-				['connectLabel', 'footer_chrome_footer_connect_label'],
-				['liveLabel', 'footer_chrome_footer_live_label'],
-			]),
+			footer: {
+				...toLocalizedFields(tr, [
+					['tagline', 'footer_chrome_footer_tagline'], ['location', 'footer_chrome_footer_location'],
+					['statusPrefix', 'footer_chrome_footer_status_prefix'],
+					['exploreLabel', 'footer_chrome_footer_explore_label'],
+					['legalLabel', 'footer_chrome_footer_legal_label'],
+					['liveLabel', 'footer_chrome_footer_live_label'],
+				]),
+				// Restore the owner's social heading without replacing custom CMS wording.
+				connectLabel: migrateLegacyExact(
+					toLocalizedFields(tr, [['label', 'footer_chrome_footer_connect_label']]).label,
+					{ en: 'CONNECT', fr: 'CONNEXION', es: 'CONECTA' },
+					{ en: 'Elsewhere', fr: 'Ailleurs', es: 'En otros lugares' },
+				),
+			},
 		},
 		heroDashboard: {
 			...dashboardLabels,

@@ -3,6 +3,7 @@ import { menuItems } from '#lib/content/nav.ts';
 import { visibleMenuItems } from './menu.ts';
 import { groupMenuItems, menuGroupLabels } from './menu-groups.ts';
 import type { NavLink } from './types.ts';
+import { resolveLocale } from '#lib/utils/locale.ts';
 
 const all = visibleMenuItems(menuItems, 'en');
 
@@ -21,11 +22,18 @@ describe('menu groups', () => {
 	});
 
 	it('heads the groups with the existing localized names, and Work’s fallback in all three', () => {
-		expect(menuGroupLabels('en')).toEqual({ work: 'WORK', explore: 'EXPLORE', connect: 'CONNECT' });
-		expect(menuGroupLabels('fr')).toEqual({ work: 'TRAVAIL', explore: 'EXPLORER', connect: 'CONNEXION' });
-		expect(menuGroupLabels('es')).toEqual({ work: 'TRABAJO', explore: 'EXPLORA', connect: 'CONECTA' });
+		const contact = all.find(item => item.href === '/contact')!;
+		expect(menuGroupLabels('en')).toEqual({ work: 'WORK', explore: 'EXPLORE', connect: resolveLocale(contact.label, 'en') });
+		expect(menuGroupLabels('fr')).toEqual({ work: 'TRAVAIL', explore: 'EXPLORER', connect: resolveLocale(contact.label, 'fr') });
+		expect(menuGroupLabels('es')).toEqual({ work: 'TRABAJO', explore: 'EXPLORA', connect: resolveLocale(contact.label, 'es') });
 		for (const locale of ['en', 'fr', 'es'] as const) {
 			for (const label of Object.values(menuGroupLabels(locale))) expect(label.trim()).not.toBe('');
+		}
+	});
+	it('uses the client destination label when it is the only contact-group entry', () => {
+		const login = all.find(item => item.href === 'https://login.yesid.dev')!;
+		for (const locale of ['en', 'fr', 'es'] as const) {
+			expect(groupMenuItems([login], locale)[0]!.label).toBe(resolveLocale(login.label, locale));
 		}
 	});
 
