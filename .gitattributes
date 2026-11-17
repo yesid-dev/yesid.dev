@@ -10,6 +10,11 @@
 *.json text eol=lf
 .github/scripts/design-prerelease-guard.mjs text eol=lf
 
+# Inline boot hashes must match the LF text parsed by browsers on every platform.
+apps/web/src/lib/state/*-boot.js text eol=lf
+# Workflow contract tests also consume the committed line structure.
+.github/workflows/*.yml text eol=lf
+
 # Binary assets: never touch
 *.png binary
 *.ico binary

@@ -129,8 +129,8 @@ html {
   margin: 1rem 0;
 }
 
-/* 13. Scroll offset for anchor links — headings land below the sticky nav */
+/* Anchor headings and focused footer controls clear the floating nav. */
 h1[id], h2[id], h3[id], h4[id], h5[id], h6[id],
-[data-section-index], .section-header {
+[data-section-index], .section-header, footer :focus {
   scroll-margin-top: calc(var(--nav-clearance) + 1rem);
 }

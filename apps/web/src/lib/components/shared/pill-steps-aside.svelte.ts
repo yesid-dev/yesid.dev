@@ -20,16 +20,25 @@ export function pillStepsAside(selector: string): PillStepsAside {
 	$effect(() => {
 		const band = document.querySelector(selector);
 		if (!band) return;
+		const update = () => {
+			const box = band.getBoundingClientRect();
+			// A hidden or not-yet-laid-out marker has no visible closing band to clear.
+			aside = (box.width > 0 || box.height > 0) && box.top < window.innerHeight - PILL_CLEARANCE_PX;
+		};
 		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (!entry) return;
-				// In the area above the pill's line, or already scrolled past the top of the viewport.
-				aside = entry.isIntersecting || entry.boundingClientRect.top < 0;
-			},
+			update,
 			{ rootMargin: `0px 0px -${PILL_CLEARANCE_PX}px 0px` },
 		);
 		observer.observe(band);
-		return () => observer.disconnect();
+		// Instant keyboard or restored-position jumps can skip the observer's intersection range.
+		window.addEventListener('scroll', update, { passive: true });
+		window.addEventListener('resize', update);
+		update();
+		return () => {
+			observer.disconnect();
+			window.removeEventListener('scroll', update);
+			window.removeEventListener('resize', update);
+		};
 	});
 
 	return {
