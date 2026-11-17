@@ -56,6 +56,14 @@ for (const locale of ['en', 'fr', 'es']) for (const theme of ['light', 'dark']) 
 		const axe = await new AxeBuilder({ page }).include('.table-scroll').withRules(['scope-attr-valid', 'td-headers-attr', 'scrollable-region-focusable']).analyze();
 		expect(axe.violations).toEqual([]);
 		await info.attach('table-accessibility', { body: await table.ariaSnapshot(), contentType: 'text/plain' });
-		if (locale === 'en' && info.project.name !== 'tablet') await table.screenshot({ path: info.outputPath(`row-headings-${info.project.name}-${theme}.png`) });
+		if (locale === 'en' && info.project.name !== 'tablet') {
+			await page.emulateMedia({ reducedMotion: 'reduce' });
+			await region.evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' }));
+			await expect.poll(() => table.evaluate(el => {
+				const box = el.parentElement!.getBoundingClientRect();
+				return el.contains(document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2));
+			})).toBe(true);
+			await region.screenshot({ path: info.outputPath(`row-headings-${info.project.name}-${theme}.png`) });
+		}
 	});
 }
