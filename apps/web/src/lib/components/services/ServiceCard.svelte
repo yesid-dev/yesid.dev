@@ -14,6 +14,7 @@
 	import { siteLabels } from '#lib/content/index.ts';
 	import { Card } from '@yesid/ui/card';
 	import { Button } from '@yesid/ui/button';
+	import { Separator } from '@yesid/ui/separator';
 	import ServiceSvgPanel from './ServiceSvgPanel.svelte';
 
 	const locale = getLocale();
@@ -94,6 +95,7 @@
 				<p class="service-description">{description}</p>
 
 				<div class="service-foot">
+					<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 					{#if metricValue}
 						<p class="service-metric" data-testid="service-metric">
 							<span class="metric-value">{metricValue}</span>
@@ -181,13 +183,13 @@
 	}
 
 	.service-foot {
+		position: relative;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		flex-wrap: wrap;
 		gap: 1rem 2rem;
 		padding-top: 1rem;
-		border-top: 1px solid var(--border-subtle);
 	}
 
 	/* The published metric in reading ink, its label in sentence case; the value is unchanged. */

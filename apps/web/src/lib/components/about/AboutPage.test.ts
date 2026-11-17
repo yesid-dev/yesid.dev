@@ -223,9 +223,11 @@ describe('AboutPage', () => {
 		expect(container.textContent).not.toMatch(/\b(STOP|ARRÊT|PARADA)\s*\d/);
 		const headings = [...container.querySelectorAll('h2')].map((el) => el.textContent?.trim());
 		expect(headings).toEqual(['Fun facts', 'Quotes', 'Core beliefs', 'Education', 'Languages', 'Interests', 'Snapshots', 'Weather', 'Get in touch']);
-		// The terminal's own yellow border replaces its separate ruler element.
+		// Ordinary content uses drawn strokes; the terminal keeps only its yellow border.
 		const rules = [...container.querySelectorAll('[data-slot="separator"]')];
-		expect(rules).toHaveLength(0);
+		expect(rules).toHaveLength(aboutPageContent.methodology.length + 1);
+		for (const rule of rules) expect(rule).toHaveAttribute('data-variant', 'hand-drawn');
+		expect(container.querySelectorAll('[data-testid="about-cta"] [data-slot="separator"]')).toHaveLength(0);
 		expect(container.querySelector('[data-testid="about-cta"] [data-slot="terminal-panel"]')).toHaveClass('terminal-rule-line');
 		expect(container.querySelectorAll('[data-slot="page-section-boundary"]')).toHaveLength(0);
 	});

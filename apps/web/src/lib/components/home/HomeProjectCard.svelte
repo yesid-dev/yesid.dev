@@ -5,6 +5,7 @@
 -->
 <script lang="ts">
 	import { Card } from '@yesid/ui/card';
+	import { Separator } from '@yesid/ui/separator';
 	import type { ProjectSummary } from '#lib/types.ts';
 	import type { GlanceFact } from '#lib/utils/glance-facts.ts';
 	import { resolveLocale } from '#lib/utils/locale.ts';
@@ -42,13 +43,14 @@
 			{#each facts.slice(0, 3) as fact (fact.label)}
 				<div>
 					<dt>{fact.label}</dt>
-					<dd>{fact.value}</dd>
+					<dd><Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />{fact.value}</dd>
 				</div>
 			{/each}
 		</dl>
 	{/if}
 
 	<div class="home-card__foot" data-testid="proof-card-links">
+		<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 		<ProjectCardLinks {project} />
 	</div>
 </Card>
@@ -95,11 +97,11 @@
 	}
 
 	.home-card__facts > div {
+		position: relative;
 		display: grid;
 		grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr);
 		gap: 0.25rem 1rem;
 		padding-block: 0.5rem;
-		border-top: 1px solid var(--border-subtle);
 	}
 
 	.home-card__facts dt {
@@ -116,9 +118,9 @@
 	}
 
 	.home-card__foot {
+		position: relative;
 		margin-top: auto;
 		padding: 0.25rem 1.5rem;
-		border-top: 1px solid color-mix(in srgb, var(--primary) 15%, transparent);
 	}
 
 	@media (max-width: 479px) {

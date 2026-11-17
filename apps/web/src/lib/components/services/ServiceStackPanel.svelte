@@ -11,6 +11,7 @@
 	import { localizeHref } from '#lib/utils/locale-routing.ts';
 	import { boop, pressBounce } from '@yesid/motion/actions';
 	import { CollapsibleSection, SectionIcon } from '@yesid/ui/brand';
+	import { Separator } from '@yesid/ui/separator';
 
 	let {
 		variant,
@@ -61,6 +62,7 @@
 			{/each}
 		</nav>
 		<a href={localizeHref('/projects', locale)} class="projects-all tap-feedback">
+			<Separator variant="hand-drawn" class="absolute inset-x-0 -top-[4px]" data-testid="content-divider" />
 			{seeAllProjectsLabel}
 		</a>
 	</CollapsibleSection>
@@ -153,6 +155,7 @@
 	}
 
 	.projects-all {
+		position: relative;
 		display: inline-flex;
 		align-items: center;
 		min-block-size: var(--size-tap-min);
@@ -162,7 +165,6 @@
 		text-decoration: none;
 		margin-top: 0.5rem;
 		padding-top: 0.75rem;
-		border-top: 1px solid var(--border-subtle);
 		transition: opacity var(--duration-fast);
 	}
 	.projects-all:hover {
