@@ -235,8 +235,11 @@ function blockHtml(block: BlockEditorBlock, counts: Map<string, number>): string
 		case 'table': {
 			const rows = block.data.content.map((row, index) => {
 				const heading = block.data.withHeadings && index === 0;
-				const tag = heading ? 'th' : 'td';
-				return `<tr>${row.map((cell) => `<${tag}${heading ? ' scope="col"' : ''}>${sanitizeTableCell(cell)}</${tag}>`).join('')}</tr>`;
+				return `<tr>${row.map((cell, column) => {
+					const scope = heading ? 'col' : block.data.withRowHeadings && column === 0 ? 'row' : '';
+					const tag = scope ? 'th' : 'td';
+					return `<${tag}${scope ? ` scope="${scope}"` : ''}>${sanitizeTableCell(cell)}</${tag}>`;
+				}).join('')}</tr>`;
 			});
 			const head = block.data.withHeadings && rows.length ? `<thead>${rows.shift()}</thead>` : '';
 			return `<table>${head}<tbody>${rows.join('')}</tbody></table>`;

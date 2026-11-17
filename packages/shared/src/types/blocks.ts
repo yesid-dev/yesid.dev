@@ -107,6 +107,7 @@ export interface TableBlock {
 	type: 'table';
 	data: {
 		withHeadings: boolean;
+		withRowHeadings?: boolean;
 		stretched?: boolean;
 		content: string[][]; // raw inline HTML, as saved by @editorjs/table 2.4.5
 	};
@@ -236,6 +237,7 @@ export const TableBlockSchema = z.object({
 	type: z.literal('table'),
 	data: z.object({
 		withHeadings: z.boolean(),
+		withRowHeadings: z.boolean().optional(),
 		stretched: z.boolean().optional(),
 		content: z.array(z.array(z.string())),
 	}),

@@ -1,12 +1,20 @@
-// The stock image tool rebuilds its data object. Restore extras by block ID,
-// never by position, so moving or deleting images cannot transfer metadata.
+// Stock tools rebuild their data objects. Restore extras by block ID and type,
+// never by position, so moving or deleting a block cannot transfer metadata.
 export function roundTrip(previous, saved) {
   if (!saved) return null;
   assertUniqueIds(previous);
-  const images = new Map((previous?.blocks ?? []).filter(b => b.type === 'image').map(b => [b.id, b.data]));
-  return { ...saved, blocks: saved.blocks.map(block => block.type === 'image'
-    ? { ...block, data: { ...images.get(block.id), ...block.data } }
-    : block) };
+  const extras = new Map((previous?.blocks ?? []).filter(b => ['image', 'table'].includes(b.type)).map(b => [b.id, b]));
+  return { ...saved, blocks: saved.blocks.map(block => {
+    const previous = extras.get(block.id);
+    return previous?.type === block.type
+      ? { ...block, data: { ...previous.data, ...block.data } } : block;
+  }) };
+}
+
+export function setTableRowHeadings(document, id, enabled) {
+  assertUniqueIds(document);
+  return { ...document, blocks: document.blocks.map(block => block.id === id && block.type === 'table'
+    ? { ...block, data: { ...block.data, withRowHeadings: enabled === true } } : block) };
 }
 
 export function setImageControl(document, id, control, value) {
@@ -81,7 +89,8 @@ export function sanitizeClipboardBlocks(blocks) {
   const clean = [];
   for (const block of blocks) {
     if (!block || typeof block.type !== 'string' || !block.data || typeof block.data !== 'object' || Array.isArray(block.data)) return null;
-    const { layout, showBothThemes, variants, ...data } = block.data;
+    const { layout, showBothThemes, variants, withRowHeadings, ...data } = block.data;
+    if (block.type === 'table' && typeof withRowHeadings === 'boolean') data.withRowHeadings = withRowHeadings;
     if (block.type !== 'image') { clean.push({ ...block, data }); continue; }
     const file = cleanFile(data.file);
     if (!file) return null;

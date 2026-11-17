@@ -117,6 +117,15 @@ file has different settings. Light selections require raster images with valid
 dimensions; unusable files show an error. All other tools stay with Directus.
 Project descriptions, project sections, blog bodies and legal bodies use it.
 
+### Table row headers
+
+- Find the table's numbered controls below the editor.
+- Enable **First column contains row headers** only when that column names the rows.
+- Leave it off when the first column contains ordinary data. Existing documents keep their current semantics until explicitly enabled.
+- The option is stored as the optional boolean `data.withRowHeadings` in the existing block JSON; no database field is added.
+- Saves, moves and clipboard copies preserve it by block ID. Column headings, sanitized inline links and the table's keyboard-scroll region stay intact.
+- Deploy the reviewed editor extension before authoring production flags. Content edits and **Publish site** remain separate operator actions.
+
 ### Deploying the editor extension
 
 1. Rebuild the CMS image from `apps/cms/Dockerfile` and redeploy the CMS service. No environment changes are required.
