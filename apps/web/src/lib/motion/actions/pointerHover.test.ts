@@ -1,9 +1,24 @@
 import { describe, expect, it, vi } from 'vitest';
-import { pointerHover } from './pointerHover.js';
+import { pointerHover, pointerCardHover } from './pointerHover.js';
 
 const pointer = (type: string, pointerType: string) => new PointerEvent(type, { pointerType });
 
 describe('pointerHover', () => {
+	it('a card SVG follows the whole card and ignores touch hover', () => {
+		const card = document.createElement('div'); card.dataset.slot = 'card';
+		const drawing = document.createElement('div'); card.append(drawing);
+		const onChange = vi.fn();
+		const action = pointerCardHover(drawing, onChange);
+		card.dispatchEvent(pointer('pointerenter', 'mouse'));
+		expect(onChange).toHaveBeenLastCalledWith(true);
+		card.dispatchEvent(pointer('pointerleave', 'mouse'));
+		expect(onChange).toHaveBeenLastCalledWith(false);
+		card.dispatchEvent(pointer('pointerenter', 'touch'));
+		expect(onChange).toHaveBeenCalledTimes(2);
+		action.destroy();
+		card.dispatchEvent(pointer('pointerenter', 'mouse'));
+		expect(onChange).toHaveBeenCalledTimes(2);
+	});
 	it('reports mouse and pen hover', () => {
 		const node = document.createElement('div');
 		const onChange = vi.fn();

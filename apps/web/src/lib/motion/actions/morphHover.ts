@@ -5,7 +5,7 @@ import { loadMorphSVG } from '@yesid/motion/utils/gsap';
 import { getMorphShapes, pickRandomShape } from '#lib/utils/shapes.ts';
 import { createMorphGate } from '../utils/morphGate.js';
 import { convertSvgToMorphPaths, tweenPathsTo } from '../utils/morphHelpers.js';
-import { pointerHover } from './pointerHover.js';
+import { pointerCardHover } from './pointerHover.js';
 import type { MorphShape } from '@repo/shared';
 
 export interface MorphHoverParams {
@@ -72,7 +72,7 @@ export function morphHover(node: HTMLElement, params: MorphHoverParams = {}) {
 	const syncHover = () => gate.set(pointerOver || currentParams.hovered === true);
 	const handleTap = () => gate.toggle();
 
-	const hover = pointerHover(node, (hovering) => {
+	const hover = pointerCardHover(node, (hovering) => {
 		pointerOver = hovering;
 		syncHover();
 	});

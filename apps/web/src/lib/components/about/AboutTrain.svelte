@@ -3,7 +3,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { isPrefersReducedMotion } from '@yesid/motion/stores/reducedMotion';
 	import { gsap } from '@yesid/motion/utils/gsap';
-	import { pointerHover } from '#lib/motion/actions/pointerHover.ts';
+	import { pointerCardHover } from '#lib/motion/actions/pointerHover.ts';
 	import { createMorphGate } from '#lib/motion/utils/morphGate.ts';
 	import { Card } from '@yesid/ui/card';
 	import { resolveLocale } from '#lib/utils/locale.ts';
@@ -130,7 +130,7 @@
 		aria-label={launched
 			? resolveLocale(trainAria.trainRocket, locale)
 			: resolveLocale(trainAria.trainLaunch, locale)}
-		use:pointerHover={(hovering) => (hovered = hovering)}
+		use:pointerCardHover={(hovering) => (hovered = hovering)}
 		onclick={onClick}
 	>
 		<svg viewBox={TRAIN_ROCKET_VIEWBOX} width="120" height="120" aria-hidden="true">

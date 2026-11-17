@@ -13,23 +13,39 @@
 	import AboutCardHeading from './AboutCardHeading.svelte';
 
 	let { metrics, heading }: { metrics: readonly AboutMetric[]; heading: string } = $props();
+	const crossStroke = 'M1.5 4.6C60 3.4 120 3.5 190 4.3S310 5.4 400 4.5S520 3 610 3.8S760 5.3 850 4.6S960 3.4 998.5 3.9';
 </script>
 
 <Card class="h-full p-3" data-testid="about-metrics" data-ripple-exempt>
 	<div class="metrics-shell relative flex h-full flex-col">
 		<AboutCardHeading text={heading} />
 
+		<div class="metrics-field">
 		<ul class="metrics-grid" data-testid="about-metrics-quadrants">
 			{#each metrics as metric}
 				<li class="fact"><b class="fact-figure">{metric.value}</b> {resolveLocale(metric.label, locale)}</li>
 			{/each}
 		</ul>
+		<svg class="metrics-cross metrics-cross--horizontal" viewBox="0 0 1000 8" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+			<path d={crossStroke} fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+		</svg>
+		<svg class="metrics-cross metrics-cross--vertical" viewBox="0 0 8 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+			<path d={crossStroke} transform="matrix(0 1 1 0 0 0)" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" vector-effect="non-scaling-stroke" />
+		</svg>
+		</div>
 	</div>
 </Card>
 
 <style>
 	.metrics-shell {
 		container: about-facts / inline-size;
+	}
+
+	.metrics-field {
+		position: relative;
+		display: flex;
+		flex: 1;
+		margin-top: 0.75rem;
 	}
 
 	/* Retain the original card's spacing. A width-driven square would enlarge its bento row. */
@@ -40,33 +56,30 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-template-rows: minmax(min-content, 1fr) 1.5rem minmax(min-content, 1fr);
 		gap: 0.5rem 1rem;
-		margin: 0.75rem 0 0;
+		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	/* The faint cross through the panel's centre, behind the words (decorative, outside reading order). */
-	.metrics-grid::before,
-	.metrics-grid::after {
-		content: '';
+	/* Drawn orange cross stays outside layout and reading order, preserving the compact footprint. */
+	.metrics-cross {
 		position: absolute;
 		pointer-events: none;
+		color: var(--primary);
 	}
 
-	.metrics-grid::before {
+	.metrics-cross--vertical {
 		inset-block: 0;
-		inset-inline-start: 50%;
-		width: 1px;
-		background: linear-gradient(180deg, transparent, var(--border), transparent);
+		inset-inline-start: calc(50% - 4px);
+		width: 8px;
+		height: 100%;
 	}
 
-	.metrics-grid::after {
-		position: static;
-		grid-column: 1 / -1;
-		grid-row: 2;
-		align-self: center;
-		height: 1px;
-		background: linear-gradient(90deg, transparent, var(--border), transparent);
+	.metrics-cross--horizontal {
+		inset-inline: 0;
+		inset-block-start: calc(50% - 4px);
+		width: 100%;
+		height: 8px;
 	}
 
 	.fact {

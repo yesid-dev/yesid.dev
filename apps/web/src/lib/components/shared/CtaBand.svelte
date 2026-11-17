@@ -17,7 +17,7 @@
 		bookingHref,
 	}: {
 		testidPrefix?: string;
-		/** False inside the kit's PageSections, which draws the boundary itself (D22). */
+		/** False when the caller owns or explicitly omits the leading boundary. */
 		leadingRule?: boolean;
 		/**
 		 * With a booking link the band offers the home's pair (D-M1): "Tell me about your project"
