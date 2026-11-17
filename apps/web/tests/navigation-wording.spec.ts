@@ -25,6 +25,12 @@ for (const locale of ['en', 'fr', 'es'] as const) for (const theme of ['light', 
 		await expect(dialog.getByText(words.stamp, { exact: true })).toHaveCount(0);
 		const groups = dialog.locator('[data-slot="menu-group"]');
 		await expect(groups).toHaveCount(3);
+		await expect.poll(() => groups.getByRole('link').evaluateAll(links => links.length > 0 && links.every(link => {
+			for (let node: Element | null = link; node; node = node.parentElement) {
+				if (Number(getComputedStyle(node).opacity) < 0.999) return false;
+			}
+			return true;
+		}))).toBe(true);
 		await expect(groups.getByRole('heading', { name: words.social, exact: true })).toHaveCount(0);
 		await expect(groups.getByRole('heading', { name: words.contact, exact: true })).toBeVisible();
 		const destinations = await groups.getByRole('link').evaluateAll(links => links.map(link => link.getAttribute('href')));
