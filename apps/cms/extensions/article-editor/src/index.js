@@ -4,7 +4,7 @@ import component from './interface.vue';
 export default defineInterface({
   id: 'article-block-editor',
   name: 'Article Block Editor',
-  description: 'Block Editor with image layouts and light versions',
+  description: 'Block Editor with image layouts, light versions and table row headers',
   icon: 'article', types: ['json'], group: 'standard', component,
   options: [
     { field: 'placeholder', type: 'string', meta: { interface: 'input' } },

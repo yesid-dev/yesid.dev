@@ -40,7 +40,13 @@
 		{/if}
 		<tbody>
 			{#each data.withHeadings ? rows.slice(1) : rows as row}
-				<tr>{#each row as cell}<td class:standalone-link={cell.standalone}>{@html cell.html}</td>{/each}</tr>
+				<tr>{#each row as cell, column}
+					{#if data.withRowHeadings && column === 0}
+						<th scope="row" class:standalone-link={cell.standalone}>{@html cell.html}</th>
+					{:else}
+						<td class:standalone-link={cell.standalone}>{@html cell.html}</td>
+					{/if}
+				{/each}</tr>
 			{/each}
 		</tbody>
 	</table>

@@ -1099,7 +1099,8 @@
 									"Python + PostgreSQL + SvelteKit en Cloudflare",
 									"Un pipeline de datos real con flujos en vivo"
 								]
-							]
+							],
+							"withRowHeadings": true
 						}
 					},
 					{
@@ -1256,7 +1257,8 @@
 									"Python + PostgreSQL + SvelteKit on Cloudflare",
 									"A real data pipeline with live feeds"
 								]
-							]
+							],
+							"withRowHeadings": true
 						}
 					},
 					{
@@ -1413,7 +1415,8 @@
 									"Python + PostgreSQL + SvelteKit sur Cloudflare",
 									"Un vrai pipeline de données avec des flux en direct"
 								]
-							]
+							],
+							"withRowHeadings": true
 						}
 					},
 					{
