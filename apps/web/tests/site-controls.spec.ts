@@ -95,13 +95,20 @@ for (const locale of ['en', 'fr', 'es'] as const) {
 		const word = page.locator('.manifesto__line-huge');
 		await word.scrollIntoViewIfNeeded();
 		await page.evaluate(() => document.fonts.ready);
-		expect(await word.evaluate(element => {
+		const layout = () => word.evaluate(element => {
 			const range = document.createRange();
 			range.selectNodeContents(element);
 			const text = range.getBoundingClientRect();
 			const box = element.getBoundingClientRect();
-			return text.left >= box.left - 1 && text.right <= box.right + 1;
-		})).toBe(true);
+			return {
+				lines: new Set([...range.getClientRects()].map(rect => Math.round(rect.top))).size,
+				visible: text.left >= Math.max(box.left, 0) - 1 && text.right <= Math.min(box.right, document.documentElement.clientWidth) + 1,
+			};
+		});
+		expect(await layout()).toEqual({ lines: 1, visible: true });
+		// WCAG 1.4.12: user text spacing may wrap the word, but none of it may be clipped.
+		await page.addStyleTag({ content: '* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }' });
+		expect((await layout()).visible).toBe(true);
 	});
 
 	for (const section of ['projects', 'blog']) {
