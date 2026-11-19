@@ -2931,7 +2931,7 @@
 			}
 		},
 		"images/work/transit-20261030/stm-map-desktop-dark-ready.png": {
-			"sourceSha256": "21f0c2318b04d0cbbe8f69fca00a30bf639a99fb88aca75253d132ecbd3ccd24",
+			"sourceSha256": "b2717cb48878fe2e44f738ff6c5b8d4535e856e9e799bfb715fa81b0948fdb3e",
 			"data": {
 				"width": 1280,
 				"height": 800,
@@ -2955,14 +2955,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w240.webp": "da5b2b4e871101ab59c4fbaebc8f1cf8940ffdc7c5f9c27097126370402b9afb",
-				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w600.webp": "5c0f68ad603fadc02e98659dc18d31a141043dece46ec1c7adc601d18f65cc12",
-				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w1200.webp": "1dc1533b42b8c0e44c2064a6ed7b9325875bac82230e05b28025ff77b5eb341d",
-				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w1280.webp": "9c5fb36e1807b6b2fd968d0f9598c0b9414d258dac7e2eeb9bc7aa2e82d21f9b"
+				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w240.webp": "24161ddad68d846d41939a4b89c30527872e4386bc2ec5228aeff4f4eb56ee98",
+				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w600.webp": "539ed34097e177a4155dafcdacd16d816b67754a15ecf261246bad99a1034ac6",
+				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w1200.webp": "4916be83c0a9b77ce659c39bc8099c931868bb3a9dbed58677e9e79d5ba49831",
+				"/images/work/transit-20261030/stm-map-desktop-dark-ready.w1280.webp": "b7f6b7184796732a0c59caebfaeda1a502fc72766361efe7d6fe80249614e6b9"
 			}
 		},
 		"images/work/transit-20261030/stm-map-desktop-light.png": {
-			"sourceSha256": "75c67f1a5b272b73c175b2e596dae9289730d25b0b415517f622192e2431a7fe",
+			"sourceSha256": "e0c6eb5a8ce91d6048f14688610d4b1e654f559a95bfe23a77603c134523cc64",
 			"data": {
 				"width": 1280,
 				"height": 800,
@@ -2986,14 +2986,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261030/stm-map-desktop-light.w240.webp": "09614dc896bdf29cb5604bbbd2a16acf7d15270789753cf86334ff44ed79b18f",
-				"/images/work/transit-20261030/stm-map-desktop-light.w600.webp": "5c4f8999c8287ceda6d3e68b652c547d621525d041feb6f32061a346f4dd9fa6",
-				"/images/work/transit-20261030/stm-map-desktop-light.w1200.webp": "2fc9c94574874b347a94b456f5eb677df2e64219b0856d1e3065a92ca3560fc5",
-				"/images/work/transit-20261030/stm-map-desktop-light.w1280.webp": "e5285b24ec8bc909a764f008493d7ca120279bed6a1d9baf0e89d12a6ec48a18"
+				"/images/work/transit-20261030/stm-map-desktop-light.w240.webp": "866cb48cbbbf771fc95bd08ebacf2352d86e25978a9d16f02ea0de240000db2a",
+				"/images/work/transit-20261030/stm-map-desktop-light.w600.webp": "092c7752e5c8889d19b4392701bc8d7a93b91cdab59dbb69c97dbfb91cc05c57",
+				"/images/work/transit-20261030/stm-map-desktop-light.w1200.webp": "39413089e83160785b5e6d1280784bbaf4371add430d5530295b1d4b75c3492c",
+				"/images/work/transit-20261030/stm-map-desktop-light.w1280.webp": "67b89613fc34b2155e8c023dbb7d73b427b2bd1f7f116698cc044428415a28ee"
 			}
 		},
 		"images/work/transit-20261030/stm-map-phone-dark-ready.png": {
-			"sourceSha256": "7049f925df1589dd8a1c5e736ac8bd9181b481090dc454027120593e808b9969",
+			"sourceSha256": "c08b56db89eda3e98e0b81c2c456c1674737407730036f8b6b4e0be99768e716",
 			"data": {
 				"width": 488,
 				"height": 1055,
@@ -3009,12 +3009,12 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261030/stm-map-phone-dark-ready.w240.webp": "81223e5a05364727b4715ca95fe76922f103e1936206a3a2694cdbb8160bb956",
-				"/images/work/transit-20261030/stm-map-phone-dark-ready.w488.webp": "bafc10044ebc4daf6ab99c9e7f72d618e372c76555c3000e409b0269629ef3a4"
+				"/images/work/transit-20261030/stm-map-phone-dark-ready.w240.webp": "7eb68f0a0d9c3051226b80380ec46236083bcd3bd3d68f2341645de41c7b450e",
+				"/images/work/transit-20261030/stm-map-phone-dark-ready.w488.webp": "625b96c4bea97bc633ed595333f14ae3a8689859dd0b293a93e8ac009a358d77"
 			}
 		},
 		"images/work/transit-20261030/stm-map-phone-light-ready.png": {
-			"sourceSha256": "1e4468772041f9c765603be73cd4e7bc7bd8f134f83292c755346a63f378f693",
+			"sourceSha256": "9b99f9b95f4dbd54009528eab08881f995a15fe7badda5b933de5716a37ca6b6",
 			"data": {
 				"width": 488,
 				"height": 1055,
@@ -3030,8 +3030,8 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261030/stm-map-phone-light-ready.w240.webp": "a29c4816bc39ba5fb51ad561597699981829831e91b815646e418e389fcec03e",
-				"/images/work/transit-20261030/stm-map-phone-light-ready.w488.webp": "056296808c3bd12d2d03de5bdfce0f67d258f720b30956ca3908bccaff05697a"
+				"/images/work/transit-20261030/stm-map-phone-light-ready.w240.webp": "129b44a6c3be463894ec0d25c6719ec5313619da35ee69742da7eb2f35ecfc3d",
+				"/images/work/transit-20261030/stm-map-phone-light-ready.w488.webp": "d2882cf76337e60b7007281c5b380150b206d0683ec1e01fadc84c59963ef1d1"
 			}
 		},
 		"images/work/transit-20261030/stm-route55-reliability-dark.png": {
@@ -3335,7 +3335,7 @@
 			}
 		},
 		"images/work/transit-20261109/transit-line55-desktop-en-dark.jpg": {
-			"sourceSha256": "1a1147258887d03ac77456a88db8504aeab57909efb816b3e4f29bee265ebc38",
+			"sourceSha256": "0f5dccdb4fd4f537866f59aba9cbca23d97398df65a0282539c1ddb2add42a84",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3359,14 +3359,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w240.webp": "9c2e41cfda1e70ccb9fca92721d49b0a249bec5fe791c66cee2caee973254a4a",
-				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w600.webp": "9dde5b85308c8f61bc8db6b25973805a62ccc4f30c2529368d8ec0e1a1baba0e",
-				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w1200.webp": "f880377f2c8ef981e4c95cf1b003cec193f63f12adf720d47e2231c77b8a9f09",
-				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w1600.webp": "abd8892b4521e9a6c1abacdb9e2fc679a8827f313ff2d8b3c46bacb82bdfbfb9"
+				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w240.webp": "fcca1810a45636f39e12c13a2680cb304d28876abc691bd7feb40625adb997c9",
+				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w600.webp": "d8f2247b62d505be2be8405fd58d651366e37c730bb39f93109f804aee288389",
+				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w1200.webp": "2a4167273f03e12f578b64a371bb5c0ff5542b1add53ceb9625537387085953e",
+				"/images/work/transit-20261109/transit-line55-desktop-en-dark.w1600.webp": "2d439d63701d75cb82ebf71cbad992c846c8a81c21758cb99314ca3862e6c2cd"
 			}
 		},
 		"images/work/transit-20261109/transit-line55-desktop-en-light.jpg": {
-			"sourceSha256": "95fa3d4ec530d2c47aebf7d0883604b3b42b10ca59dcccb41b19005e3b04ad19",
+			"sourceSha256": "bf539f5a0c2eed130af361644a2cb1713e251fdc9f4c6751fbc799aa3e0eacf1",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3390,10 +3390,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-line55-desktop-en-light.w240.webp": "f593a9823d26f44be95aec1860e57a99b7b12ece5055713ca91259b74e977603",
-				"/images/work/transit-20261109/transit-line55-desktop-en-light.w600.webp": "90b62d66c7845396748296104f7afc2aa81de356371621ec72c541f329da3de9",
-				"/images/work/transit-20261109/transit-line55-desktop-en-light.w1200.webp": "122c50cdcfc222145f97f40e1d9b1933399ca73b3c5da7174a058009e9fff3b6",
-				"/images/work/transit-20261109/transit-line55-desktop-en-light.w1600.webp": "99d7308867c200a82c5e60f431bdd1b98cf17b4c21758095c55bc42732a649c2"
+				"/images/work/transit-20261109/transit-line55-desktop-en-light.w240.webp": "f2733c61892a010f07b04105164625728e9f2c8de73ad284b0f0319a29585495",
+				"/images/work/transit-20261109/transit-line55-desktop-en-light.w600.webp": "a1b88b9ec741582e80b035433df90f140617c9cc6ea312e0f46a8b31407882ff",
+				"/images/work/transit-20261109/transit-line55-desktop-en-light.w1200.webp": "aa039d7d4303a7e124ca1da95047ab96a28fdf2d8d17cd5ec8b6758252752768",
+				"/images/work/transit-20261109/transit-line55-desktop-en-light.w1600.webp": "9c353fb2d5433100bb66cc3261e0d232c8e956fd324e9f2cf2113a76e5530bcb"
 			}
 		},
 		"images/work/transit-20261109/transit-lines-desktop-en-dark.jpg": {
@@ -3521,7 +3521,7 @@
 			}
 		},
 		"images/work/transit-20261109/transit-network-desktop-en-dark.jpg": {
-			"sourceSha256": "7899b85c29f22214d4459ed5690f4d4999b6aae4afbd773a3d29540633cc9230",
+			"sourceSha256": "914c75cf94bb403c031b2584f91c06e05719a18ecfea37298c9268a1112bdb39",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3545,14 +3545,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-network-desktop-en-dark.w240.webp": "fefb34b0c8fb52c0f6f8eb82727ccf6a9009d6e5e3f0bf56bd5c5c2a33484faa",
-				"/images/work/transit-20261109/transit-network-desktop-en-dark.w600.webp": "f1440a35e5e4826e8c24f64169f28e43a93c82abc51576f5bc428193f2f82760",
-				"/images/work/transit-20261109/transit-network-desktop-en-dark.w1200.webp": "7c7261ab63941aff0e162ae6b98c48469e2aac76540340439f68d9ede78fe904",
-				"/images/work/transit-20261109/transit-network-desktop-en-dark.w1600.webp": "3947a1c0745958d87e45a08619004b291eb05eb5b22d43fbd75be785bfff1f7f"
+				"/images/work/transit-20261109/transit-network-desktop-en-dark.w240.webp": "2b9570516efdca4242c92136eee2049f1f7bf73dffcfd4c2350bc99cecdd30ea",
+				"/images/work/transit-20261109/transit-network-desktop-en-dark.w600.webp": "cf46dde2beb9261b360c95edb8cce2b1f197cd9955ee06ae43cdd022c1e1646b",
+				"/images/work/transit-20261109/transit-network-desktop-en-dark.w1200.webp": "365ccdabc758645a0afc0e08a8b353e2bfdb768c76b06f959db6ccc029b61bee",
+				"/images/work/transit-20261109/transit-network-desktop-en-dark.w1600.webp": "58376c1e909706c79725867cf325d3153d72f422ae5b3bb405c3eb58b3fc59d7"
 			}
 		},
 		"images/work/transit-20261109/transit-network-desktop-en-light.jpg": {
-			"sourceSha256": "567bdb2e2601413df6d5b826897e58d20f8890e70e35355d49f41563e2a8f949",
+			"sourceSha256": "a059c52462b56d48e9dd1751fcf6f2b3304c5d36b5cf70f631b40cf33e8af1b6",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3576,10 +3576,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-network-desktop-en-light.w240.webp": "fe6577f5ffec00d77fdaf43ff0c67b1e7de11b5c9a12a7c897f49721ac6d9d67",
-				"/images/work/transit-20261109/transit-network-desktop-en-light.w600.webp": "14412e299fbcb17ac12114e28cbab45bad8119722ab5538e76584184f35b191c",
-				"/images/work/transit-20261109/transit-network-desktop-en-light.w1200.webp": "4079c3022946a3593cfc46717e3d5a474166b313f5bd6508d3ac35fd55727498",
-				"/images/work/transit-20261109/transit-network-desktop-en-light.w1600.webp": "e5106af964d39eb4578db88af91dba0455d674d0d37149c85edc91c248c64c40"
+				"/images/work/transit-20261109/transit-network-desktop-en-light.w240.webp": "3e716577fcf4a40a939b38876e7963a22045fe80dd0742a9a243deaad7c88471",
+				"/images/work/transit-20261109/transit-network-desktop-en-light.w600.webp": "5476e74f9796c31d5bcfea4ba656a3f2a554745c050d9f1ce30498d3dc4465f6",
+				"/images/work/transit-20261109/transit-network-desktop-en-light.w1200.webp": "04d64bdafd8ea69e716e272ff6ac80eae6729cd32150db1015bb86ceff2af3dc",
+				"/images/work/transit-20261109/transit-network-desktop-en-light.w1600.webp": "28fab92fa6938902b2cdc97278b976e65f653230983f88d6d86e982c8a16caf6"
 			}
 		},
 		"images/work/transit-20261109/transit-og-network-card-en-single.png": {
@@ -3635,7 +3635,7 @@
 			}
 		},
 		"images/work/transit-20261109/transit-receipt-desktop-en-dark.jpg": {
-			"sourceSha256": "b61a032926c7c7ffac35a9b43419fbf99a0b69b14c60c66d23655a2ec3cd976c",
+			"sourceSha256": "14068053d09361106c95b9f2f6f59c003bbf88a9ac0460c9821d3d7ed4e9741d",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3659,14 +3659,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w240.webp": "192bc7dd990bdd250624190ad37266c3985802e1ce01828900d130ed85785774",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w600.webp": "c2b2d4a6ee2d6a852e9eebdf9df9651f52155905b678d25efaf9754bca5db4cf",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w1200.webp": "00ad2a0f6e83efc871e1cbcc1811dfdb3ec0fff5e3ca16743e04f10cc1b94935",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w1600.webp": "a2be658dce8357c4ba2559641b38adf404f3ab30b87939690c01275c07f56c6d"
+				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w240.webp": "11f712dab3109909419890133f765adebd4d229a998becceb1269934755fdfc6",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w600.webp": "ed9858f3ceedae088cf0e91addc2586152bd70b0e049a0a0c5f22fd02bb76356",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w1200.webp": "0b1d98ccbdeb617a141dd2601c41f3d3bd59cb1b107fa257ab77c866d115be48",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-dark.w1600.webp": "b97fddb0fa04a229a76c1f9671c537055bbd898c3471d510e8411192f2e5ea92"
 			}
 		},
 		"images/work/transit-20261109/transit-receipt-desktop-en-light.jpg": {
-			"sourceSha256": "354bd667a8ae7e0ab2e32fe00a55e084a9d5073b8761152a54bdd21001e6bc79",
+			"sourceSha256": "5b946b4b2cc1e0bd849b88342fbf77bbfcac569c8e1752d9c586dc7de5bcb572",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3690,10 +3690,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w240.webp": "2640327edffc17d3c5a7fae8035f487f82bdfde6f253c152c0fbd1206ddc4c98",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w600.webp": "02fb62182adec9f48c1c04a0e34b3bbed4b2544b02d0e8764a830a4d9a03bafa",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w1200.webp": "0fd28d1f5f734ef3e7991c07321937303173baa5170b256ae05d4252f55addc8",
-				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w1600.webp": "bd26ef43e47fce19377deb55b8e06dbf34a2ad1e50d3efe52b847365d8f6d2ad"
+				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w240.webp": "ba0c18a018049b27020f67f2eafca2c30ad0b99aab1b7ebb12ed7c66dc846f93",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w600.webp": "f8f80d878af8b05d244044c5f7cb834683fbed87a773a181eb398d2108e29fe4",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w1200.webp": "a0b9af0e0df684d6bf8daec968becd6e6faa836e32e56ae8eeaedfeae1783d59",
+				"/images/work/transit-20261109/transit-receipt-desktop-en-light.w1600.webp": "436c79e3958100078ada29f52b48e1325219b882447baa9c432ab2cc4252a5dd"
 			}
 		},
 		"images/work/transit-20261109/transit-repeat-offenders-desktop-en-dark.jpg": {
@@ -3821,7 +3821,7 @@
 			}
 		},
 		"images/work/transit-20261109/transit-status-desktop-en-dark.jpg": {
-			"sourceSha256": "1c7005c6be7015f40c54274daa9fd37d2e5bb5441e99896d96707a346c073444",
+			"sourceSha256": "d9ecfd09a23cabe872b2980045d67bd16a784cd0ad5e0dd749f4bd6e8450565c",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3845,14 +3845,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-status-desktop-en-dark.w240.webp": "d9cf385e80b67f775716b7458b1b7ce5b62dc85b43724ff23981b11c0aa48c9e",
-				"/images/work/transit-20261109/transit-status-desktop-en-dark.w600.webp": "2cbe6003146a25c8168057c4a2acf385fdf63b43c56e156f30ff78fc13041c9c",
-				"/images/work/transit-20261109/transit-status-desktop-en-dark.w1200.webp": "b3d50c4a8f181761eea718ea49f03d701be047b65451e771d3a0b98277f022ba",
-				"/images/work/transit-20261109/transit-status-desktop-en-dark.w1600.webp": "40d571c6c0ff1452c1c07a463a37edca1f5e5d394c4336b5456021dd99ca4c4c"
+				"/images/work/transit-20261109/transit-status-desktop-en-dark.w240.webp": "3f8d085ed64c89d9f0dd6ddf9534be1ae563cc0c07b7dbeea57873a62eed8271",
+				"/images/work/transit-20261109/transit-status-desktop-en-dark.w600.webp": "247fce4021a97916ab9017a6fbaddb85f4f3b734a9b7216fc74064c94513c4c4",
+				"/images/work/transit-20261109/transit-status-desktop-en-dark.w1200.webp": "ff03afb9eef12ca57e22e06cc7542c5f0c2533f9beb1928727c482e479ceb142",
+				"/images/work/transit-20261109/transit-status-desktop-en-dark.w1600.webp": "eefc7b2ed71acfb3586ac08bfb67394df9c5564824fa4cf3ac5f7a4fbbbaa23e"
 			}
 		},
 		"images/work/transit-20261109/transit-status-desktop-en-light.jpg": {
-			"sourceSha256": "042c128d847da0d64de4996017d07336582dce8c43f9b004d0adbf4159f402a0",
+			"sourceSha256": "25f3c1007124ec57640f74ef0c924cd634654a10cbaac017a0f3e9ffd20bce92",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -3876,10 +3876,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/transit-20261109/transit-status-desktop-en-light.w240.webp": "59ad26bb8c67003cda30e82dc817c457af5b9ea99be97b1c96c9e2a4c87ac7c2",
-				"/images/work/transit-20261109/transit-status-desktop-en-light.w600.webp": "418563f1bfeb1c0fbd6eea6468cbb3b3cb373ac13c69871b2e273a586df5b943",
-				"/images/work/transit-20261109/transit-status-desktop-en-light.w1200.webp": "5110a9b71f27474c29ebfe256fb666d7170cee3b26c7606b079c4bd43bfc5e65",
-				"/images/work/transit-20261109/transit-status-desktop-en-light.w1600.webp": "e60e91b5547c4078f9efd6c1561ec031df79aba053409844ed671c44c9e367b4"
+				"/images/work/transit-20261109/transit-status-desktop-en-light.w240.webp": "42b618d7b1ed8b9c67e2170bbf48fca41e9a9143b0bdd44fceb7eb861144ba21",
+				"/images/work/transit-20261109/transit-status-desktop-en-light.w600.webp": "357c14dfc17297c03d5be88aafc9916502cc8d220e1d225128e983af318d4962",
+				"/images/work/transit-20261109/transit-status-desktop-en-light.w1200.webp": "4675fcedf5d0613feca2554e11425680cce604bf18809e795d3908c6d6ad8459",
+				"/images/work/transit-20261109/transit-status-desktop-en-light.w1600.webp": "43745f8c6adf8f1e25372308032bbb130056faf42474a2a4eff065fa566e4d84"
 			}
 		},
 		"images/work/transit-20261109/transit-stop-departures-desktop-en-dark.jpg": {
