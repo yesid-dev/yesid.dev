@@ -4183,7 +4183,7 @@
 			}
 		},
 		"images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.jpg": {
-			"sourceSha256": "3bd4ed2694dad5658a7f231c5420d78e4ab847f1de099cef29c415b1b35600f4",
+			"sourceSha256": "d699f24525f87591195de05e405679f154b422d6256492e0e4d82efe3caf5516",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -4207,14 +4207,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w240.webp": "d1f0023c4cfef3b4d14624e0348f7a78189ab271c9ab9dbb486f6f081c15ee72",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w600.webp": "1decdb854a2cb66b92e375eb4db67501d2e5d75124231a06f87c6d14cd6e753d",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w1200.webp": "53c836fd3a54ece7e4fba15ee8b5d20b49c6b88027b161d370036047c127bdb2",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w1600.webp": "66141dd58e8875b2240c9a32b839a0de63abef37b23426ad0fc32021b2fee06d"
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w240.webp": "a7a27565adb51983a48c87ecfa8b40c6bbb0d2b151e277cf712372050dfb61cc",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w600.webp": "e4a308eccba2f680c01d6056b317da67ae6c8bcb01bf1381b4a2fe0381c42ae8",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w1200.webp": "60e1a0f5595e2a2d754ec1dcfffeda662a79d66c5a3312ea5cab9b5b51f788a4",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.w1600.webp": "e6009f408ec5da78f47622219d74dc940f448345798f41f9d74f7569aa831161"
 			}
 		},
 		"images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.jpg": {
-			"sourceSha256": "3f3ecd51731070ecf0e220c15b89cf5c4b47f278c2202779af4e880e7f4fde56",
+			"sourceSha256": "cd37749cb8d2af4d59b35c4b37dfeed945c1fa60556295bd69b287b930247ec0",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -4238,14 +4238,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w240.webp": "361e2a5ce11c85dd30b56ec130c700943e7d656a39ddcc8593ba1be5f0193dd1",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w600.webp": "42c73130b5374841b66f0075fbc58b75feaf225a14b1c5080f01b1ea09373498",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w1200.webp": "72d1a338f7d61a9036fd453ff94ee20fe8afdf48149d1ad40bdf1822f442f5a0",
-				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w1600.webp": "03c7fc7a44e896e8c5bc4d16cd3dd2b9a46b6533a9e7553d0847576f88521c64"
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w240.webp": "ce012a8ba5284856366a632cc81f7eb71d0c99ec21c458b98c4fde891226fa04",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w600.webp": "a3e30ae6bb5346f519e94099de682e52d574ec7f194f246263547f5c2c163c66",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w1200.webp": "fe4e6d62519d16284fc53113d73a7c03496e802d5a9934af2878b6cccb0c9258",
+				"/images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.w1600.webp": "111f4097747afd060bacb1f992530d88a1db6c908a6f231ae4a1038a8e3b1963"
 			}
 		},
 		"images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.jpg": {
-			"sourceSha256": "e48a978f55bd9a9ce6da2f07293029d445332c732c05493e1a796b8ad487af4e",
+			"sourceSha256": "8481b24d143b4f5479d2fa7bbb9a269aca423e292f02e9fc5d98308e33fb82f8",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -4269,14 +4269,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w240.webp": "81ab2e87f75da4644a4757b55acdf14baaa2e6a6fc69373715ffd2276ebe2833",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w600.webp": "d64a51a548cb50078fbc9d8487fc25b1a7ac760ccd93b6ef030319aaedbb0969",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w1200.webp": "ff201e6789f7eb88c2768c3cdd3a9822ab4b740a4209cebd3735c16ab67690a3",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w1600.webp": "f032747a02c6ac59a8d966b28c437a286b8049a1c21742c5c3929869b58070d0"
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w240.webp": "d386afa08837c780fe90a3cd9720493762955b53f542c228092948ba51e13115",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w600.webp": "ecea377679aa37ca40d898247d4ff7eaea8ab42385f6ce8c0f856f5a4c5bf90d",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w1200.webp": "2790ff8666b40c7e955e9c604aef24db39f3c4b40efd14a063aa7db458a6ffd2",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.w1600.webp": "45c4f8b6b7562547e569a183659d131f886d131c32f2c1af5a30df4f590ed8b5"
 			}
 		},
 		"images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.jpg": {
-			"sourceSha256": "5c69084ddfa1fa40426384f60bd0c1037ef07e5600435ad306f6eb3644498640",
+			"sourceSha256": "6339e7d4450e84207610d9e5413ef9cb7fca648babfe43465e782fd4d60d6f91",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -4300,10 +4300,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w240.webp": "2a2be00173b4dfe1f99f7f438953ccdb43dba037d5f78461dccb8316952c73b0",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w600.webp": "98e89f17de3c827c73e37f17c218805f309648855fe13ef0f93143978d17da73",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w1200.webp": "f3dc3b4f95528cd3cb65b56cb5502fe893d7cb76fe8eccf750c2228436f896ab",
-				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w1600.webp": "cda63da0e5a28cfb2f013cf8cfe4c04e2d003ceeff2255fa7214a395a99b6496"
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w240.webp": "ce18575501876957387b554d5a7e741d113ad80c42acf057f8692b1fcda1fa50",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w600.webp": "19df0defc42ddbbb024f27877029cfe68a053dc74cb156530d36c93e8fc4e67a",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w1200.webp": "af199c3dfd588e746ca0dd718ea17301398277962d4385588d54328e6c68f6dd",
+				"/images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.w1600.webp": "5c731a7916f38850038846bf29c9fb30c16c8a44b8f9eb1d195eeac1178e74d1"
 			}
 		},
 		"images/work/yesid-design-20261109/yesid-design-languages-phone-multi-dark.jpg": {

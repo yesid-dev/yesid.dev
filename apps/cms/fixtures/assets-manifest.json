@@ -1225,29 +1225,29 @@
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.jpg",
 			"folder": "projects",
 			"title": "yesid.design · header and footer board dark",
-			"description": "The yesid.design site chrome on a dark board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer on its yellow and white street edge.",
-			"sha256": "e48a978f55bd9a9ce6da2f07293029d445332c732c05493e1a796b8ad487af4e"
+			"description": "The yesid.design site chrome on a dark board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer below its yellow and black hazard edge.",
+			"sha256": "8481b24d143b4f5479d2fa7bbb9a269aca423e292f02e9fc5d98308e33fb82f8"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.jpg",
 			"folder": "projects",
 			"title": "yesid.design · header and footer board light",
-			"description": "The yesid.design site chrome on a light board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer on its yellow and white street edge.",
-			"sha256": "5c69084ddfa1fa40426384f60bd0c1037ef07e5600435ad306f6eb3644498640"
+			"description": "The yesid.design site chrome on a light board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer below its yellow and black hazard edge.",
+			"sha256": "6339e7d4450e84207610d9e5413ef9cb7fca648babfe43465e782fd4d60d6f91"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.jpg",
 			"folder": "projects",
 			"title": "yesid.design · layout board dark",
 			"description": "The yesid.design layout primitives on a dark board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
-			"sha256": "3bd4ed2694dad5658a7f231c5420d78e4ab847f1de099cef29c415b1b35600f4"
+			"sha256": "d699f24525f87591195de05e405679f154b422d6256492e0e4d82efe3caf5516"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.jpg",
 			"folder": "projects",
 			"title": "yesid.design · layout board light",
 			"description": "The yesid.design layout primitives on a light board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
-			"sha256": "3f3ecd51731070ecf0e220c15b89cf5c4b47f278c2202779af4e880e7f4fde56"
+			"sha256": "cd37749cb8d2af4d59b35c4b37dfeed945c1fa60556295bd69b287b930247ec0"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-transit-phone-en-dark.jpg",
