@@ -235,7 +235,9 @@
 		letter-spacing: -0.05em;
 		line-height: 0.85;
 		text-shadow: 0 0 80px color-mix(in srgb, var(--glow) 12%, transparent);
-		white-space: nowrap;
+		/* One line by default. Wider user text spacing (WCAG 1.4.12) wraps the word inside the viewport instead of clipping it. */
+		width: max-content;
+		overflow-wrap: break-word;
 		max-width: 100vw;
 		overflow: hidden;
 	}
