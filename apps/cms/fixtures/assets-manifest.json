@@ -664,23 +664,23 @@
 		{
 			"legacyPath": "images/work/site-20261030/home-desktop-dark.png",
 			"folder": "projects",
-			"title": "yesid.dev: home-desktop-dark (2026-10-30)",
-			"description": "Homepage with the labelled SQL demo widget, dark theme. Local candidate capture, 30 October 2026.",
-			"sha256": "82fd462238b6f091a070da89a702187d6f5b2f649151857496c13d7e905d8368"
+			"title": "yesid.dev · home desktop dark",
+			"description": "The yesid.dev home page on a computer, dark theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card.",
+			"sha256": "439d912640d9bba4f5110b3a158b05b6d0163aff6b683ff9e7163665f1e3f9d1"
 		},
 		{
 			"legacyPath": "images/work/site-20261030/home-desktop-light.png",
 			"folder": "projects",
-			"title": "yesid.dev: home-desktop-light (2026-10-30)",
-			"description": "Homepage with the labelled SQL demo widget, light theme. Local candidate capture, 30 October 2026.",
-			"sha256": "5a12a9d18c07e50d5bca0ba36fcdba561edc15a38c6c2f6b398a3d145d815975"
+			"title": "yesid.dev · home desktop light",
+			"description": "The yesid.dev home page on a computer, light theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card.",
+			"sha256": "e5d871a3229b97208c32e0398d938c088af102471294ae327f2d3d499b866380"
 		},
 		{
 			"legacyPath": "images/work/site-20261030/home-mobile-dark.png",
 			"folder": "projects",
-			"title": "yesid.dev: home-mobile-dark (2026-10-30)",
-			"description": "Homepage in a phone-width browser viewport with compact demo figures. Local candidate capture, 30 October 2026.",
-			"sha256": "0fabe7070cf1454d230180026194cf7866dee9e41edd697f752407bb247f792c"
+			"title": "yesid.dev · home phone dark",
+			"description": "The top of the yesid.dev home page on a phone, dark theme: the headline, both buttons and the start of the live Transit card.",
+			"sha256": "b05973bb6feaba75b0c0a8977c5d71c7e40aa1b45bd8929ce6b66e12bcbef040"
 		},
 		{
 			"legacyPath": "images/work/site-20261030/contact-fr-dark.png",
@@ -965,72 +965,72 @@
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-home-phone-fr-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-home-phone-fr-dark (2026-11-09)",
-			"description": "French on a phone. Capture: 2026-11-09T23:08:50.857Z.",
-			"sha256": "65f1c9b3d2db31c22292a10c3031511970ba525d7cdaad5a33fb594900cd0162"
+			"title": "yesid.dev · home phone fr dark",
+			"description": "The top of the French yesid.dev home page on a phone, dark theme.",
+			"sha256": "aabe63452e5d9a72f5906078dc2252c84a41b6f7138378aa33725c28fb6ecfff"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-home-phone-fr-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-home-phone-fr-light (2026-11-09)",
-			"description": "French on a phone. Capture: 2026-11-09T23:08:50.857Z.",
-			"sha256": "c1330a2ee07078279da0a87218b2b4817b36e896455d92875eaeba0faf23530a"
+			"title": "yesid.dev · home phone fr light",
+			"description": "The top of the French yesid.dev home page on a phone, light theme.",
+			"sha256": "df4ff998fb1e5854579dc71b45613eb42a98fd4a3606d1f22ecb02f759942da4"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-home-phone-es-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-home-phone-es-dark (2026-11-09)",
-			"description": "Spanish on a phone. Capture: 2026-11-09T23:08:56.877Z.",
-			"sha256": "4090378100d6259f0fd92fbb9250b673cb12307dfbb357a08647a2497ae74ac3"
+			"title": "yesid.dev · home phone es dark",
+			"description": "The top of the Spanish yesid.dev home page on a phone, dark theme.",
+			"sha256": "4a47ea1c5c59e211744a2b855e377eaba4c32d156aa5ed099f1314ec99c1be8e"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-home-phone-es-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-home-phone-es-light (2026-11-09)",
-			"description": "Spanish on a phone. Capture: 2026-11-09T23:08:56.877Z.",
-			"sha256": "8f38ef10d9ca6ff1c0f1510f094a350efa1018ceabd5209767e1069db03f8228"
+			"title": "yesid.dev · home phone es light",
+			"description": "The top of the Spanish yesid.dev home page on a phone, light theme.",
+			"sha256": "a05d6da0e61062301a0d0d9ff21298699f1c68e15999c9e93a336e18cc4d983c"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-contact-typed-phone-fr-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-contact-typed-phone-fr-dark (2026-11-09)",
-			"description": "A fictional message typed on the French contact page. Capture: 2026-11-09T23:13:12.527Z.",
-			"sha256": "1fa8b9919234a0087c197f4f8d954043b6531b0b4199f0a174bbcc78cd89cab1"
+			"title": "yesid.dev · contact typed phone fr dark",
+			"description": "The French contact form on a phone, dark theme, with fictional details typed in and not sent.",
+			"sha256": "f1a0cfd4537821653356d4f430d4e3c07b607829d1e2ac4e9a2eafcb89d7d347"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-contact-typed-phone-fr-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-contact-typed-phone-fr-light (2026-11-09)",
-			"description": "A fictional message typed on the French contact page. Capture: 2026-11-09T23:13:12.527Z.",
-			"sha256": "5dc70a9a7c3508808270842beefd91f051ddf1108b937508ae4f01aeddbb3b5b"
+			"title": "yesid.dev · contact typed phone fr light",
+			"description": "The French contact form on a phone, light theme, with fictional details typed in and not sent.",
+			"sha256": "1d2ae7fe8d26c1df9ee2085e155917c5ad422f11c52bc88d4415fafb5fe92c79"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-contact-after-switch-phone-es-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-contact-after-switch-phone-es-dark (2026-11-09)",
-			"description": "One tap on the language sign: Spanish labels, same words. Capture: 2026-11-09T23:13:20.998Z.",
-			"sha256": "81e39507b1ecc613dcfee0f74d0e3c8511671b6347e5826fc41bb45cdaa7d8a4"
+			"title": "yesid.dev · contact after switch phone es dark",
+			"description": "The Spanish contact page on a phone after one tap on the language sign, dark theme. The fictional French message typed earlier stays in the fields.",
+			"sha256": "54ec52df5d6d728f5cfdb94cea196b2700280a34b61d9be3ecb72ab0cb923b5d"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-contact-after-switch-phone-es-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-contact-after-switch-phone-es-light (2026-11-09)",
-			"description": "One tap on the language sign: Spanish labels, same words. Capture: 2026-11-09T23:13:20.998Z.",
-			"sha256": "d23c0bec8f4f5a101674cdabbcf7d95534887712c4e0380114a63f01e6534b26"
+			"title": "yesid.dev · contact after switch phone es light",
+			"description": "The Spanish contact page on a phone after one tap on the language sign, light theme. The fictional French message typed earlier stays in the fields.",
+			"sha256": "29ec3c3c01157598fd59f748380c8227f30dacb33c6dcff07327b557f763a99f"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-cookies-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-cookies-desktop-en-dark (2026-11-09)",
-			"description": "The cookie policy: no tracking cookies, and every measuring tool named. Capture: 2026-11-09T23:13:25.930Z.",
-			"sha256": "13165e93ad2934b7d8d3e785c9ff726c00cd3db1bfb0adb8496d31ea5ea6faa3"
+			"title": "yesid.dev · cookies desktop en dark",
+			"description": "The yesid.dev cookie policy on a computer, dark theme: the title, hand-drawn orange dividers, the \"On this page\" list and the opening text.",
+			"sha256": "de9c3b97be509f583d4fd3f6d496654be999df94078a8b21d11e411ea688216a"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-cookies-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-cookies-desktop-en-light (2026-11-09)",
-			"description": "The cookie policy: no tracking cookies, and every measuring tool named. Capture: 2026-11-09T23:13:25.930Z.",
-			"sha256": "8c6731e4815c28d595edee3452132dc545cfd0d2958c70971c44215804a335c0"
+			"title": "yesid.dev · cookies desktop en light",
+			"description": "The yesid.dev cookie policy on a computer, light theme: the title, hand-drawn orange dividers, the \"On this page\" list and the opening text.",
+			"sha256": "cbe7aec4ca63e0a05228891ee410673b7938d411bec527627a626865568d5032"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.jpg",
@@ -1210,72 +1210,72 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-three-sites-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-three-sites-desktop-en-dark (2026-11-09)",
-			"description": "The same release on three sites: yesid.dev, Transit and the login page share the header, colours, type, buttons and grid background. Each one says something different. Capture: 2026-11-09T23:15:03.094Z.",
-			"sha256": "2d38deb38f129fb91de3f1aabb1a32a583b51bdd5550c5e84750c981674b331b"
+			"title": "yesid.design · colour board dark",
+			"description": "The four colours of yesid.design on a dark board, orange to act, yellow to guide, white to reflect and black to structure, with their tokens, the status palette of early with a down triangle, on time with a dot and late with an up triangle, and the surface and ink tokens.",
+			"sha256": "829e63f83bdc6d3803ffa14c6926bd54ed7a8489df9a5ac4a9c9e68bce2913d2"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-three-sites-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-three-sites-desktop-en-light (2026-11-09)",
-			"description": "The same release on three sites: yesid.dev, Transit and the login page share the header, colours, type, buttons and grid background. Each one says something different. Capture: 2026-11-09T23:15:03.094Z.",
-			"sha256": "bc0b80013956931d38718a56e8a4ea65c2592bfcef264e159cb9a1200a7ca60a"
+			"title": "yesid.design · colour board light",
+			"description": "The four colours of yesid.design on a light board, orange to act, yellow to guide, white to reflect and black to structure, with their tokens, the status palette of early with a down triangle, on time with a dot and late with an up triangle, and the surface and ink tokens.",
+			"sha256": "641827cdf61a883f1be8fa51c57d8e9c3f2221b906247934cb62f262453288d0"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-headers-desktop-en-dark (2026-11-09)",
-			"description": "One header, three sites. The pill, the wordmark with its orange dot, the traffic-light theme switch and the language signpost come from yesid.design. Each site fills it with its own links. Capture: 2026-11-09T23:15:10.703Z.",
-			"sha256": "e162dac2fc96d07d2d33430bfb1138d41bfa158a8bc3729f597019f07f75eb1c"
+			"title": "yesid.design · header and footer board dark",
+			"description": "The yesid.design site chrome on a dark board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer below its yellow and black hazard edge.",
+			"sha256": "8481b24d143b4f5479d2fa7bbb9a269aca423e292f02e9fc5d98308e33fb82f8"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-headers-desktop-en-light (2026-11-09)",
-			"description": "One header, three sites. The pill, the wordmark with its orange dot, the traffic-light theme switch and the language signpost come from yesid.design. Each site fills it with its own links. Capture: 2026-11-09T23:15:10.703Z.",
-			"sha256": "c8a83b472eafe14d309e0d3a1dad88542c355b3d431fe249a65bf8199b54c788"
+			"title": "yesid.design · header and footer board light",
+			"description": "The yesid.design site chrome on a light board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer below its yellow and black hazard edge.",
+			"sha256": "6339e7d4450e84207610d9e5413ef9cb7fca648babfe43465e782fd4d60d6f91"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-yesid-dev-phone-en-dark (2026-11-09)",
-			"description": "yesid.dev on a phone: the Transit case study. Capture: 2026-11-09T23:15:16.443Z.",
-			"sha256": "f5e4f083a8b038e41a6182987c921aadc0e3f0e5a83d751da2a8052c31eb67b0"
+			"title": "yesid.design · layout board dark",
+			"description": "The yesid.design layout primitives on a dark board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
+			"sha256": "d699f24525f87591195de05e405679f154b422d6256492e0e4d82efe3caf5516"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-yesid-dev-phone-en-light (2026-11-09)",
-			"description": "yesid.dev on a phone: the Transit case study. Capture: 2026-11-09T23:15:16.443Z.",
-			"sha256": "8e1dfa92e568746e248e479193ab691f64945517fc537be124e08f958f05f1a7"
+			"title": "yesid.design · layout board light",
+			"description": "The yesid.design layout primitives on a light board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
+			"sha256": "cd37749cb8d2af4d59b35c4b37dfeed945c1fa60556295bd69b287b930247ec0"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-transit-phone-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-transit-phone-en-dark (2026-11-09)",
-			"description": "Transit on a phone: \"How we measure\". Same frame, Transit's own words. Capture: 2026-11-09T23:15:22.672Z.",
-			"sha256": "7823d024973db4f5e76dc7c6c1b696c6caf9b7a88b7cce12ab80293e6c704eee"
+			"title": "yesid.design · system board phone dark",
+			"description": "The yesid.design system stacked in a dark phone layout: the header pill, the Design system title, the four colour plates, a type specimen, two buttons, a terminal panel with a yellow rule and a notice, above a hazard strip.",
+			"sha256": "4c6a4752f77ca6a53022618d9e0744fc54c0dc3ff0930172846e0a986bcafb26"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-transit-phone-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-transit-phone-en-light (2026-11-09)",
-			"description": "Transit on a phone: \"How we measure\". Same frame, Transit's own words. Capture: 2026-11-09T23:15:22.672Z.",
-			"sha256": "e5b0d1d90558dc3dee6b4a3f8d48421b72f70bba9fe72ec219d2e1b3e461e335"
+			"title": "yesid.design · system board phone light",
+			"description": "The yesid.design system stacked in a light phone layout: the header pill, the Design system title, the four colour plates, a type specimen, two buttons, a terminal panel with a yellow rule and a notice, above a hazard strip.",
+			"sha256": "fc496cfaee383caffbc05b38bf24b9d04cd56cce36332c9e17fcc5aed4248a2b"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-listing-yesid-dev-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-listing-yesid-dev-desktop-en-dark (2026-11-09)",
-			"description": "yesid.dev: Projects. Capture: 2026-11-09T23:15:27.920Z.",
-			"sha256": "c3677f3f5ea4e3895d2fe7b6ea969753b09e8fcc9cbe5b79a331a276290ff16d"
+			"title": "yesid.design · system board desktop dark",
+			"description": "The yesid.design system on a dark blueprint grid: the Design system rail title, the header pill, an Inter and JetBrains Mono type specimen, buttons, a card, a terminal panel with a yellow rule, a notice and the four colour plates, above a hazard strip.",
+			"sha256": "ffefe87c1fc3df667d56b523ca7690299b965a1f827bef3a2da4358863b62e2c"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-listing-yesid-dev-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-listing-yesid-dev-desktop-en-light (2026-11-09)",
-			"description": "yesid.dev: Projects. Capture: 2026-11-09T23:15:27.920Z.",
-			"sha256": "ec520e7f34e9a16a02acaa9229a83dc06edb654888825b77914c3893351d9df4"
+			"title": "yesid.design · system board desktop light",
+			"description": "The yesid.design system on a light blueprint grid: the Design system rail title, the header pill, an Inter and JetBrains Mono type specimen, buttons, a card, a terminal panel with a yellow rule, a notice and the four colour plates, above a hazard strip.",
+			"sha256": "b30b0c6c78d453279bec5bcf93a85ea378cd4fdb6656a67586641df1c8360dcf"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-listing-transit-desktop-en-dark.jpg",
@@ -1308,9 +1308,9 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-og-project-card-en-single.png",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-og-project-card-en-single (2026-11-09)",
-			"description": "yesid.dev: this case study's share card. Capture: 2026-11-09T22:08:17Z.",
-			"sha256": "d32a4f9ed194d6313dce0c64de3469046e43e417be7f853aee084a4096b1ea30"
+			"title": "yesid.design · share card",
+			"description": "The yesid.design project share card from yesid.dev: \"yesid.design.\", the line \"One look for every site.\" and a \"See the case study\" button.",
+			"sha256": "b0043087bb2ddee1cbc18657cda5b767de56c7cfaac63a4bf94613bf4840121e"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-og-transit-card-en-single.png",
@@ -1357,16 +1357,16 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-languages-phone-multi-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-languages-phone-multi-dark (2026-11-09)",
-			"description": "The yesid.dev home page in English, French and Spanish on a phone. Each language has its own address, and the counter follows each language's number format: 1,247, 1 247 and 1247. Capture: 2026-11-09T23:16:39.203Z.",
-			"sha256": "38300e5145efcfd3236891d1795e21feefef264163f1642f61b989291d0c3e45"
+			"title": "yesid.design · components board dark",
+			"description": "A dark sheet of yesid.design components: buttons in four variants, static and interactive cards, state notices in four tones, a segmented choice, toggle chips, a search field, tags and metric displays.",
+			"sha256": "91b5b7477c7705028cd934ce47f6f242c6e937910cd2442043c1409a7a40e792"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-languages-phone-multi-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-languages-phone-multi-light (2026-11-09)",
-			"description": "The yesid.dev home page in English, French and Spanish on a phone. Each language has its own address, and the counter follows each language's number format: 1,247, 1 247 and 1247. Capture: 2026-11-09T23:16:39.203Z.",
-			"sha256": "f30295a6d9e97f1921a7a3b0e9c8c943341e5fae0c99bef74f2318d7eb40a529"
+			"title": "yesid.design · components board light",
+			"description": "A light sheet of yesid.design components: buttons in four variants, static and interactive cards, state notices in four tones, a segmented choice, toggle chips, a search field, tags and metric displays.",
+			"sha256": "b4be730a5f945ede4dda32d52510901cdd8fd9e290a2deaf13ae75adae149627"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-release-v0391-desktop-en-dark.jpg",
