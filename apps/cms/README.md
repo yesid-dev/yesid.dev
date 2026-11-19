@@ -121,10 +121,10 @@ Project descriptions, project sections, blog bodies and legal bodies use it.
 
 - Find the table's numbered controls below the editor.
 - Enable **First column contains row headers** only when that column names the rows.
-- Leave it off when the first column contains ordinary data. Existing documents keep their current semantics until explicitly enabled.
-- The option is stored as the optional boolean `data.withRowHeadings` in the existing block JSON; no database field is added.
+- Leave it off when the first column contains ordinary data. A table without the option renders its first column as ordinary data cells.
+- The option is stored as the optional boolean `data.withRowHeadings` in the table block's JSON, not as a database field. The site renders each first-column cell of a flagged table as a row header (`<th scope="row">`).
 - Saves, moves and clipboard copies preserve it by block ID. Column headings, sanitized inline links and the table's keyboard-scroll region stay intact.
-- Deploy the reviewed editor extension before authoring production flags. Content edits and **Publish site** remain separate operator actions.
+- The control comes from the article editor extension (below). Content edits and **Publish site** remain separate operator actions.
 
 ### Deploying the editor extension
 
@@ -205,8 +205,8 @@ every live export, so caching cannot hide a deleted or unreadable CMS file.
 Fixtures/previews never read the CMS: pinned mirrors stay real, and unpinned
 references get a visibly labelled **FIXTURE IMAGE PLACEHOLDER**. They cannot
 preview a new upload's appearance by refreshing fixture JSON alone: its bytes
-must also be mirrored, or a live build must be used. Visitors use static files
-on yesid.dev; CSP is unchanged.
+must also be mirrored, or a live build must be used. Visitors load same-origin
+static files from yesid.dev, so the CSP allows no CMS image origin.
 
 Committed mirrors are optional pinning for reviewed source releases, using
 `scripts/mirror-asset.ts`; their digests, registry contracts and reuse receipts

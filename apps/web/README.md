@@ -102,7 +102,7 @@ To regenerate project cards, run `bun run build` (fixture locally by default).
 The prerendered `/og/project/<slug>{,.fr,.es}.png` files are deployment output,
 not committed assets. `scripts/generate-og-cards.ts` only mints generic route and
 service cards; their committed PNGs and manifest digests do not change when
-project copy changes. Historical OG screenshots under `static/images/work/` are
+project copy changes. Share-card images under `static/images/work/` are
 case-study media, not the cards served by project metadata.
 
 ### Rules
@@ -113,15 +113,14 @@ case-study media, not the cards served by project metadata.
   (`src/tests/setup.dom.ts`), so run the local e2e after moving anything here.
 - GENERATED content modules (`src/lib/content/*.ts`) embed SVG filenames and asset
   UUIDs: edit Directus + regenerate, never the `.ts`.
-- Behavioral blueprint compositions remain code-owned. Catalog the stable semantic
-  selection key (`site.cta.blueprint-background`) and its four new drawing keys;
-  do not copy component markup into Directus or replace the source SVGs with CMS
-  files. The shared CTA composition has no runtime fetch and must stay decorative,
-  `aria-hidden`, unfocusable, clipped by its band, and motion-safe.
-- Until the code-component reconciliation policy lands, this map is the selectable
-  catalog for those keys. Do not create partial Directus code-component records:
-  partial linking changes live usage identities.
-- Current checks verify manifest SHA-256 digests and UUID-map/manifest consistency.
+- Behavioral blueprint compositions are code-owned: do not copy component markup
+  into Directus or replace the source SVGs with CMS files. The shared CTA
+  composition has no runtime fetch and stays decorative, `aria-hidden`,
+  unfocusable, clipped by its band, and motion-safe.
+- The CTA blueprint sheets have no asset-registry entry; this map is their
+  catalog. Do not create partial Directus code-component records: partial linking
+  changes live usage identities.
+- Checks verify manifest SHA-256 digests and UUID-map/manifest consistency.
   `assets.ts` rejects unknown UUIDs in production, and the web asset-boundary guard
   checks literal asset identities and raw HTML/SVG injection files.
 

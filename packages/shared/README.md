@@ -29,7 +29,7 @@ one product-owned contract.
 ## Content and locale contracts
 
 Directus remains the editorial source. The CMS emitter registry validates and
-writes the 20 generated modules consumed by `apps/web` at build time. Trusted
+writes the 23 generated modules consumed by `apps/web` at build time. Trusted
 Vercel builds export live from Directus; other builds default to this package's
 committed fixture, `packages/shared/fixtures/export-data.json`, refreshed with
 `apps/cms/scripts/trim-export-fixture.ts` from a live export snapshot. Generated
