@@ -1210,58 +1210,58 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-three-sites-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-three-sites-desktop-en-dark (2026-11-09)",
-			"description": "The same release on three sites: yesid.dev, Transit and the login page share the header, colours, type, buttons and grid background. Each one says something different. Capture: 2026-11-09T23:15:03.094Z.",
-			"sha256": "2d38deb38f129fb91de3f1aabb1a32a583b51bdd5550c5e84750c981674b331b"
+			"title": "yesid.design · colour board dark",
+			"description": "The four colours of yesid.design on a dark board, orange to act, yellow to guide, white to reflect and black to structure, with their tokens, the status palette of early with a down triangle, on time with a dot and late with an up triangle, and the surface and ink tokens.",
+			"sha256": "829e63f83bdc6d3803ffa14c6926bd54ed7a8489df9a5ac4a9c9e68bce2913d2"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-three-sites-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-three-sites-desktop-en-light (2026-11-09)",
-			"description": "The same release on three sites: yesid.dev, Transit and the login page share the header, colours, type, buttons and grid background. Each one says something different. Capture: 2026-11-09T23:15:03.094Z.",
-			"sha256": "bc0b80013956931d38718a56e8a4ea65c2592bfcef264e159cb9a1200a7ca60a"
+			"title": "yesid.design · colour board light",
+			"description": "The four colours of yesid.design on a light board, orange to act, yellow to guide, white to reflect and black to structure, with their tokens, the status palette of early with a down triangle, on time with a dot and late with an up triangle, and the surface and ink tokens.",
+			"sha256": "641827cdf61a883f1be8fa51c57d8e9c3f2221b906247934cb62f262453288d0"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-headers-desktop-en-dark (2026-11-09)",
-			"description": "One header, three sites. The pill, the wordmark with its orange dot, the traffic-light theme switch and the language signpost come from yesid.design. Each site fills it with its own links. Capture: 2026-11-09T23:15:10.703Z.",
-			"sha256": "e162dac2fc96d07d2d33430bfb1138d41bfa158a8bc3729f597019f07f75eb1c"
+			"title": "yesid.design · header and footer board dark",
+			"description": "The yesid.design site chrome on a dark board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer on its yellow and white street edge.",
+			"sha256": "e48a978f55bd9a9ce6da2f07293029d445332c732c05493e1a796b8ad487af4e"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-headers-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-headers-desktop-en-light (2026-11-09)",
-			"description": "One header, three sites. The pill, the wordmark with its orange dot, the traffic-light theme switch and the language signpost come from yesid.design. Each site fills it with its own links. Capture: 2026-11-09T23:15:10.703Z.",
-			"sha256": "c8a83b472eafe14d309e0d3a1dad88542c355b3d431fe249a65bf8199b54c788"
+			"title": "yesid.design · header and footer board light",
+			"description": "The yesid.design site chrome on a light board: the pill header at desktop and narrow widths with the theme lamp and language signpost, and the site footer on its yellow and white street edge.",
+			"sha256": "5c69084ddfa1fa40426384f60bd0c1037ef07e5600435ad306f6eb3644498640"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-yesid-dev-phone-en-dark (2026-11-09)",
-			"description": "yesid.dev on a phone: the Transit case study. Capture: 2026-11-09T23:15:16.443Z.",
-			"sha256": "f5e4f083a8b038e41a6182987c921aadc0e3f0e5a83d751da2a8052c31eb67b0"
+			"title": "yesid.design · layout board dark",
+			"description": "The yesid.design layout primitives on a dark board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
+			"sha256": "3bd4ed2694dad5658a7f231c5420d78e4ab847f1de099cef29c415b1b35600f4"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-yesid-dev-phone-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-yesid-dev-phone-en-light (2026-11-09)",
-			"description": "yesid.dev on a phone: the Transit case study. Capture: 2026-11-09T23:15:16.443Z.",
-			"sha256": "8e1dfa92e568746e248e479193ab691f64945517fc537be124e08f958f05f1a7"
+			"title": "yesid.design · layout board light",
+			"description": "The yesid.design layout primitives on a light board: a miniature page built from page sections, a rotated rail title, a reading frame with its contents list and the site footer, each marked with a yellow signage label.",
+			"sha256": "3f3ecd51731070ecf0e220c15b89cf5c4b47f278c2202779af4e880e7f4fde56"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-transit-phone-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-transit-phone-en-dark (2026-11-09)",
-			"description": "Transit on a phone: \"How we measure\". Same frame, Transit's own words. Capture: 2026-11-09T23:15:22.672Z.",
-			"sha256": "7823d024973db4f5e76dc7c6c1b696c6caf9b7a88b7cce12ab80293e6c704eee"
+			"title": "yesid.design · system board phone dark",
+			"description": "The yesid.design system stacked in a dark phone layout: the header pill, the Design system title, the four colour plates, a type specimen, two buttons, a terminal panel with a yellow rule and a notice, above a hazard strip.",
+			"sha256": "4c6a4752f77ca6a53022618d9e0744fc54c0dc3ff0930172846e0a986bcafb26"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-detail-phone-transit-phone-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-detail-phone-transit-phone-en-light (2026-11-09)",
-			"description": "Transit on a phone: \"How we measure\". Same frame, Transit's own words. Capture: 2026-11-09T23:15:22.672Z.",
-			"sha256": "e5b0d1d90558dc3dee6b4a3f8d48421b72f70bba9fe72ec219d2e1b3e461e335"
+			"title": "yesid.design · system board phone light",
+			"description": "The yesid.design system stacked in a light phone layout: the header pill, the Design system title, the four colour plates, a type specimen, two buttons, a terminal panel with a yellow rule and a notice, above a hazard strip.",
+			"sha256": "fc496cfaee383caffbc05b38bf24b9d04cd56cce36332c9e17fcc5aed4248a2b"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-listing-yesid-dev-desktop-en-dark.jpg",
@@ -1308,9 +1308,9 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-og-project-card-en-single.png",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-og-project-card-en-single (2026-11-09)",
-			"description": "yesid.dev: this case study's share card. Capture: 2026-11-09T22:08:17Z.",
-			"sha256": "d32a4f9ed194d6313dce0c64de3469046e43e417be7f853aee084a4096b1ea30"
+			"title": "yesid.design · share card",
+			"description": "The yesid.design project share card from yesid.dev: \"yesid.design.\", the line \"One look for every site.\" and a \"See the case study\" button.",
+			"sha256": "b0043087bb2ddee1cbc18657cda5b767de56c7cfaac63a4bf94613bf4840121e"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-og-transit-card-en-single.png",
@@ -1357,16 +1357,16 @@
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-languages-phone-multi-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-languages-phone-multi-dark (2026-11-09)",
-			"description": "The yesid.dev home page in English, French and Spanish on a phone. Each language has its own address, and the counter follows each language's number format: 1,247, 1 247 and 1247. Capture: 2026-11-09T23:16:39.203Z.",
-			"sha256": "38300e5145efcfd3236891d1795e21feefef264163f1642f61b989291d0c3e45"
+			"title": "yesid.design · components board dark",
+			"description": "A dark sheet of yesid.design components: buttons in four variants, static and interactive cards, state notices in four tones, a segmented choice, toggle chips, a search field, tags and metric displays.",
+			"sha256": "91b5b7477c7705028cd934ce47f6f242c6e937910cd2442043c1409a7a40e792"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-languages-phone-multi-light.jpg",
 			"folder": "projects",
-			"title": "yesid-design: yesid-design-languages-phone-multi-light (2026-11-09)",
-			"description": "The yesid.dev home page in English, French and Spanish on a phone. Each language has its own address, and the counter follows each language's number format: 1,247, 1 247 and 1247. Capture: 2026-11-09T23:16:39.203Z.",
-			"sha256": "f30295a6d9e97f1921a7a3b0e9c8c943341e5fae0c99bef74f2318d7eb40a529"
+			"title": "yesid.design · components board light",
+			"description": "A light sheet of yesid.design components: buttons in four variants, static and interactive cards, state notices in four tones, a segmented choice, toggle chips, a search field, tags and metric displays.",
+			"sha256": "b4be730a5f945ede4dda32d52510901cdd8fd9e290a2deaf13ae75adae149627"
 		},
 		{
 			"legacyPath": "images/work/yesid-design-20261109/yesid-design-release-v0391-desktop-en-dark.jpg",
