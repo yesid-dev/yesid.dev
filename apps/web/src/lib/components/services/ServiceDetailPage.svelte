@@ -56,7 +56,12 @@
 	} = $props();
 
 	let title = $derived(resolveLocale(service.title, locale));
-	const longestTitleWord = $derived(Math.max(1, ...title.split(/\s+/).map(word => word.length)));
+	const titleFitUnits = $derived.by(() => {
+		const words = title.trim().split(/\s+/);
+		const last = words.pop() ?? '';
+		// Include the orange period's advance when the final word limits the phone title size.
+		return Math.max(1, ...words.map(word => word.length * 0.62), last.length * 0.62 + 0.36);
+	});
 	let description = $derived(resolveLocale(service.description, locale));
 	let svgContent = $derived(serviceSvgContents[service.id] ?? '');
 	let benefitHeadline = $derived(
@@ -247,7 +252,7 @@
 				</a>
 
 				<header class="hero-grid">
-					<div class="title-cell" style:--longest-title-word={longestTitleWord}>
+					<div class="title-cell" style:--title-fit-units={titleFitUnits}>
 						<h1 class="detail-title" id="service-detail-title">
 							<TitleWithDot text={title} />
 						</h1>
@@ -447,7 +452,7 @@
 	.detail-title {
 		margin: 0;
 		font-family: var(--font-heading);
-		font-size: max(1.125rem, min(clamp(var(--text-title), 10vw, var(--text-display)), calc(100cqi / (var(--longest-title-word) * 0.62))));
+		font-size: max(1.125rem, min(clamp(var(--text-title), 10vw, var(--text-display)), calc(100cqi / var(--title-fit-units))));
 		font-weight: 900;
 		line-height: 1.05;
 		letter-spacing: -0.02em;
