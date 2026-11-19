@@ -60,7 +60,8 @@
 		const words = title.trim().split(/\s+/);
 		const last = words.pop() ?? '';
 		// Include the orange period's advance when the final word limits the phone title size.
-		return Math.max(1, ...words.map(word => word.length * 0.62), last.length * 0.62 + 0.36);
+		// 0.64em per letter covers the widest measured word, "E-commerce.", with a little room.
+		return Math.max(1, ...words.map(word => word.length * 0.64), last.length * 0.64 + 0.36);
 	});
 	let description = $derived(resolveLocale(service.description, locale));
 	let svgContent = $derived(serviceSvgContents[service.id] ?? '');

@@ -260,6 +260,7 @@ test.describe('the service page', () => {
 			[390, ['en', 'fr', 'es'], DETAIL],
 			[360, ['en'], '/services/analytics-reporting'],
 			[412, ['en'], '/services/analytics-reporting'],
+			[320, ['en', 'es'], '/services/web-development'],
 		] as const;
 		for (const [width, locales, path] of cases) {
 			for (const locale of locales) {
