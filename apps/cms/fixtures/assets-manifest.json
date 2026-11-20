@@ -594,30 +594,30 @@
 		{
 			"legacyPath": "images/work/transit-20261030/stm-map-desktop-light.png",
 			"folder": "projects",
-			"title": "Transit: stm-map-desktop-light (2026-10-30)",
-			"description": "STM vehicle map around Montréal. Light theme. Browser capture, 30 October 2026.",
-			"sha256": "75c67f1a5b272b73c175b2e596dae9289730d25b0b415517f622192e2431a7fe"
+			"title": "Transit · STM map desktop light",
+			"description": "The Montréal live map on a computer, light theme: each bus coloured by status, blue if early, neutral if on time, red if late, under the shared yesid. | Transit header.",
+			"sha256": "e0c6eb5a8ce91d6048f14688610d4b1e654f559a95bfe23a77603c134523cc64"
 		},
 		{
 			"legacyPath": "images/work/transit-20261030/stm-map-phone-light-ready.png",
 			"folder": "projects",
-			"title": "Transit: stm-map-phone-light-ready (2026-10-30)",
-			"description": "STM map in a phone-width browser viewport. Light theme. Browser capture, 30 October 2026.",
-			"sha256": "1e4468772041f9c765603be73cd4e7bc7bd8f134f83292c755346a63f378f693"
+			"title": "Transit · STM map phone light",
+			"description": "The Montréal live map on a phone, light theme: each bus coloured by status, blue if early, neutral if on time, red if late.",
+			"sha256": "9b99f9b95f4dbd54009528eab08881f995a15fe7badda5b933de5716a37ca6b6"
 		},
 		{
 			"legacyPath": "images/work/transit-20261030/stm-map-phone-dark-ready.png",
 			"folder": "projects",
-			"title": "Transit: stm-map-phone-dark-ready (2026-10-30)",
-			"description": "STM map in a phone-width browser viewport. Dark theme. Browser capture, 30 October 2026.",
-			"sha256": "7049f925df1589dd8a1c5e736ac8bd9181b481090dc454027120593e808b9969"
+			"title": "Transit · STM map phone dark",
+			"description": "The Montréal live map on a phone, dark theme: each bus coloured by status, blue if early, neutral if on time, red if late.",
+			"sha256": "c08b56db89eda3e98e0b81c2c456c1674737407730036f8b6b4e0be99768e716"
 		},
 		{
 			"legacyPath": "images/work/transit-20261030/stm-map-desktop-dark-ready.png",
 			"folder": "projects",
-			"title": "Transit: stm-map-desktop-dark-ready (2026-10-30)",
-			"description": "STM vehicle map around Montréal. Dark theme. Browser capture, 30 October 2026.",
-			"sha256": "21f0c2318b04d0cbbe8f69fca00a30bf639a99fb88aca75253d132ecbd3ccd24"
+			"title": "Transit · STM map desktop dark",
+			"description": "The Montréal live map on a computer, dark theme: each bus coloured by status, blue if early, neutral if on time, red if late, under the shared yesid. | Transit header.",
+			"sha256": "b2717cb48878fe2e44f738ff6c5b8d4535e856e9e799bfb715fa81b0948fdb3e"
 		},
 		{
 			"legacyPath": "images/work/transit-20261030/stm-route55-reliability-dark.png",
@@ -769,16 +769,16 @@
 		{
 			"legacyPath": "images/work/transit-20261109/transit-network-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "transit: transit-network-desktop-en-dark (2026-11-09)",
-			"description": "Network health: 79% on time, 86% coverage, 972 vehicle positions, 91 trips without a signal Capture: 2026-11-09T23:04:23.808Z.",
-			"sha256": "7899b85c29f22214d4459ed5690f4d4999b6aae4afbd773a3d29540633cc9230"
+			"title": "Transit · network desktop en dark",
+			"description": "Network health on Nov 19, 2026, dark theme: 74% on time, 86% coverage, 1,018 vehicle positions and 76 trips without a signal, in the \"Live now\" and \"Reporting & coverage\" sections.",
+			"sha256": "914c75cf94bb403c031b2584f91c06e05719a18ecfea37298c9268a1112bdb39"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-network-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "transit: transit-network-desktop-en-light (2026-11-09)",
-			"description": "Network health: 79% on time, 86% coverage, 972 vehicle positions, 91 trips without a signal Capture: 2026-11-09T23:04:23.808Z.",
-			"sha256": "567bdb2e2601413df6d5b826897e58d20f8890e70e35355d49f41563e2a8f949"
+			"title": "Transit · network desktop en light",
+			"description": "Network health on Nov 19, 2026, light theme: 74% on time, 86% coverage, 1,018 vehicle positions and 76 trips without a signal, in the \"Live now\" and \"Reporting & coverage\" sections.",
+			"sha256": "a059c52462b56d48e9dd1751fcf6f2b3304c5d36b5cf70f631b40cf33e8af1b6"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-search-desktop-en-dark.jpg",
@@ -867,44 +867,44 @@
 		{
 			"legacyPath": "images/work/transit-20261109/transit-line55-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "transit: transit-line55-desktop-en-dark (2026-11-09)",
-			"description": "Line 55 Saint-Laurent on Nov 9, 2026: 87% of delay observations in the on-time band, with a 95% confidence range of 83 to 90%. Capture: 2026-11-09T23:05:18.173Z.",
-			"sha256": "1a1147258887d03ac77456a88db8504aeab57909efb816b3e4f29bee265ebc38"
+			"title": "Transit · line55 desktop en dark",
+			"description": "Line 55 Saint-Laurent, 11 to 17 November 2026, dark theme: 88% on time across 225,637 readings, with daily values from 81.2% to 92.1%.",
+			"sha256": "0f5dccdb4fd4f537866f59aba9cbca23d97398df65a0282539c1ddb2add42a84"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-line55-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "transit: transit-line55-desktop-en-light (2026-11-09)",
-			"description": "Line 55 Saint-Laurent on Nov 9, 2026: 87% of delay observations in the on-time band, with a 95% confidence range of 83 to 90%. Capture: 2026-11-09T23:05:18.173Z.",
-			"sha256": "95fa3d4ec530d2c47aebf7d0883604b3b42b10ca59dcccb41b19005e3b04ad19"
+			"title": "Transit · line55 desktop en light",
+			"description": "Line 55 Saint-Laurent, 11 to 17 November 2026, light theme: 88% on time across 225,637 readings, with daily values from 81.2% to 92.1%.",
+			"sha256": "bf539f5a0c2eed130af361644a2cb1713e251fdc9f4c6751fbc799aa3e0eacf1"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-receipt-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "transit: transit-receipt-desktop-en-dark (2026-11-09)",
-			"description": "The accountability receipt for Nov 3, 2026 in Montréal: 90% of known-delay predictions in the on-time band, 0.7 minutes average delay, 4.5% severe delays. Capture: 2026-11-09T23:05:24.579Z.",
-			"sha256": "b61a032926c7c7ffac35a9b43419fbf99a0b69b14c60c66d23655a2ec3cd976c"
+			"title": "Transit · receipt desktop en dark",
+			"description": "The accountability receipt for Nov 3, 2026 in Montréal, dark theme: 90% of known-delay predictions in the on-time band, 0.7 minutes average delay, 4.5% severe delays.",
+			"sha256": "14068053d09361106c95b9f2f6f59c003bbf88a9ac0460c9821d3d7ed4e9741d"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-receipt-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "transit: transit-receipt-desktop-en-light (2026-11-09)",
-			"description": "The accountability receipt for Nov 3, 2026 in Montréal: 90% of known-delay predictions in the on-time band, 0.7 minutes average delay, 4.5% severe delays. Capture: 2026-11-09T23:05:24.579Z.",
-			"sha256": "354bd667a8ae7e0ab2e32fe00a55e084a9d5073b8761152a54bdd21001e6bc79"
+			"title": "Transit · receipt desktop en light",
+			"description": "The accountability receipt for Nov 3, 2026 in Montréal, light theme: 90% of known-delay predictions in the on-time band, 0.7 minutes average delay, 4.5% severe delays.",
+			"sha256": "5b946b4b2cc1e0bd849b88342fbf77bbfcac569c8e1752d9c586dc7de5bcb572"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-status-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "transit: transit-status-desktop-en-dark (2026-11-09)",
-			"description": "The Data health page on Nov 9, 2026: \"2 of 3 lanes passing, worst: Rollups\". A missing signal shows as \"no data\", never a made-up value. Capture: 2026-11-09T23:05:31.734Z.",
-			"sha256": "1c7005c6be7015f40c54274daa9fd37d2e5bb5441e99896d96707a346c073444"
+			"title": "Transit · status desktop en dark",
+			"description": "The Data health page on a computer, dark theme: whether live vehicle data is up to date, when the last record was published, and any warnings.",
+			"sha256": "d9ecfd09a23cabe872b2980045d67bd16a784cd0ad5e0dd749f4bd6e8450565c"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-status-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "transit: transit-status-desktop-en-light (2026-11-09)",
-			"description": "The Data health page on Nov 9, 2026: \"2 of 3 lanes passing, worst: Rollups\". A missing signal shows as \"no data\", never a made-up value. Capture: 2026-11-09T23:05:31.734Z.",
-			"sha256": "042c128d847da0d64de4996017d07336582dce8c43f9b004d0adbf4159f402a0"
+			"title": "Transit · status desktop en light",
+			"description": "The Data health page on a computer, light theme: whether live vehicle data is up to date, when the last record was published, and any warnings.",
+			"sha256": "25f3c1007124ec57640f74ef0c924cd634654a10cbaac017a0f3e9ffd20bce92"
 		},
 		{
 			"legacyPath": "images/work/transit-20261109/transit-accessibility-phone-en-dark.jpg",
