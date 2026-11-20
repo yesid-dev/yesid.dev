@@ -2724,7 +2724,7 @@
 			}
 		},
 		"images/work/site-20261030/home-desktop-dark.png": {
-			"sourceSha256": "439d912640d9bba4f5110b3a158b05b6d0163aff6b683ff9e7163665f1e3f9d1",
+			"sourceSha256": "7ca59efa541d9e2da06a6054e2426bb7af07b441cce90f71ceeab5fde57270e8",
 			"data": {
 				"width": 1440,
 				"height": 900,
@@ -2748,14 +2748,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/site-20261030/home-desktop-dark.w240.webp": "bc29950384283e41aa1faad6d772cbe9d7113dc735cba746f94f0c31e29eddfc",
-				"/images/work/site-20261030/home-desktop-dark.w600.webp": "7a251db745845c31a22bbb2ce8d610a1e2b24529bc2584b5f26bd39b91e3b1a0",
-				"/images/work/site-20261030/home-desktop-dark.w1200.webp": "920252a0e5aee69b47fccc859fa2f7256571e265ca183789b8cbcb651333bf21",
-				"/images/work/site-20261030/home-desktop-dark.w1440.webp": "7b61e14ef11f595f40dec7f5533ec4fec74600936164a11a56c129cb34e74662"
+				"/images/work/site-20261030/home-desktop-dark.w240.webp": "976744e172182937db473e818756cef07b96893839138d03849f62c852a8a752",
+				"/images/work/site-20261030/home-desktop-dark.w600.webp": "ba6facb7a1c4483e1c2b1c0e15a1969e0ca958a75fff6f63b6866be5a690cb5e",
+				"/images/work/site-20261030/home-desktop-dark.w1200.webp": "e78931adecfec695faf2d7679c304a353f9caab4a56dd9f2cdd3550b7855ee22",
+				"/images/work/site-20261030/home-desktop-dark.w1440.webp": "6420903ea24d303f2287ccd3be4e0c254785ae94ed186dd52c7e8dfdb4d354f1"
 			}
 		},
 		"images/work/site-20261030/home-desktop-light.png": {
-			"sourceSha256": "e5d871a3229b97208c32e0398d938c088af102471294ae327f2d3d499b866380",
+			"sourceSha256": "d245025d41ef38d868c34ed0fd9ecf817404aaf950be223fa2e3ec2f11e0d72c",
 			"data": {
 				"width": 1440,
 				"height": 900,
@@ -2779,10 +2779,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/site-20261030/home-desktop-light.w240.webp": "0cd73947ebeae8fe2ee16f16a596291eb1bd4c7cfd048adbb64093f6bc4a1cc0",
-				"/images/work/site-20261030/home-desktop-light.w600.webp": "34e6fb581805e03851b49416c1df43f2320c9d7fa8a9082cf48a60213536ff3f",
-				"/images/work/site-20261030/home-desktop-light.w1200.webp": "a68d80c5d776c54659e81e9c34da0912520f3a6497b5d60371e9431566f5b2a3",
-				"/images/work/site-20261030/home-desktop-light.w1440.webp": "0246d7caf0e677a82eb48e3efecae58cd7c3e2802f56dd214535ddc6d5938e57"
+				"/images/work/site-20261030/home-desktop-light.w240.webp": "cdd6a212a9186b4908dd24431efc260b9cb677d2516ea5dbf77fb394322cd05e",
+				"/images/work/site-20261030/home-desktop-light.w600.webp": "f637691dcdf99ce26babcec177ab5e0178d95367e8802ed85f4b398903068cbd",
+				"/images/work/site-20261030/home-desktop-light.w1200.webp": "739b08f7b4c194ad126d164e82b419bfc2b53bdd9864ed46c7d665e656a33d22",
+				"/images/work/site-20261030/home-desktop-light.w1440.webp": "a3fb427ccf44d52e8779d67611cede3c502913b946f04648c501cf0100483f64"
 			}
 		},
 		"images/work/site-20261030/home-mobile-dark.png": {
@@ -5663,7 +5663,7 @@
 			}
 		},
 		"images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.jpg": {
-			"sourceSha256": "c3677f3f5ea4e3895d2fe7b6ea969753b09e8fcc9cbe5b79a331a276290ff16d",
+			"sourceSha256": "6e09f093fa803dfc81d6a78ff4bccd8b289bfbcb51ca47caa176a1390fc7b502",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -5687,14 +5687,14 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w240.webp": "fc5412df70352c087ecc96c4c14d57ba3c0625a020d3fe0fa7481f6d2082937f",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w600.webp": "74827ded2741c7b650fb3cdf5b52a10be4c65b3b676bc6a2883ced6c19549a91",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w1200.webp": "15dfd7aed5ccc866000d15dbcd86878d5f393b7155c2f957e2f6b1c161880419",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w1600.webp": "42dcf01bc2da7472508aee41dc2e6f7c4f44e580b7c1550e5006bffd1d9945c5"
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w240.webp": "4af320f624327dc46637690aa46c263c88b243bd03f8739abab56b9887ee25ed",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w600.webp": "99c7f1041fb2954fc783e99f5070fbf8d3e0aa847230297eeb4bc053d467aa63",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w1200.webp": "d4feaaf249ea5378bc62cc9e026a42581781327d2d615fb596c66608fbf7178e",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.w1600.webp": "c302bfad02569b95110f6e24eda5b80c980381a6a7c34177643e04a194e55903"
 			}
 		},
 		"images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.jpg": {
-			"sourceSha256": "6321cc48241facdf19c1339cc04838f2cc7e38d810c5d4fbbadcfdd713a7e2bc",
+			"sourceSha256": "fb2a8a0f16bfa0cc24d4e0c25458c9951dc2a03003e633e9e07dd85293745481",
 			"data": {
 				"width": 2880,
 				"height": 1800,
@@ -5718,10 +5718,10 @@
 				]
 			},
 			"outputs": {
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w240.webp": "3b0b1dd5a34d065629f7200727063c12c9afae202c37c2acee7265d5b967cdd7",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w600.webp": "cc00f40452791538e2ce2681c881a992ff8b497b0d9bba156aeff4b693e5e032",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w1200.webp": "9e9aeff7cd9bd74f5e58e8934337156707d871d5eefd96ce7bcef52498fbacde",
-				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w1600.webp": "6633854dc4ebd50707b66daf99a8b4b72839fa069d848fbd34f74b76a6814a7d"
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w240.webp": "1cd21be9b0775819c76237a2912e8c60f6f0f793f4e19a3d1c08c61f104708ef",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w600.webp": "f377c04fb2ec639736933d34d09f19369d0ca68021b7681444bdc584e8979485",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w1200.webp": "8e5450fd91f40e3ff18a9cd4819d05705bb0f2fee004905634b2cfffb362c569",
+				"/images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.w1600.webp": "14bcb515e57cfcffb80e4a1bb907a41a7382aa3d21782c5fc0db9a74766461d5"
 			}
 		},
 		"images/work/yesid-dev-20261109/yesid-dev-projects-filters-phone-en-dark.jpg": {

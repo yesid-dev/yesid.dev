@@ -665,15 +665,15 @@
 			"legacyPath": "images/work/site-20261030/home-desktop-dark.png",
 			"folder": "projects",
 			"title": "yesid.dev · home desktop dark",
-			"description": "The yesid.dev home page on a computer, dark theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card.",
-			"sha256": "439d912640d9bba4f5110b3a158b05b6d0163aff6b683ff9e7163665f1e3f9d1"
+			"description": "The yesid.dev home page on a computer, dark theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card with its network map and current figures.",
+			"sha256": "7ca59efa541d9e2da06a6054e2426bb7af07b441cce90f71ceeab5fde57270e8"
 		},
 		{
 			"legacyPath": "images/work/site-20261030/home-desktop-light.png",
 			"folder": "projects",
 			"title": "yesid.dev · home desktop light",
-			"description": "The yesid.dev home page on a computer, light theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card.",
-			"sha256": "e5d871a3229b97208c32e0398d938c088af102471294ae327f2d3d499b866380"
+			"description": "The yesid.dev home page on a computer, light theme: the headline \"Websites and data tools for your business.\", both buttons and the live Transit card with its network map and current figures.",
+			"sha256": "d245025d41ef38d868c34ed0fd9ecf817404aaf950be223fa2e3ec2f11e0d72c"
 		},
 		{
 			"legacyPath": "images/work/site-20261030/home-mobile-dark.png",
@@ -1035,16 +1035,16 @@
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-dark.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-projects-desktop-en-dark (2026-11-09)",
-			"description": "The projects list. Cards, filters and header come from my design system, yesid.design. Capture: 2026-11-09T23:09:57.017Z.",
-			"sha256": "c3677f3f5ea4e3895d2fe7b6ea969753b09e8fcc9cbe5b79a331a276290ff16d"
+			"title": "yesid.dev · projects list dark",
+			"description": "The yesid.dev projects list on a computer, dark theme: the search field, service and tech stack filters, and project cards with a one-liner, service pills and Case study, Website and Repo links.",
+			"sha256": "6e09f093fa803dfc81d6a78ff4bccd8b289bfbcb51ca47caa176a1390fc7b502"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-projects-desktop-en-light.jpg",
 			"folder": "projects",
-			"title": "yesid-dev: yesid-dev-projects-desktop-en-light (2026-11-09)",
-			"description": "The projects list. Cards, filters and header come from my design system, yesid.design. Capture: 2026-11-09T23:09:57.017Z.",
-			"sha256": "6321cc48241facdf19c1339cc04838f2cc7e38d810c5d4fbbadcfdd713a7e2bc"
+			"title": "yesid.dev · projects list light",
+			"description": "The yesid.dev projects list on a computer, light theme: the search field, service and tech stack filters, and project cards with a one-liner, service pills and Case study, Website and Repo links.",
+			"sha256": "fb2a8a0f16bfa0cc24d4e0c25458c9951dc2a03003e633e9e07dd85293745481"
 		},
 		{
 			"legacyPath": "images/work/yesid-dev-20261109/yesid-dev-project-page-desktop-en-dark.jpg",
