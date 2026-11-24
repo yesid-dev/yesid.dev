@@ -326,6 +326,7 @@ test.describe('projects carousel', () => {
 		const reel = page.getByTestId('proof-reel-section');
 		await reel.scrollIntoViewIfNeeded();
 		const track = reel.getByTestId('proof-track');
+		await expect(track).toHaveAttribute('data-loop-ready', '');
 		const position = reel.getByTestId('proof-position');
 		const start = (await position.textContent())!;
 		const touch = await page.context().newCDPSession(page);
