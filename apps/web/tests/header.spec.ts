@@ -39,25 +39,31 @@ async function openMenu(page: Page, locale: Locale) {
 
 async function assertSymmetricNavbarPipes(page: Page) {
 	const splits = await page.getByTestId('nav-pill').evaluate(pill => {
-		const visible = (el: Element) => el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
-		const renderedBox = (el: Element): { left: number; right: number } | undefined => {
-			const style = getComputedStyle(el);
-			if (style.display === 'none' || style.visibility === 'hidden') return;
-			if (style.display !== 'contents') return visible(el) ? el.getBoundingClientRect() : undefined;
-			const children = [...el.children].map(renderedBox).filter((r): r is { left: number; right: number } => Boolean(r));
-			if (children.length) return { left: Math.min(...children.map(r => r.left)), right: Math.max(...children.map(r => r.right)) };
-		};
-		const adjacent = (el: Element, direction: 'previousElementSibling' | 'nextElementSibling') => {
-			let sibling = el[direction];
-			while (sibling && !renderedBox(sibling)) sibling = sibling[direction];
-			return sibling ? renderedBox(sibling) : undefined;
-		};
-		return [...pill.querySelectorAll('span[aria-hidden="true"]')].filter(el => {
-			const r = el.getBoundingClientRect();
-			return visible(el) && r.width > 0 && r.width <= 2 && r.height > 8;
-		}).map(el => {
-			const r = el.getBoundingClientRect(), before = adjacent(el, 'previousElementSibling'), after = adjacent(el, 'nextElementSibling');
-			return { left: before ? r.left - before.right : null, right: after ? after.left - r.right : null };
+		const renderedChildren = (parent: Element): Element[] =>
+			[...parent.children].flatMap((child) => {
+				const style = getComputedStyle(child);
+				if (style.display === 'none' || style.visibility === 'hidden') return [];
+				// A display: contents wrapper has no box. Its children participate in the pill's layout.
+				if (style.display === 'contents') return renderedChildren(child);
+				return child.getClientRects().length ? [child] : [];
+			});
+		return [...pill.querySelectorAll('span[aria-hidden="true"]')].flatMap((element) => {
+			const box = element.getBoundingClientRect();
+			if (!element.getClientRects().length || getComputedStyle(element).visibility === 'hidden' ||
+				box.width <= 0 || box.width > 2 || box.height <= 8) return [];
+
+			let parent = element.parentElement!;
+			while (parent !== pill && getComputedStyle(parent).display === 'contents') {
+				parent = parent.parentElement!;
+			}
+			const items = renderedChildren(parent);
+			const index = items.indexOf(element);
+			const before = items[index - 1]?.getBoundingClientRect();
+			const after = index < 0 ? undefined : items[index + 1]?.getBoundingClientRect();
+			return [{
+				left: before ? box.left - before.right : null,
+				right: after ? after.left - box.right : null,
+			}];
 		});
 	});
 	if (page.viewportSize()!.width >= 768) expect(splits.length).toBeGreaterThan(0);
