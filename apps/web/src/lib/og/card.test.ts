@@ -15,13 +15,17 @@ const card = (overrides: Partial<OgCard> = {}): OgCard => ({
 	ctaTone: 'action',
 	...overrides,
 });
-const pixels = (svg: string) =>
-	new Resvg(svg, {
+// resvg's `pixels` getter copies the whole RGBA buffer (3 MB at 1200x630) on every read,
+// so read it once per render rather than once per sampled pixel.
+const pixels = (svg: string) => {
+	const image = new Resvg(svg, {
 		font: { fontFiles: [...ogFontFiles], loadSystemFonts: false, defaultFontFamily: 'Inter' },
 	}).render();
+	return { width: image.width, height: image.height, rgba: image.pixels, png: () => image.asPng() };
+};
 const rgbAt = (image: ReturnType<typeof pixels>, x: number, y: number) => {
 	const offset = (Math.round(y) * image.width + Math.round(x)) * 4;
-	return `#${[...image.pixels.subarray(offset, offset + 3)].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+	return `#${[...image.rgba.subarray(offset, offset + 3)].map((v) => v.toString(16).padStart(2, '0')).join('').toUpperCase()}`;
 };
 
 describe('share card', () => {
@@ -147,7 +151,7 @@ describe('share card', () => {
 				expect(Math.max(r!, g!, b!), `pixel ${x},${y}`).toBeLessThan(60);
 			}
 		}
-		expect(image.asPng().byteLength).toBeLessThan(150_000);
+		expect(image.png().byteLength).toBeLessThan(150_000);
 		// Long titles take many real font measurements, which is slow on a busy machine.
 	}, 30_000);
 
