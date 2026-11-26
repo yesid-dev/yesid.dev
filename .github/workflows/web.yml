@@ -160,13 +160,38 @@ jobs:
       - name: Test CI decisions
         run: bun test ./.github/scripts/web-ci*.test.ts ./.github/scripts/e2e-shards.test.ts
 
-      - name: Type check and unit tests
+      # A stall must leave evidence (#760). In CI, Turbo holds each task's output until the task
+      # ends, so stream it. A step limit fails only its step, which keeps the log and lets the
+      # summaries upload; the job limit cancels everything. Both limits leave room for setup.
+      - name: Type check
+        timeout-minutes: 4
         env:
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
           EXPORT_FALLBACKS_SOURCE: "fixture"
           PUBLIC_PLAUSIBLE_DOMAIN: "yesid.dev"
-        run: bun x turbo run check test --filter=@repo/web
+        run: bun x turbo run check --filter=@repo/web --log-order=stream --summarize
+
+      # hanging-process names what keeps Vitest from exiting once its teardown times out.
+      - name: Unit tests
+        timeout-minutes: 7
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          EXPORT_FALLBACKS_SOURCE: "fixture"
+          PUBLIC_PLAUSIBLE_DOMAIN: "yesid.dev"
+        run: >-
+          bun x turbo run test --filter=@repo/web --log-order=stream --summarize
+          -- --reporter=default --reporter=hanging-process
+
+      - name: Upload Turbo run summaries
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: ci-work-turbo-runs
+          path: .turbo/runs/
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Brand gates
         run: bun run --cwd apps/web lint:design
