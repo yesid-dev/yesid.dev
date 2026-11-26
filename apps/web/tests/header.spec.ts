@@ -111,7 +111,7 @@ for (const locale of PUBLISHED_LOCALES) {
 		await page.goto(start(locale));
 		await headerLanguageLink(page);
 		await page
-			.getByRole('link', { name: new RegExp(`^${literal(chrome[locale].navChrome.shared.localeSwitcherAria)}:`) })
+			.getByRole('link', { name: new RegExp(`^${literal(chrome[locale].navChrome.shared.localeSwitcherAria)}\\s?:`) })
 			.click();
 
 		await expect(page).toHaveURL(samePath(start(next(locale))));
@@ -143,8 +143,9 @@ async function expectControlsInPill(page: Page, locale: Locale) {
 	await expect(theme).toBeVisible();
 	await expect(language).toBeVisible();
 	await expect(theme).toHaveAccessibleName(shared.themeToggleAria);
+	// Named by the language it leads to; French puts a no-break space before the colon (yesid.design 0.59).
 	await expect(language).toHaveAccessibleName(
-		new RegExp(`^${literal(shared.localeSwitcherAria)}: ${literal(shared.languageNames[locale])} [(]`),
+		new RegExp(`^${literal(shared.localeSwitcherAria)}\\s?: ${literal(shared.languageNames[next(locale)])} [(]`),
 	);
 	for (const control of [theme, language]) {
 		const box = (await control.boundingBox())!;
