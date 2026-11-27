@@ -7,7 +7,7 @@
       "devDependencies": {
         "@axe-core/playwright": "4.12.1",
         "@playwright/test": "^1.58.2",
-        "@yesid/config": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-config-0.60.1.tgz",
+        "@yesid/config": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-config-0.61.0-rc.1.tgz",
         "turbo": "^2.5.0",
       },
     },
@@ -34,12 +34,12 @@
         "@resvg/resvg-js": "^2.6.2",
         "@vercel/analytics": "^2.0.1",
         "@vercel/speed-insights": "^2.0.0",
-        "@yesid/analytics": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-analytics-0.60.1.tgz",
-        "@yesid/i18n-core": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-i18n-core-0.60.1.tgz",
-        "@yesid/motion": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-motion-0.60.1.tgz",
-        "@yesid/seo-kit": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-seo-kit-0.60.1.tgz",
-        "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-tokens-0.60.1.tgz",
-        "@yesid/ui": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-ui-0.60.1.tgz",
+        "@yesid/analytics": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-analytics-0.61.0-rc.1.tgz",
+        "@yesid/i18n-core": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-i18n-core-0.61.0-rc.1.tgz",
+        "@yesid/motion": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-motion-0.61.0-rc.1.tgz",
+        "@yesid/seo-kit": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-seo-kit-0.61.0-rc.1.tgz",
+        "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-tokens-0.61.0-rc.1.tgz",
+        "@yesid/ui": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-ui-0.61.0-rc.1.tgz",
         "embla-carousel": "^8.6.0",
         "embla-carousel-wheel-gestures": "^8.1.0",
         "gsap": "^3.14.2",
@@ -63,7 +63,7 @@
         "@testing-library/svelte": "^5.4.2",
         "@types/sanitize-html": "2.16.1",
         "@types/suncalc": "1.9.2",
-        "@yesid/gates": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-gates-0.60.1.tgz",
+        "@yesid/gates": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-gates-0.61.0-rc.1.tgz",
         "bits-ui": "^2.16.3",
         "embla-carousel-svelte": "^8.6.0",
         "happy-dom": "^21.0.4",
@@ -690,21 +690,21 @@
 
     "@vitest/spy": ["@vitest/spy@5.0.5", "", {}, "sha512-lwJRExuH417257Q5wv9QYugN9IMJkoxcrKrYxGPQkBzl7wlNpTUxD/5yNX4ESKVUIShKPgkGchYPFMWOOk0wzw=="],
 
-    "@yesid/analytics": ["@yesid/analytics@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-analytics-0.60.1.tgz", { "dependencies": { "@plausible-analytics/tracker": "^0.4.7" } }, "sha512-IiOIYPOE4524IU+82/3MeV491EgS5y3DuFvlvSmYBzRpwO3pIXpmQDgVTgFZ/IH5B38+yg7Ys7bJEriQNcXcuQ=="],
+    "@yesid/analytics": ["@yesid/analytics@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-analytics-0.61.0-rc.1.tgz", { "dependencies": { "@plausible-analytics/tracker": "^0.4.7" } }, "sha512-vPGMpyDGQc0krPT6FC9mRu2vLAr6dwndaAjTw4rWTaCmhygfzrcBledBNKEd6qhRwdLdc0JP3Cd7X44lH+8G9w=="],
 
-    "@yesid/config": ["@yesid/config@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-config-0.60.1.tgz", { "peerDependencies": { "@axe-core/playwright": ">=4.10.0 <5", "@playwright/test": ">=1.50.0 <2" }, "optionalPeers": ["@axe-core/playwright", "@playwright/test"] }, "sha512-7/SdFrIu1RKQBfMac/YARfgDOhYvv4NCG9LuU8gr9mCl+NuhVi/kEuWrmCv8aPrAMrjNZ8B56SSlPNkNGkUw+w=="],
+    "@yesid/config": ["@yesid/config@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-config-0.61.0-rc.1.tgz", { "peerDependencies": { "@axe-core/playwright": ">=4.10.0 <5", "@playwright/test": ">=1.50.0 <2" }, "optionalPeers": ["@axe-core/playwright", "@playwright/test"] }, "sha512-oAb+B6h+S27L1dJDFLMOBel7KLPhvX7VBPXtSjbPbBuiKRQG7xbMkqH2WqrKbr2mFqXa7wg10pOJiYeJeeUfKA=="],
 
-    "@yesid/gates": ["@yesid/gates@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-gates-0.60.1.tgz", {}, "sha512-ExD224x6S/kOiOpp8hujT+cmkinrXI35NQ/LwtQXBngjNM2JX7uY9M6dchJdBAng5NsNZKQPequ63f8+X5KZTQ=="],
+    "@yesid/gates": ["@yesid/gates@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-gates-0.61.0-rc.1.tgz", {}, "sha512-fc/2+hr7Qz6LwTcorE0EQ6d6Hpr+tfRI6O78j9LqVdJhOApo+5msPRd/4SHXSnAM1G7Up8zkio7wiitZt9rDbw=="],
 
-    "@yesid/i18n-core": ["@yesid/i18n-core@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-i18n-core-0.60.1.tgz", {}, "sha512-6zpYFTxT34UhPlKLr9825F2SmLHNVNmGp0NiB8vP9orLfAbLHx+z6TTrUH8UCpcv+5uRA0N9YRACzFhK95ucog=="],
+    "@yesid/i18n-core": ["@yesid/i18n-core@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-i18n-core-0.61.0-rc.1.tgz", {}, "sha512-ZbiKd0ronl8d021ezkNHYYKd5jI/QJy3sGPzjHO1hZjCoW8MIgDBch+Bw+AOSbNU8pRY3e9aJF7XfYkDZHerhg=="],
 
-    "@yesid/motion": ["@yesid/motion@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-motion-0.60.1.tgz", { "dependencies": { "gsap": "^3.14.2", "lenis": "^1.3.21" }, "peerDependencies": { "svelte": "^5.0.0" } }, "sha512-lzHNSZthhZhYkEuZQL8rgX03GmTPpgZMyw86WiabIL50X7+FSXcWIeZly0+YorSHfCMhYETy4JqHIfVls2IFzg=="],
+    "@yesid/motion": ["@yesid/motion@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-motion-0.61.0-rc.1.tgz", { "dependencies": { "gsap": "^3.14.2", "lenis": "^1.3.21" }, "peerDependencies": { "svelte": "^5.0.0" } }, "sha512-Dyprnon0tXWEp8W8EBWM9Oo6dHdgzgbPqSZRhkTL+EH8TSm+wBLaslQhQrm8nfCrTBj1SB7ICJ7oCtpgB5OZ+A=="],
 
-    "@yesid/seo-kit": ["@yesid/seo-kit@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-seo-kit-0.60.1.tgz", { "peerDependencies": { "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-tokens-0.60.1.tgz", "satori": ">=0.33.5 <1", "shiki": ">=4.0.0 <5" }, "optionalPeers": ["shiki"] }, "sha512-dmSXnbXPI5JcfcFu9myHYQMPRr43xVvQOsD2nMG+epP13WOH9n8lZuDw8qi6X1fmDJCGKpNyOt9T5k1HsM5bCA=="],
+    "@yesid/seo-kit": ["@yesid/seo-kit@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-seo-kit-0.61.0-rc.1.tgz", { "peerDependencies": { "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-tokens-0.61.0-rc.1.tgz", "satori": ">=0.33.5 <1", "shiki": ">=4.0.0 <5" }, "optionalPeers": ["shiki"] }, "sha512-qLxDZYVe0c1UzzbVPCEnaiqECtkjNG87NrPoxi2uBfalB0WOGdpvOcQdiZOr4BQ6uSkeAri8TAwRYR70aPYTdA=="],
 
-    "@yesid/tokens": ["@yesid/tokens@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-tokens-0.60.1.tgz", {}, "sha512-4zoemO1NLhlSfSqu2uow/A0yOcdbkOJNryl8pCX4dYG51ki2wEjnYWcY7tnRPviWy1X0REv5Lje8kdkG6Lxvkw=="],
+    "@yesid/tokens": ["@yesid/tokens@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-tokens-0.61.0-rc.1.tgz", {}, "sha512-Rp2RTZJnklyLqCz/DAQrI5qVLhX3XP++6yWKO2arCstOC9y9TTf5NIfoIIquX2iEUVPAs+qwWkjU/SBq1qYx3w=="],
 
-    "@yesid/ui": ["@yesid/ui@https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-ui-0.60.1.tgz", { "dependencies": { "@lucide/svelte": "^1.18.0", "bits-ui": "^2.16.3", "clsx": "^2.1.1", "paneforge": "^1.0.2", "tailwind-merge": "^3.5.0", "tailwind-variants": "^3.2.2", "tw-animate-css": "^1.4.0" }, "peerDependencies": { "@yesid/motion": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-motion-0.60.1.tgz", "@yesid/seo-kit": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-seo-kit-0.60.1.tgz", "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.60.1/yesid-tokens-0.60.1.tgz", "svelte": "^5.0.0" } }, "sha512-bh1nS8g45utLbo6e2K0wNAEsZfxcHSJ/k1nzLI1KNHLqLL/Kimop7pg80VcSlHJzIEuBrMmEwtqX2oiF72uf3Q=="],
+    "@yesid/ui": ["@yesid/ui@https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-ui-0.61.0-rc.1.tgz", { "dependencies": { "@lucide/svelte": "^1.18.0", "bits-ui": "^2.16.3", "clsx": "^2.1.1", "paneforge": "^1.0.2", "tailwind-merge": "^3.5.0", "tailwind-variants": "^3.2.2", "tw-animate-css": "^1.4.0" }, "peerDependencies": { "@yesid/motion": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-motion-0.61.0-rc.1.tgz", "@yesid/seo-kit": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-seo-kit-0.61.0-rc.1.tgz", "@yesid/tokens": "https://github.com/yesid-dev/yesid.design/releases/download/v0.61.0-rc.1/yesid-tokens-0.61.0-rc.1.tgz", "svelte": "^5.0.0" } }, "sha512-OQmeGHzmsIQ+27hGY1sG/KlDW6eO8iG/qtArP12Ws/h+XbZ7pf5lwVSGd3EgH3IfvdTpr9FXI9B8/thXvPR+CA=="],
 
     "abbrev": ["abbrev@3.0.1", "", {}, "sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg=="],
 
