@@ -195,7 +195,8 @@ for (const width of [390, 820, 1440]) {
      return [id, (node.closest('.home-section') ?? node).getBoundingClientRect().height];
     })), page: document.documentElement.scrollHeight };
   });
-  await expect.poll(() => page.locator('.construction-extension').evaluate(el => el.getBoundingClientRect().height)).toBe(0);
+  // The closing ground keeps its reserved height from the first paint, so the page geometry is already stable.
+  await expect(page.locator('.construction-extension')).toHaveCSS('height', `${width < 768 ? 0 : 100}px`);
   const visible = await measure();
   const control = weather.locator('.animation-control');
   await control.evaluate(el => { (el as HTMLElement).style.display = 'none'; });
