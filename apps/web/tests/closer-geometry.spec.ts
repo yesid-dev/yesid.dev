@@ -133,8 +133,14 @@ for (const width of [390, 820, 1440]) {
 			const progress = Number(document.querySelector('[data-slot="construction-props"]')!.getAttribute('data-progress'));
 			return Math.max(...elements.map(el => Math.abs(new DOMMatrixReadOnly(getComputedStyle(el).transform).m42 - (1 - progress) * el.getBoundingClientRect().height)));
 		})).toBeLessThan(0.1);
+		const flow = () => page.getByTestId('closer-section').evaluate(section => {
+			const footer = document.querySelector('[data-testid="footer"]')!;
+			return { sectionHeight: section.getBoundingClientRect().height, footerTop: footer.getBoundingClientRect().top + scrollY };
+		});
+		await page.evaluate(() => document.fonts.ready);
 		await move(0.98);
 		await settled();
+		const reservedFlow = await flow();
 		for (const [fraction, from, to] of [[0.7, 0, 1], [0.98, 1, 0], [0.7, 0, 1]]) {
 			const samples = await page.locator('.ground-anchor').evaluate(async (anchor, fraction) => {
 				window.scrollBy(0, anchor.getBoundingClientRect().top - innerHeight * fraction);
@@ -149,7 +155,7 @@ for (const width of [390, 820, 1440]) {
 				const beam = document.querySelector('.closer-beam')!;
 				getComputedStyle(beam).scale;
 				const beamTransitions = beam.getAnimations().filter((animation): animation is CSSTransition =>
-					animation instanceof CSSTransition && ['scale', 'height'].includes(animation.transitionProperty));
+					animation instanceof CSSTransition && ['scale', '--closer-beam-fold'].includes(animation.transitionProperty));
 				const allTransitions = [...transitions, ...beamTransitions];
 				// Pause real browser transitions to sample interpolation independently of
 				// runner frame rate. No transition means the old instantaneous jump.
@@ -165,8 +171,9 @@ for (const width of [390, 820, 1440]) {
 				allTransitions.forEach(animation => animation.finish());
 				return { count: transitions.length, beamCount: beamTransitions.length, positions };
 			}, fraction);
+			expect(await flow(), 'the reveal holds the closing section and footer in place').toEqual(reservedFlow);
 			expect(samples.count, 'all four props interpolate actual scroll changes').toBe(4);
-			expect(samples.beamCount, 'beam scale and responsive height interpolate too').toBe(width < 768 ? 1 : 2);
+			expect(samples.beamCount, 'beam scale and the shared fold length interpolate').toBe(width < 768 ? 1 : 2);
 			for (let prop = 0; prop < 4; prop++) {
 				const positions = samples.positions.map(sample => sample.props[prop]);
 				expect(positions[0]).toBeCloseTo(from, 2);

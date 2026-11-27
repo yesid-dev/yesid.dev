@@ -137,31 +137,45 @@
 	</div>
 	<div class="ground-anchor" bind:this={groundAnchor} aria-hidden="true"></div>
 	<div class="construction-extension" aria-hidden="true"></div>
-	<CloserFloodlight />
-	<ConstructionProps lighting layout="around-fixture" revealAt={groundAnchor} bind:progress={revealProgress} />
+	<div class="construction-stage construction-stage-light">
+		<CloserFloodlight />
+	</div>
+	<div class="construction-stage">
+		<ConstructionProps lighting layout="around-fixture" revealAt={groundAnchor} bind:progress={revealProgress} />
+	</div>
 </section>
 
 <style>
 	/* Keep the section transparent so the page circuit grid shows through the terminal. */
 	.closer-section {
-		/* The 100px ground under the board unfolds with the reveal; unfolded, it is the original bottom clearance. */
-		--closer-ground-fold: calc((1 - var(--closer-reveal, 1)) * 100px);
+		--closer-ground-height: 100px;
+		--closer-ground-fold: calc((1 - var(--closer-reveal, 1)) * var(--closer-ground-height));
 		background: transparent; position: relative; overflow-y: clip;
 		--construction-end-inset: calc(4% + clamp(160px, 18vw, 260px) + 1rem);
 	}
 	/* Match the conversion band's 4rem gap; the page owns the stacked heading gap.
 	   Natural board height remains. The tallest floor artwork
-	   is 234px: 140px here plus the 100px unfolding ground clears it below the CTA. */
+	   is 234px: 140px here plus the reserved ground clears it below the CTA. */
 	.closer-core { display: flex; align-items: flex-start; padding: 4rem var(--space-page-x) 140px; position: relative; }
 	@media (--desktop-max) {
 		.closer-core { padding-block-start: 0; }
 	}
 	.ground-anchor { height: 0; width: 1px; pointer-events: none; }
-	.construction-extension { height: calc(100px - var(--closer-ground-fold)); }
-	/* Scroll input arrives in steps. Ease the floor and artwork together so a
+	.construction-extension { height: var(--closer-ground-height); }
+	/* Reserve the ground in flow. The clipped stages keep the original visual ground line
+	   as the kit moves the props, without moving the footer. */
+	.construction-stage {
+		position: absolute;
+		inset: 0;
+		overflow-y: clip;
+		pointer-events: none;
+		translate: 0px;
+	}
+	.construction-stage-light { z-index: calc(var(--z-content) + 3); }
+	/* Scroll input arrives in steps. Ease the ground line and artwork together so a
 	   wheel notch, touch scroll or reversal cannot teleport the props. */
 	@media (prefers-reduced-motion: no-preference) {
-		.construction-extension { transition: height var(--duration-normal) var(--ease-out); }
+		.construction-stage { transition: translate var(--duration-normal) var(--ease-out); }
 		.closer-section :global([data-construction-prop] > svg) {
 			transition: transform var(--duration-normal) var(--ease-out), opacity var(--duration-normal) var(--ease-out);
 		}
@@ -169,11 +183,12 @@
 			transition: translate var(--duration-normal) var(--ease-out);
 		}
 		.closer-section :global(.closer-beam) {
-			transition: scale var(--duration-normal) var(--ease-out), height var(--duration-normal) var(--ease-out);
+			transition: scale var(--duration-normal) var(--ease-out), --closer-beam-fold var(--duration-normal) var(--ease-out);
 		}
 	}
 	/* From tablet width the props spread along the ground beside the ending. */
 	@media (--tablet-min) {
+		.construction-stage { translate: 0 calc(-1 * var(--closer-ground-fold)); }
 		.closer-section :global(.around .floor) {
 			position: absolute; inset-inline: clamp(16px, 4vw, 64px) var(--construction-end-inset);
 			bottom: 0; display: flex; align-items: flex-end; justify-content: space-evenly;
@@ -230,7 +245,7 @@
 			width: clamp(140px, 40vw, 200px); max-width: none;
 			order: 2; margin: 24px auto 0;
 		}
-		/* The ending stacks under the board and fills that space, so the ground stays folded; the props still reveal. */
+		/* The ending stacks under the board and provides the ground clearance on phones. */
 		.construction-extension { height: 0; }
 	}
 	@media (prefers-reduced-motion: reduce) {

@@ -147,7 +147,7 @@ for (const locale of PUBLISHED_LOCALES) {
 }
 
 for (const width of [390, 820, 1920]) {
-	test(`${width}px props follow scroll and the ground unfolds only beside the ending`, async ({
+	test(`${width}px props follow scroll and the reserved ground stays fixed`, async ({
 		page,
 	}) => {
 		await page.setViewportSize({ width, height: 900 });
@@ -158,6 +158,8 @@ for (const width of [390, 820, 1920]) {
 		const besideEnding = await page.locator('.closer-note').evaluate(
 			(note) => getComputedStyle(note).position === 'absolute',
 		);
+		const groundHeight = besideEnding ? 100 : 0;
+		await expect(page.locator('.construction-extension')).toHaveCSS('height', groundHeight + 'px');
 		const samples = [];
 		for (const fraction of [0.98, 0.825, 0.7, 0.825, 0.98, 0.725, 0.7]) {
 			const requested = await page
@@ -179,11 +181,7 @@ for (const width of [390, 820, 1920]) {
 				const progress = Number(document.querySelector('[data-slot="construction-props"]')!.getAttribute('data-progress'));
 				return Math.max(...elements.map(el => Math.abs(new DOMMatrixReadOnly(getComputedStyle(el).transform).m42 - (1 - progress) * el.getBoundingClientRect().height)));
 			})).toBeLessThan(0.1);
-			await expect.poll(() => page.locator('.construction-extension').evaluate(el => {
-				const progress = Number(document.querySelector('[data-slot="construction-props"]')!.getAttribute('data-progress'));
-				return Math.abs(el.getBoundingClientRect().height - (innerWidth < 768 ? 0 : 100 * progress));
-			})).toBeLessThan(0.1);
-			// The ending's ink follows the ground's layout, so sample once its strokes hold still for a frame.
+			// Sample the lettering after its strokes hold still for a frame.
 			await page.locator('.closer-note').evaluate(
 				(note) =>
 					new Promise<void>((settled) => {
@@ -208,6 +206,7 @@ for (const width of [390, 820, 1920]) {
 						.getBoundingClientRect().height,
 					sectionHeight: document.querySelector('[data-testid="closer-section"]')!.getBoundingClientRect().height,
 					sectionBottom: document.querySelector('[data-testid="closer-section"]')!.getBoundingClientRect().bottom,
+					groundLine: document.querySelector('.construction-stage-light')!.getBoundingClientRect().bottom,
 					ctaBottom: document.querySelector('[data-testid="closer-cta"]')!.getBoundingClientRect().bottom,
 					note: document.querySelector('.closer-note')!.getBoundingClientRect().toJSON(),
 					lamp: document.querySelector('[data-slot="closer-floodlight"] svg')!.getBoundingClientRect().toJSON(),
@@ -225,18 +224,9 @@ for (const width of [390, 820, 1920]) {
 			expect(sample.sectionBottom).toBeGreaterThan(sample.ctaBottom);
 			samples.push(sample);
 		}
-		if (besideEnding) {
-			expect(samples[2].ground).toBeGreaterThan(samples[1].ground);
-			expect(samples[1].ground).toBeGreaterThan(samples[0].ground);
-			expect(
-				Math.abs(samples[4].ground - samples[0].ground),
-			).toBeLessThanOrEqual(1);
-			// The board now sets the natural section height. Returning to the same
-			// fully revealed anchor must restore that height, without a viewport floor.
-			expect(Math.abs(samples[6].sectionHeight - samples[2].sectionHeight)).toBeLessThanOrEqual(1);
-		} else {
-			expect(samples.every((sample) => sample.ground === 0)).toBe(true);
-		}
+		expect(samples.every(sample => sample.ground === groundHeight)).toBe(true);
+		const sectionHeight = samples[0].sectionHeight;
+		expect(samples.every(sample => Math.abs(sample.sectionHeight - sectionHeight) <= 1)).toBe(true);
 		type Sample = (typeof samples)[number];
 		type Box = Sample['note'];
 		const intersects = (a: Box, b: Box) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
@@ -246,7 +236,7 @@ for (const width of [390, 820, 1920]) {
 			expect(intersects(sample.note, sample.board) || intersects(sample.note, sample.cta)).toBe(false);
 		}
 		for (const hidden of [samples[0], samples[4]]) {
-			expect(hidden.lamp.top).toBeGreaterThanOrEqual(hidden.sectionBottom - 1);
+			expect(hidden.lamp.top).toBeGreaterThanOrEqual(hidden.groundLine - 1);
 			expect(hidden.beam).toBeLessThanOrEqual(1);
 		}
 		// The ending is still rising and writing at 0.5 and 0.9, retraces its path on the way back,
