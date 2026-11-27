@@ -590,12 +590,15 @@
 		}
 
 		:global(.hero-section-reserve [data-testid='hero-text-container']) {
+			align-self: stretch;
+			align-items: start;
 			opacity: 1 !important;
 			position: relative !important;
 		}
 	}
 
-	/* The collapsed hero is the SSR default; replay temporarily restores the full intro track. */
+	/* The collapsed hero is the SSR default; replay temporarily restores the full intro track.
+	   Anchor the settled layer and grid below the header while their content is being parsed. */
 	.hero-section-reserve.hero-intro-done {
 		min-height: 100svh;
 	}
@@ -614,6 +617,8 @@
 	}
 
 	:global(.hero-section-reserve.hero-intro-done [data-testid='hero-text-container']) {
+		align-self: stretch;
+		align-items: start;
 		opacity: 1 !important;
 		position: relative !important;
 		transform: none !important;
@@ -706,6 +711,21 @@
 			   block centred beside the Transit card. `safe` keeps the top of that block under the
 			   header pill when 200% text or a short window makes it taller than the opening. */
 			align-items: safe center;
+		}
+
+		.hero-intro-done .hero-grid {
+			align-items: start;
+		}
+
+		/* Give the settled card room below the header from the viewport. The footprint
+		   floor grows with the preview's width and stays independent of parsed card rows. */
+		.hero-intro-done .hero-transit-slot {
+			margin-block-start: max(0px, calc((100svh - max(50rem, 33.25rem + 20vw)) / 2));
+		}
+
+		/* Give the offer a viewport-relative inset without sizing it from the Transit card. */
+		.hero-intro-done .hero-grid > :global(.hero-viewport-text) {
+			margin-block-start: min(16svh, 9rem);
 		}
 	}
 </style>
