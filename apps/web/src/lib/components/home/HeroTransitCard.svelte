@@ -252,26 +252,39 @@
 	}
 
 	.hero-transit__fig {
+		--figure-value-size: clamp(1.5rem, 6vw, 2rem);
+
 		position: relative;
-		display: flex;
-		flex-direction: column-reverse;
-		justify-content: flex-end;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		align-content: start;
 		gap: 2px;
 		min-width: 0;
 	}
 
 	.hero-transit__fig dt {
+		grid-area: 2 / 1;
 		font-size: var(--text-small);
 		line-height: 1.3;
 		color: var(--muted-foreground);
 	}
 
+	/* Reserve the value line and its baseline even when the parser has only reached the label. */
+	.hero-transit__fig::before {
+		content: '\200b';
+	}
+
+	.hero-transit__fig::before,
 	.hero-transit__fig dd {
-		margin: 0;
+		grid-area: 1 / 1;
 		font-family: var(--font-heading);
-		font-size: clamp(1.5rem, 6vw, 2rem);
+		font-size: var(--figure-value-size);
 		font-weight: 700;
 		line-height: 1.1;
+	}
+
+	.hero-transit__fig dd {
+		margin: 0;
 		letter-spacing: -0.01em;
 		color: var(--foreground);
 		font-variant-numeric: tabular-nums;
@@ -299,17 +312,20 @@
 			gap: 0;
 		}
 		.hero-transit__fig {
-			flex-direction: row;
+			--figure-value-size: 1.5rem;
+
+			grid-template-columns: minmax(0, 1fr) max-content;
 			align-items: baseline;
-			justify-content: space-between;
 			gap: 0.75rem;
 			padding-block: 0.5rem;
 		}
 		.hero-transit__fig dt {
+			grid-area: 1 / 1;
 			font-size: var(--text-body);
 		}
+		.hero-transit__fig::before,
 		.hero-transit__fig dd {
-			font-size: 1.5rem;
+			grid-area: 1 / 2;
 		}
 	}
 
@@ -336,8 +352,8 @@
 			font-size: clamp(1.125rem, 1.3vw, 1.375rem);
 			line-height: 1.45;
 		}
-		.hero-transit__fig dd {
-			font-size: clamp(2rem, 2.9vw, 3rem);
+		.hero-transit__fig {
+			--figure-value-size: clamp(2rem, 2.9vw, 3rem);
 		}
 	}
 </style>

@@ -150,17 +150,16 @@ test('short phones keep the English subtitle and both CTAs in the first screen',
 	}
 });
 
-// Owner live QA (DEV-43): on desktop the heading, lead and both actions read as one left-aligned
-// block, vertically centred beside the Transit card. Phones and tablets keep the stack order
-// (offer, then Transit), which the hero geometry test above already pins.
-test('desktop: the offer is one left-aligned block centred beside the Transit card', async ({ page }) => {
+// Owner live QA (DEV-43, updated 27 November 2026): on desktop the heading, lead and both actions
+// read as one left-aligned block beside the Transit card. Both are placed from the viewport, so
+// their starts hold while the CTA and Transit figures are still being parsed.
+test('desktop: the offer and card keep their anchors without late hero content', async ({ page }) => {
 	test.skip(page.viewportSize()!.width < 1024, 'The two-column opening only.');
 	const measure = () =>
 		page.evaluate(() => {
 			const box = (element: Element) => element.getBoundingClientRect().toJSON();
 			const grid = document.querySelector('[data-testid="hero-text-container"] .hero-grid')!;
 			return {
-				align: getComputedStyle(grid).alignItems,
 				block: box(grid.firstElementChild!),
 				card: box(document.querySelector('[data-testid="hero-transit-card"]')!),
 				pill: box(document.querySelector('[data-testid="nav-pill"]')!),
@@ -169,8 +168,6 @@ test('desktop: the offer is one left-aligned block centred beside the Transit ca
 				overflow: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - innerWidth,
 			};
 		});
-	const centreOffset = (sample: Awaited<ReturnType<typeof measure>>) =>
-		Math.abs((sample.block.top + sample.block.bottom) / 2 - (sample.card.top + sample.card.bottom) / 2);
 
 	await page.emulateMedia({ reducedMotion: 'reduce' });
 	for (const [width, height] of [[1024, 900], [1280, 760], [1440, 900], [1920, 1080]] as const) {
@@ -179,7 +176,37 @@ test('desktop: the offer is one left-aligned block centred beside the Transit ca
 		await expect(page.getByTestId('hero-transit-card')).toBeVisible();
 		await page.evaluate(() => document.fonts.ready);
 		const geometry = await measure();
-		expect(centreOffset(geometry), `the offer and the card share a vertical centre at ${width}px`).toBeLessThanOrEqual(2);
+		const withoutLateContent = await page.evaluate(() => {
+			const heading = document.querySelector('[data-testid="hero-heading"]')!;
+			const card = document.querySelector('[data-testid="hero-transit-card"]')!;
+			const lateContent = [
+				document.querySelector('[data-testid="hero-cta-project"]')!.parentElement!,
+				document.querySelector('[data-testid="hero-transit-figures"]')!,
+			].map(node => ({ node, parent: node.parentNode!, next: node.nextSibling }));
+			try {
+				for (const { node } of lateContent) node.remove();
+				return {
+					headingTop: heading.getBoundingClientRect().top,
+					cardTop: card.getBoundingClientRect().top,
+				};
+			} finally {
+				for (const { node, parent, next } of lateContent) parent.insertBefore(node, next);
+			}
+		});
+		expect(withoutLateContent).toEqual({ headingTop: geometry.heading.top, cardTop: geometry.card.top });
+		const labelMoves = await page.evaluate(() => {
+			const figure = document.querySelector('[data-testid="hero-transit-figure"]')!;
+			const label = figure.querySelector('dt')!;
+			const value = figure.querySelector('dd')!;
+			const before = label.getBoundingClientRect().top;
+			value.remove();
+			try {
+				return label.getBoundingClientRect().top - before;
+			} finally {
+				figure.append(value);
+			}
+		});
+		expect(labelMoves).toBe(0);
 		// One left-aligned block: the heading and the actions start at the block's left edge.
 		expect(Math.abs(geometry.heading.left - geometry.block.left)).toBeLessThanOrEqual(1);
 		expect(Math.abs(geometry.actions.left - geometry.block.left)).toBeLessThanOrEqual(1);

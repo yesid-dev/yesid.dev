@@ -491,7 +491,7 @@
 
 		<div
 			bind:this={heroTextContainer}
-			class="hero-text-layer absolute inset-0 flex items-start justify-center opacity-0 lg:items-center"
+			class="hero-text-layer absolute inset-0 flex items-start justify-center opacity-0"
 			data-testid="hero-text-container"
 		>
 			<div class="w-full px-[var(--space-page-x)]">
@@ -590,12 +590,15 @@
 		}
 
 		:global(.hero-section-reserve [data-testid='hero-text-container']) {
+			align-self: stretch;
+			align-items: start;
 			opacity: 1 !important;
 			position: relative !important;
 		}
 	}
 
-	/* The collapsed hero is the SSR default; replay temporarily restores the full intro track. */
+	/* The collapsed hero is the SSR default; replay temporarily restores the full intro track.
+	   Anchor the settled layer and grid below the header while their content is being parsed. */
 	.hero-section-reserve.hero-intro-done {
 		min-height: 100svh;
 	}
@@ -614,6 +617,8 @@
 	}
 
 	:global(.hero-section-reserve.hero-intro-done [data-testid='hero-text-container']) {
+		align-self: stretch;
+		align-items: start;
 		opacity: 1 !important;
 		position: relative !important;
 		transform: none !important;
@@ -702,10 +707,21 @@
 		.hero-grid {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 			gap: clamp(2.5rem, 4vw, 5rem);
-			/* Owner live QA (DEV-43): the heading, lead and both actions read as one left-aligned
-			   block centred beside the Transit card. `safe` keeps the top of that block under the
-			   header pill when 200% text or a short window makes it taller than the opening. */
-			align-items: safe center;
+			/* Owner live QA (DEV-43, updated 27 November 2026): the offer and the Transit card are
+			   placed from the viewport, not centred on each other, so content that is still being
+			   parsed cannot move them. The replay's last frame uses the same placement. */
+			align-items: start;
+		}
+
+		/* Give the card room below the header from the viewport. The footprint floor grows with
+		   the preview's width and stays independent of parsed card rows. */
+		.hero-transit-slot {
+			margin-block-start: max(0px, calc((100svh - max(50rem, 33.25rem + 20vw)) / 2));
+		}
+
+		/* Give the offer a viewport-relative inset without sizing it from the Transit card. */
+		.hero-grid > :global(.hero-viewport-text) {
+			margin-block-start: min(16svh, 9rem);
 		}
 	}
 </style>
