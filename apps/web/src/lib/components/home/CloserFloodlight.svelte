@@ -8,6 +8,13 @@
 </div>
 
 <style>
+	/* Interpolate one length so the beam's height and translation share the same value. */
+	@property --closer-beam-fold {
+		syntax: '<length>';
+		inherits: false;
+		initial-value: 0px;
+	}
+
 	/* Match the ending slot so the beam stays centered on its painted wordmark. */
 	.closer-floodlight-wrap {
 		position: absolute;
@@ -32,9 +39,13 @@
 		position: absolute;
 		left: 50%;
 		transform: translateX(-50%);
-		bottom: 100%;
+		--closer-beam-reach: 42dvh;
+		--closer-beam-fold: var(--closer-ground-fold, 0px);
+		/* Keep the layout top still while the shortening beam stays attached to the lamp. */
+		top: calc(-1 * var(--closer-beam-reach));
 		width: clamp(400px, 45vw, 650px);
-		height: calc(42dvh - var(--closer-ground-fold, 0px));
+		height: calc(var(--closer-beam-reach) - var(--closer-beam-fold));
+		translate: 0 var(--closer-beam-fold);
 		/* Narrow base matches the lens; the wide top covers the ending. */
 		clip-path: polygon(49% 100%, 51% 100%, 100% 0%, 0% 0%);
 		background: linear-gradient(
@@ -73,7 +84,8 @@
 		.closer-beam {
 			display: block;
 			width: clamp(280px, 80vw, 400px);
-			height: 35dvh;
+			--closer-beam-reach: 35dvh;
+			--closer-beam-fold: 0px;
 			clip-path: polygon(48.5% 100%, 51.5% 100%, 100% 0%, 0% 0%);
 		}
 	}
