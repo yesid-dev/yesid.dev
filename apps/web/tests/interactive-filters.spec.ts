@@ -132,9 +132,13 @@ test.describe('Blog listing filters', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/blog');
-    // Wait on the filter-sidebar landmark (web-first, auto-retrying) — the element
-    // every test in this block depends on — instead of the banned networkidle.
-    await expect(desktopSidebar(page)).toBeVisible();
+    const sidebar = desktopSidebar(page);
+    await expect(sidebar).toBeVisible();
+    // Date Range is enabled on mount. The Tags toggle is already clickable in SSR HTML.
+    await expect(sidebar.getByRole('button', {
+      name: siteLabels.blogChrome.listing.filters.dateRange.en,
+      exact: true
+    })).toBeEnabled();
   });
 
   test('blog tag filter updates URL and filters posts', async ({ page }) => {
@@ -143,6 +147,7 @@ test.describe('Blog listing filters', () => {
     // The Tags group is collapsed by default — expand it first.
     const tagsToggle = sidebar.getByRole('button', { name: siteLabels.blogChrome.listing.filters.tags.en, exact: true });
     await tagsToggle.click();
+    await expect(tagsToggle).toHaveAttribute('aria-expanded', 'true');
 
     // The expanded Tags group contains the reset radio followed by its tag chips.
     const tagsGroup = page.locator(`[id="${await tagsToggle.getAttribute('aria-controls')}"]`);
