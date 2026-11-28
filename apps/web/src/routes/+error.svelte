@@ -27,7 +27,8 @@
 		href: localizeHref(suggestion.href, locale),
 	}))}
 	suggestionsLabel={resolveLocale(siteErrorLabels.errorSuggestionsLabel, locale)}
-	statusNote={resolveLocale(siteErrorLabels.errorStatusNote, locale) ||
-		'// requested path not in service'}
+	statusNote={page.status === 404
+		? resolveLocale(siteErrorLabels.errorStatusNote, locale) || '// requested path not in service'
+		: undefined}
 	signLabel={resolveLocale(siteErrorLabels.errorSignLabel, locale)}
 />

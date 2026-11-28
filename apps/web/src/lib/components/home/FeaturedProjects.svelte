@@ -40,6 +40,8 @@
 	/** The first card in view. */
 	let first = $state(0);
 	let overflows = $state(false);
+	/** Whether the engine (or the absence of layout) has decided `overflows`. */
+	let measured = $state(false);
 	let ready = $state(false);
 	let announcement = $state('');
 	const stored = persisted<number>('featured-card', 0);
@@ -135,7 +137,10 @@
 		perView = cardsPerView(total, window.matchMedia('(min-width: 1024px)').matches);
 		first = Number.isInteger(stored.value) && stored.value >= 0 && stored.value < total ? stored.value : 0;
 		// No layout (including DOM unit tests): retain the restored logical position.
-		if (!track || track.clientWidth === 0 || total === 0) return;
+		if (!track || track.clientWidth === 0 || total === 0) {
+			measured = true;
+			return;
+		}
 		track.scrollLeft = 0;
 		carousel = EmblaCarousel(track, {
 			align: 'start', loop: true, startIndex: first,
@@ -146,6 +151,7 @@
 		carousel.on('select', syncPosition).on('reInit', syncPosition).on('settle', announce);
 		carousel.on('pointerDown', () => { moved = true; });
 		syncPosition(carousel);
+		measured = true;
 		return () => { carousel?.destroy(); carousel = undefined; };
 	});
 
@@ -175,7 +181,15 @@
 	</div>
 
 	<div class="proof-bar">
-		<div class="proof-controls" data-testid="proof-controls" hidden={!overflows} bind:this={controls}>
+		<!-- Until the engine measures, the card count predicts overflow so the bar has its final height
+			from the first paint: one card never overflows, two only under 1024px, three or more always. -->
+		<div
+			class="proof-controls"
+			data-testid="proof-controls"
+			data-fits-wide={!measured && total === 2 ? '' : undefined}
+			hidden={measured ? !overflows : total < 2}
+			bind:this={controls}
+		>
 			<SliderButton
 				direction="previous"
 				aria-label={prevLabel}
@@ -293,6 +307,16 @@
 		}
 		.proof-slide:last-child:nth-child(2) {
 			margin-inline-end: 0;
+		}
+		.proof-controls[data-fits-wide] {
+			display: none;
+		}
+	}
+
+	/* Without scripts the buttons cannot move the reel; the track still scrolls natively. */
+	@media (scripting: none) {
+		.proof-controls {
+			display: none;
 		}
 	}
 </style>
