@@ -279,9 +279,8 @@
 						{currentWeather.temp}°C · <span class="capitalize">{currentWeather.condition}</span>
 					</p>
 				{/if}
-				{#if localTime}
-					<p class="contact-small"><time>{localTime}</time></p>
-				{/if}
+				<!-- The line is there from the first paint, so the time arriving after hydration moves nothing. -->
+				<p class="contact-small" aria-hidden={localTime ? undefined : 'true'}><time>{localTime || '\u00a0'}</time></p>
 				<p class="contact-small" data-testid="contact-reply-time">{replyTime}</p>
 			</div>
 
