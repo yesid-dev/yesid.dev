@@ -1,6 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
 import ErrorPage from './+error.svelte';
+
+// The route reads its status from SvelteKit's page state; each test sets the status it renders.
+const state = vi.hoisted(() => ({ page: { status: 404 } as { status: number } }));
+vi.mock('$app/state', () => state);
+
+beforeEach(() => {
+	state.page.status = 404;
+});
 
 describe('404 Error Page', () => {
 	it('renders the construction scene', () => {
@@ -36,6 +44,13 @@ describe('404 Error Page', () => {
 	it('renders the terminal status line', () => {
 		render(ErrorPage);
 		expect(screen.getByTestId('terminal-line')).toBeInTheDocument();
+	});
+
+	it('leaves the route note off a server error, which shows its number on the sign instead', () => {
+		state.page.status = 500;
+		render(ErrorPage);
+		expect(screen.queryByTestId('terminal-line')).toBeNull();
+		expect(screen.getByTestId('construction-scene').textContent).toContain('500');
 	});
 
 	it('renders exactly ONE hazard tape (top) — the footer platform edge owns the bottom seam', () => {
