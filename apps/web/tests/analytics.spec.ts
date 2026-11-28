@@ -349,7 +349,8 @@ test('one page load and one client-side navigation each send exactly one pagevie
 	await drainCapturedRequests(page, payloads);
 	expectExactPageviewCount(payloads, 1);
 
-	const servicesLink = page.getByTestId('nav').locator('a[href="/services"]');
+	// The header also holds a hidden popover copy of the menu links; use the visible pill.
+	const servicesLink = page.getByTestId('nav-pill').locator('a[href="/services"]');
 	await expect(servicesLink).toBeVisible();
 	await servicesLink.click();
 
@@ -383,7 +384,7 @@ test('the local host sends nothing', async ({ page, baseURL }) => {
 	const localOrigin = new URL(baseURL!).origin;
 	await page.goto(localOrigin + '/projects');
 	await expect(page.getByTestId('nav')).toBeVisible();
-	await page.getByTestId('nav').locator('a[href="/services"]').click();
+	await page.getByTestId('nav-pill').locator('a[href="/services"]').click();
 	await expect(page).toHaveURL(localOrigin + '/services');
 	await expect(page.getByTestId('service-listing-page')).toBeVisible();
 	await settleBrowser(page);
@@ -401,7 +402,7 @@ test('an aborted provider request does not block navigation', async ({ page, bas
 	await page.goto(productionOrigin + '/contact');
 	await expect(page.getByTestId('page-contact')).toBeVisible();
 	await waitForPageviews(abortedPayloads, 1);
-	await page.getByTestId('nav').locator('a[href="/services"]').click();
+	await page.getByTestId('nav-pill').locator('a[href="/services"]').click();
 	await expect(page).toHaveURL(productionOrigin + '/services');
 	await expect(page.getByTestId('service-listing-page')).toBeVisible();
 	await waitForPageviews(abortedPayloads, 2);
