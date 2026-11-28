@@ -31,6 +31,8 @@ export default defineConfig({
 	expect: { timeout: process.env.CI ? 10_000 : 5_000 },
 	use: {
 		baseURL,
+		// A failed test keeps its trace; CI uploads it inside the shard's blob report.
+		trace: 'retain-on-failure',
 		// Content-interaction specs use a returning expanded visitor; fresh-storage specs override this.
 		storageState: { cookies: [], origins: [{ origin: new URL(baseURL).origin, localStorage: [{ name: 'sections-choice', value: 'expanded' }] }] },
 		// Vercel previews sit behind Deployment Protection; the bypass header gets the suite past it.
