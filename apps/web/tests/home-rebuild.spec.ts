@@ -242,7 +242,30 @@ test.describe('projects carousel', () => {
 		}
 	});
 
-	test('the buttons and the keyboard move it, the loop wraps both ways and the position is announced', async ({ page, isMobile }) => {
+	test('the reel controls hold their place before hydration, so nothing below them moves', async ({ page }) => {
+	// French labels push the controls onto their own row at phone widths: 44px of bar becomes 100px.
+	let release!: () => void;
+	const held = new Promise<void>(resolve => { release = resolve; });
+	await page.route('**/_app/immutable/entry/start.*.js', async route => {
+		await held;
+		await route.continue();
+	});
+	try {
+		await page.goto('/fr', { waitUntil: 'domcontentloaded' });
+		const bar = page.getByTestId('proof-reel-section').locator('.proof-bar');
+		const height = () => bar.evaluate(node => node.getBoundingClientRect().height);
+		await expect(page.getByTestId('proof-controls')).toBeVisible();
+		const before = await height();
+		release();
+		await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
+		await expect(page.getByTestId('proof-controls')).toBeVisible();
+		expect(await height()).toBe(before);
+	} finally {
+		release();
+	}
+});
+
+test('the buttons and the keyboard move it, the loop wraps both ways and the position is announced', async ({ page, isMobile }) => {
 		test.skip(isMobile, 'Keyboard journey on pointer projects.');
 		await page.emulateMedia({ reducedMotion: 'reduce' });
 		await page.goto('/');
